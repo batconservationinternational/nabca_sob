@@ -5,7 +5,6 @@ formatData <- function(thisDataDate,
   require(tidyverse)
   require(tidyr)
   require(purrr)
-  require(janitor)
   
   options(scipen = 999)
   
@@ -22,6 +21,13 @@ formatData <- function(thisDataDate,
     thisSheet <- "MX"
   }
   
+  clean_q_names <- function(list_of_qs){
+    list_of_qs <- stringr::str_replace(list_of_qs, "\\.$", "")
+    list_of_qs <- stringr::str_replace(list_of_qs, "\\.", "_")
+    list_of_qs <- list_of_qs %>% tolower()
+    return(list_of_qs)
+  }
+  
   # get questions and group number from xml export of survey
   surveyQ <- readxl::read_excel(paste0(here::here(),
                                        "/Data/surveyQuestions.xlsx")) %>%
@@ -30,6 +36,8 @@ formatData <- function(thisDataDate,
     tidyr::unite(varName, varName8, col = question_sub, na.rm = T) %>%
     unique() %>%
     filter(!is.na(question_sub), question_sub != '')
+  
+  surveyQ$question_sub <- clean_q_names(surveyQ$question_sub)
   
   # get what column headings are actual data
   ## other columns are often instructions
@@ -63,18 +71,12 @@ formatData <- function(thisDataDate,
       # 5 letter Species Code is not unique! there is one repeat. Change to all Caps of SPPname with no spaces
       sppCode = toupper(stringr::str_replace_all(spp, " ", "_"))
     ) %>%
-    filter(keep == T) %>%
-    select(-id, -max_ID,-submitdate,-keep)
+    filter(keep == T) %>% 
+    select(-id, -max_ID,-submitdate,-keep) %>% 
+    filter(sppCode != "NONE" & sppCode != "") #what are these?
   
-  # cN <- tolower(colnames(data))
-  cN <- colnames(data)
-  cN <- stringr::str_replace(cN, "\\.$", "")
-  cN <- stringr::str_replace(cN, "\\.", "_")
-  cN <- cN %>% tolower()
-  
-  colnames(data) <- cN
-  
-  
+  colnames(data) <- clean_q_names(colnames(data))
+
   # Format Data ---------------------------------------------------------------------------------
   
   d2 <- data %>%
@@ -101,8 +103,8 @@ formatData <- function(thisDataDate,
       Q_group = stringr::str_extract(question, "^other|([a-z]{2,3})"),
       Q_sub = stringr::str_extract(question, "(sub|user)([1-9]0?)"),
       Q_ss = case_when(
-        stringr::str_detect(question, "Sco") ~ "Scope",
-        stringr::str_detect(question, "Sev") ~ "Severity",
+        stringr::str_detect(question, "sco") ~ "Scope",
+        stringr::str_detect(question, "sev") ~ "Severity",
         stringr::str_detect(question, "n_sub(10|[1-9])") ~ "Neg"
       ),
       Q_val = case_when(
@@ -118,7 +120,7 @@ formatData <- function(thisDataDate,
       grepl("poptrend", question) ~ 'Trend',
       T ~ Q_sub
     )) %>%
-    arrange(Q_group, Q_sub)
+    arrange(Q_group, Q_sub) #NAs introduced by coersion here for "CENTRONYCTERIS_CENTRALIS"
   
   # Get negligible answers and code min, mean, max values
   negAns <- d2 %>%
@@ -126,14 +128,16 @@ formatData <- function(thisDataDate,
     rename(neg = answer) %>%
     select(token, cntry, spp, sppcode, Q_group, Q_sub, neg)
   
-  d3 <- d2 %>%
-    filter(Q_ss != "Neg" | is.na(Q_ss))
+  d3 <- d2 %>% filter(Q_ss != "Neg" | is.na(Q_ss)) #what does NA mean here?
   
-  if (nrow(d3) + nrow(negAns) != nrow(d2))
-    warning('something went wrong generating negligible answers')
+  if (nrow(d3) + nrow(negAns) != nrow(d2)){
+    warning('something went wrong generating negligible answers\nnegAns:', nrow(negAns),
+             '\nd3: ', nrow(d3), '\nd2: ', nrow(d2)
+            )
+  }
   
   # add negligible answers back to data
-  
+ 
   listSPPdata <- function(thislist) {
     return(list(rawdata=thislist))
   }
@@ -141,7 +145,7 @@ formatData <- function(thisDataDate,
   
   data_l <- left_join(d3, 
                       negAns,
-                      by = c("token", "cntry", "spp", "sppCode", "Q_group",
+                      by = c("token", "cntry", "spp", "sppcode", "Q_group",
                              "Q_sub")) %>%
     mutate(
       neg = case_when(is.na(neg) ~ 0,
@@ -151,26 +155,22 @@ formatData <- function(thisDataDate,
     ) %>%
     mutate(
       #when neg box checked, set all effects to minimum
+      #100% confidence not accepted (at least on lower end, e.g., 0 probability), so set to almost 100
+      #0 not a viable minimum so set to 0.01
       answer_C = case_when(
-        Q_val == 'conf' & (neg == 1) ~ 100,
-        Q_val == 'min' & neg == 1 ~ 0,
+        Q_val == 'conf' & neg == 1 ~ 99.99,
+        Q_val == 'min' & neg == 1 ~ 0.01,
         Q_val == 'mean' & neg == 1  ~ 0.5,
         Q_val == 'max' & neg == 1  ~ 1,
         T ~ answer_C
       ),
-      #100% confidence not accepted (at least on lower end, e.g., 0 probability), so set to almost 100
-      answer_C = case_when(Q_val == 'conf' & answer_C == 100 ~ 99.99,
-                           T ~ answer_C),
-      #0 not a viable minimum
-      answer_C = case_when(Q_val == 'min' & answer_C == 0 ~ 0.01,
-                           T ~ answer_C)
     ) %>%
     left_join(surveyQ, by = c('question' = "question_sub")) %>%
-    mutate(answer_C = case_when(group != 3 |
-                                  Q_val == 'conf' ~ answer_C / 100,
-                                T ~ answer_C)) %>%
+    # mutate(answer_C = case_when(group != 3 | #Should this be AND?
+    #                               Q_val == 'conf' ~ answer_C / 100,
+    #                             T ~ answer_C)) %>%
     # remove bad answers
-    filter(!(is.na(answer) & is.na(answer_C)))%>%
+    filter(!(is.na(answer) & is.na(answer_C)))%>% #there are a lot of these, what's going on?
     select(-question,-answer) %>%
     pivot_wider(names_from = Q_val, values_from = answer_C) %>%
     #if any are NA remove whole row
@@ -178,9 +178,10 @@ formatData <- function(thisDataDate,
     mutate(N_na = sum(is.na(min), is.na(mean), is.na(max), is.na(conf))) %>%
     ungroup() %>%
     filter(N_na == 0) %>%
+    select(-N_na) %>% 
     filter(min < mean, mean < max, min < max, conf >= 0.5) %>%
     # make into a list
-    split(., .$sppCode) %>% 
+    split(., .$sppcode) %>% 
     # make data into a list element 'rawdata')
     lapply(., listSPPdata) %>% 
     #extract unique Expert names from each species and create graphing parameters

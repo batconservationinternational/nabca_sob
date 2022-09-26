@@ -1,0 +1,45 @@
+Q_sub,Q_group,subTnum,Threat,subT,threat_abbrev
+sub1,dev,1,Residential & Commercial Development,Housing & Urban Areas,Urban Development
+sub2,dev,2,Residential & Commercial Development,Commercial & Industrial Areas,Urban Development
+sub3,dev,3,Residential & Commercial Development,Tourism & Recreation Areas,Urban Development
+sub1,ag,1,Agriculture & Aquaculture,Annual & Perennial Non-Timber Crops,Agriculture & Aquaculture
+sub2,ag,2,Agriculture & Aquaculture,Wood & Pulp Plantations,Agriculture & Aquaculture
+sub3,ag,3,Agriculture & Aquaculture,Livestock Farming & Ranching,Agriculture & Aquaculture
+sub4,ag,4,Agriculture & Aquaculture,Marine & Freshwater Aquaculture,Agriculture & Aquaculture
+sub1,en,1,Energy Production & Mining,Oil & Gas Drilling,Energy Production & Mining
+sub2,en,2,Energy Production & Mining,Mining & Quarrying,Energy Production & Mining
+sub3,en,3,Energy Production & Mining,Renewable Energy,Energy Production & Mining
+sub1,tr,1,Transportation & Service Corridors,Roads & Railroads,Transportation & Service Corridors
+sub2,tr,2,Transportation & Service Corridors,Utility & Service Lines,Transportation & Service Corridors
+sub3,tr,3,Transportation & Service Corridors,Shipping Lanes,Transportation & Service Corridors
+sub4,tr,4,Transportation & Service Corridors,Flight Paths,Transportation & Service Corridors
+sub1,bi,1,Biological Resource Use,Hunting & Collecting Terrestrial Animals,Biological Resource Use
+sub2,bi,2,Biological Resource Use,Gathering Terrestrial Plants,Biological Resource Use
+sub3,bi,3,Biological Resource Use,Logging & Wood Harvesting,Biological Resource Use
+sub4,bi,4,Biological Resource Use,Fishing & Harvesting Aquatic Resources,Biological Resource Use
+sub1,hu,1,Human Intrusions & Disturbance,Recreational Activities,Human Intrusions & Disturbance
+sub2,hu,2,Human Intrusions & Disturbance,"War, Civil Unrest & Military Exercises",Human Intrusions & Disturbance
+sub3,hu,3,Human Intrusions & Disturbance,Work & Other Activities,Human Intrusions & Disturbance
+sub1,na,1,Natural System Modifications,Fire & Fire Suppression,Natural System Modifications
+sub2,na,2,Natural System Modifications,Dams & Water Management/Use,Natural System Modifications
+sub3,na,3,Natural System Modifications,Other Ecosystem Modifications,Natural System Modifications
+sub1,in,1,"Invasive & Other Problematic Species, Genes & Diseases",Invasive Non-Native/Alien Species/Diseases,"Invasive Species, Genes, Diseases"
+sub2,in,2,"Invasive & Other Problematic Species, Genes & Diseases",Problematic Native Species/Diseases,"Invasive Species, Genes, Diseases"
+sub3,in,3,"Invasive & Other Problematic Species, Genes & Diseases",Introduced Genetic Material,"Invasive Species, Genes, Diseases"
+sub4,in,4,"Invasive & Other Problematic Species, Genes & Diseases",Problematic Species/Diseases of Unknown Origin,"Invasive Species, Genes, Diseases"
+sub5,in,5,"Invasive & Other Problematic Species, Genes & Diseases",Viral/Prion-induced Diseases,"Invasive Species, Genes, Diseases"
+sub6,in,6,"Invasive & Other Problematic Species, Genes & Diseases",Diseases of Unknown Cause,"Invasive Species, Genes, Diseases"
+sub1,po,1,Pollution,Domestic & Urban Waste Water,Pollution
+sub2,po,2,Pollution,Industrial & Military Effluents,Pollution
+sub3,po,3,Pollution,Agricultural & Forestry Effluents,Pollution
+sub4,po,4,Pollution,Garbage & Solid Waste,Pollution
+sub5,po,5,Pollution,Air-Borne Pollutants,Pollution
+sub6,po,6,Pollution,Excess Energy,Pollution
+sub1,geo,1,Geological Events,Volcanoes,Geological Events
+sub2,geo,2,Geological Events,Earthquakes/Tsunamis,Geological Events
+sub3,geo,3,Geological Events,Avalanches/Landslides,Geological Events
+sub1,cli,1,Climate Change,Habitat Shifting & Alteration,Climate Change
+sub2,cli,2,Climate Change,Droughts,Climate Change
+sub3,cli,3,Climate Change,Temperature Extremes,Climate Change
+sub4,cli,4,Climate Change,Storms & Flooding,Climate Change
+sub5,cli,5,Climate Change,Other Impacts,Climate Change

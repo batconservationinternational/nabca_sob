@@ -16,7 +16,7 @@ formatSPPdata <- function(sppList) {
   # expertColors['Combined'] ='black'
   expertColors <- expertColors[!is.na(names(expertColors))]
   
-  # message('add line typle')
+  # message('add line style')
   expertLT <- rep('solid', times = length(experts))
   names(expertLT) <- experts
   expertLT['linear pool'] = 'solid'
@@ -28,7 +28,7 @@ formatSPPdata <- function(sppList) {
   expertSZ['linear pool'] = 1
   # expertSZ['Combined'] =1
   
-  popData <- sppList[['rawdata']] %>%
+  popData <- sppList[['rawdata']] %>% #[["ANTROZOUS_PALLIDUS"]]
     filter(Q_group == 'pop') %>%
     dplyr::select(-Q_ss) %>%
     group_by(Q_group, Q_sub) %>%
@@ -39,23 +39,23 @@ formatSPPdata <- function(sppList) {
     select(-data)
   
   
-  threatData <-  sppList[['rawdata']]  %>%
+  threatData <-  sppList[['rawdata']]  %>% #[["ANTROZOUS_PALLIDUS"]]
     filter(Q_group != 'pop') %>%
-    group_by(cntry, spp, sppCode, Q_group, Q_sub, Q_ss) %>%
+    group_by(cntry, spp, sppcode, Q_group, Q_sub, Q_ss) %>%
     nest() %>%
     ungroup() %>%
     pivot_wider(names_from = Q_ss, values_from = data) %>%
     left_join(., read.csv(file = paste0(here::here(), '/Data/ThreatNum.csv')),
-              by = c("Q_group", "Q_sub")) %>%
+              by = c("Q_group", "Q_sub")) %>% #names in these aren't matched up
     arrange(Q_group, Q_sub) %>%
     group_by(Q_group, Q_sub) %>%
-    nest() %>%
-    mutate(
+    nest() %>% 
+    mutate( #issue here with list structure getting passed to the function
       ScopeMMM = map(data, formatMMM, type = 'Scope'),
       ScopeProbs = map(data, formatProbs, type = 'Scope'),
       SeverityMMM = map(data, formatMMM, type = 'Severity'),
       SeverityProbs = map(data, formatProbs, type = 'Severity')
-    )%>% 
+    ) %>% 
     select(-data)
   
   
@@ -80,7 +80,7 @@ formatMMM <- function(thisData, type) {
   # print(type)
   
   if(type=="mmm"){
-    mmm <-   t(thisData[, c('min', 'mean', 'max')])
+    mmm <- t(thisData[, c('min', 'mean', 'max')])
     colnames(mmm) <- thisData$token
   }
   
@@ -100,19 +100,22 @@ formatProbs <- function(thisData, type) {
   # print(class(thisData))
   # print(type)
   # print(thisData)
-  # 
-  # print(type=="mmm")
   
   if(type=="mmm"){
     
-    conf=0.8
-    dif=(1-conf)/2 #0.1
+    # conf=0.8
+    # dif=(1-conf)/2 #0.1
+    # 
+    # minprob=0.5-dif #0.4
+    # maxprob=0.5+dif #0.6
     
-    minprob=0.5-dif #0.4
-    maxprob=0.5+dif #0.6
-    
-    lowerP = (1 - (thisData$conf)) / 2
-    upperP = 1 - lowerP
+    conf = thisData$conf/100
+    dif = (1-conf)/2
+    lowerP = 0.5-dif
+    upperP = 0.5+dif
+    # lowerP = (1-conf)/2
+    # lowerP = (1 - (thisData$conf)) / 2
+    # upperP = 1 - lowerP
     medianP = rep(0.5, times = length(lowerP))
     
     probs <- matrix(
@@ -126,8 +129,13 @@ formatProbs <- function(thisData, type) {
   }
   
   if(type == 'Scope' | type=='Severity'){
-    lowerP = (1 - (thisData[[type]]$conf)) / 2
-    upperP = 1 - lowerP
+    x = thisData[[type]][[1]]$conf
+    conf = x/100
+    dif = (1-conf)/2
+    lowerP = 0.5-dif
+    upperP = 0.5+dif
+    # lowerP = (1 - (thisData[[type]]$conf)) / 2
+    # upperP = 1 - lowerP
     medianP = rep(0.5, times = length(lowerP))
     
     probs <- matrix(
@@ -138,7 +146,6 @@ formatProbs <- function(thisData, type) {
     rownames(probs) <- c('lowerP', 'medianP', 'upperP')
     colnames(probs) <- thisData[[type]]$token
   }
-  
   
   
   return(probs)
