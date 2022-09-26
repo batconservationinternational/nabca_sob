@@ -2,6 +2,7 @@ formatData <- function(thisDataDate,
                        thisCountry,
                        saveData=T) {
   require(dplyr)
+  require(tidyverse)
   require(tidyr)
   require(purrr)
   require(janitor)
@@ -43,10 +44,13 @@ formatData <- function(thisDataDate,
   
   data <- read.csv(thisDataFile, stringsAsFactors = F)
   
-  NuniqueSpp <- unique(data$spp) %>% .[.!=""] %>% length()
+  spp_replace <- data$spp %>% str_remove("Species") %>% str_trim(side="both")
+  
+  NuniqueSpp <- unique(spp_replace) %>% .[.!="" & .!= "None"] %>% length()
   
   data <- data %>% 
     select(id = 1, submitdate, all_of(dataCols)) %>%
+    mutate(spp = spp_replace) %>% 
     mutate(submitdate = lubridate::ymd_hms(submitdate)) %>%
     #Remove duplicate submissions
     group_by(token, cntry, sppCode) %>%
@@ -72,8 +76,6 @@ formatData <- function(thisDataDate,
   
   
   # Format Data ---------------------------------------------------------------------------------
-  
-  
   
   d2 <- data %>%
     dplyr::select(
