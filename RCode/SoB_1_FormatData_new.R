@@ -8,17 +8,19 @@ formatData <- function(thisDataDate,
   
   options(scipen = 999)
   
-  source(paste0(here::here(), '/src/SoB_f_general.R'))
+  source(paste0(here::here(), '/RCode/SoB_f_general.R'))
   
-  thisDataDate='20220914'
-  thisCountry = 'MX'
+  # thisDataDate='20220914'
+  # thisCountry = 'US_CAN_RD2_'
   
   # prep ------------------------------------------------------------------------------
   
-  thisSheet <- "US_CA"
+  thisSheet <- "US_CAN"
+  thisSurvey <- "718871"
   
   if (thisCountry == "MX") {
     thisSheet <- "MX"
+    thisSurvey <- "687664"
   }
   
   clean_q_names <- function(list_of_qs){
@@ -47,33 +49,41 @@ formatData <- function(thisDataDate,
   
   # Read Data -----------------------------------------------------------------------------------
   
-  thisDataFile <-
-    paste0('Data/', thisCountry, 'results-survey687664_', thisDataDate, '.csv')
+  thisDataFile <- paste0('Data/',thisCountry, '_results_', thisDataDate, '.csv')
   
   data <- read.csv(thisDataFile, stringsAsFactors = F)
   
-  spp_replace <- data$spp %>% str_remove("Species") %>% str_trim(side="both")
+  #fill in blank countries in MX data and merge spp columns
+  if (thisCountry == "MX") {
+     data <- data %>% 
+      unite("spp", NorthSpp, TropSpp, MXspp, sep="", remove=T, na.rm=T) %>% 
+      mutate(cntry = case_when(
+        cntry=="" ~ "Mexico", 
+        T ~ cntry
+      ))
+  }
   
-  NuniqueSpp <- unique(spp_replace) %>% .[.!="" & .!= "None"] %>% length()
+  data <- data %>% mutate(across(everything(), ~na_if(., ""))) %>% 
+    filter(!grepl("[0-9]+", sppCode)) %>%  #filter out spp that are numbers
+    mutate(spp = str_replace(spp, '\\(.*\\)', '')) %>% 
+    mutate(spp = str_trim(spp, side = "both"))
   
   data <- data %>% 
-    select(id = 1, submitdate, all_of(dataCols)) %>%
-    mutate(spp = spp_replace) %>% 
+    select(id = 1, submitdate, spp, all_of(dataCols)) %>%
     mutate(submitdate = lubridate::ymd_hms(submitdate)) %>%
     #Remove duplicate submissions
-    group_by(token, cntry, sppCode) %>%
+    group_by(token, cntry, spp) %>%
     mutate(
       max_ID = max(id),
       lastsubmission = max(submitdate),
       keep = case_when(
         submitdate >= lubridate::mdy_hm("01/01/1980 00:00") & max_ID == id & submitdate == lastsubmission  ~ T,
         T ~ F),
-      # 5 letter Species Code is not unique! there is one repeat. Change to all Caps of SPPname with no spaces
-      sppCode = toupper(stringr::str_replace_all(spp, " ", "_"))
-    ) %>%
+      # 5 letter spp Code is not unique! there is one repeat. Change to all Caps of SPPname with no spaces
+      sppCode = toupper(stringr::str_replace_all(spp, " |-", "_"))
+      ) %>%
     filter(keep == T) %>% 
-    select(-id, -max_ID,-submitdate,-keep) %>% 
-    filter(sppCode != "NONE" & sppCode != "") #what are these?
+    select(-id, -max_ID,-submitdate,-keep)
   
   colnames(data) <- clean_q_names(colnames(data))
 
@@ -100,7 +110,7 @@ formatData <- function(thisDataDate,
       values_to = "answer"
     ) %>%
     mutate(
-      Q_group = stringr::str_extract(question, "^other|([a-z]{2,3})"),
+      Q_group = stringr::str_extract(question, ".*(?=sco)|.*(?=sev)|(pop)|.*(?=n_sub)"), 
       Q_sub = stringr::str_extract(question, "(sub|user)([1-9]0?)"),
       Q_ss = case_when(
         stringr::str_detect(question, "sco") ~ "Scope",
@@ -113,27 +123,24 @@ formatData <- function(thisDataDate,
         stringr::str_detect(question, "max") ~ "max",
         stringr::str_detect(question, "conf") ~ "conf"
       )
-      # Q_sub = stringr::str_replace(question, "^[a-z]{2,3}([A-Z][a-z]*)\\.", "\\1")
     ) %>%
     mutate(Q_sub = case_when(
       grepl("popsize", question) ~ 'Size',
       grepl("poptrend", question) ~ 'Trend',
       T ~ Q_sub
     )) %>%
-    arrange(Q_group, Q_sub) #NAs introduced by coersion here for "CENTRONYCTERIS_CENTRALIS"
+    arrange(Q_group, Q_sub) 
   
   # Get negligible answers and code min, mean, max values
   negAns <- d2 %>%
     filter(Q_ss == "Neg") %>%
     rename(neg = answer) %>%
-    select(token, cntry, spp, sppcode, Q_group, Q_sub, neg)
+    select(-Q_ss, -Q_val, -question)
   
-  d3 <- d2 %>% filter(Q_ss != "Neg" | is.na(Q_ss)) #what does NA mean here?
+  d3 <- d2 %>% filter(Q_ss != "Neg"|is.na(Q_ss))
   
   if (nrow(d3) + nrow(negAns) != nrow(d2)){
-    warning('something went wrong generating negligible answers\nnegAns:', nrow(negAns),
-             '\nd3: ', nrow(d3), '\nd2: ', nrow(d2)
-            )
+    warning('something went wrong generating negligible answers')
   }
   
   # add negligible answers back to data
@@ -142,9 +149,7 @@ formatData <- function(thisDataDate,
     return(list(rawdata=thislist))
   }
   
-  
-  data_l <- left_join(d3, 
-                      negAns,
+  data_l <- left_join(d3, negAns,
                       by = c("token", "cntry", "spp", "sppcode", "Q_group",
                              "Q_sub")) %>%
     mutate(
@@ -166,12 +171,9 @@ formatData <- function(thisDataDate,
       ),
     ) %>%
     left_join(surveyQ, by = c('question' = "question_sub")) %>%
-    # mutate(answer_C = case_when(group != 3 | #Should this be AND?
-    #                               Q_val == 'conf' ~ answer_C / 100,
-    #                             T ~ answer_C)) %>%
     # remove bad answers
-    filter(!(is.na(answer) & is.na(answer_C)))%>% #there are a lot of these, what's going on?
-    select(-question,-answer) %>%
+    filter(!(is.na(answer) & is.na(answer_C)))%>%
+    select(-question, -answer) %>%
     pivot_wider(names_from = Q_val, values_from = answer_C) %>%
     #if any are NA remove whole row
     rowwise() %>%
@@ -179,12 +181,12 @@ formatData <- function(thisDataDate,
     ungroup() %>%
     filter(N_na == 0) %>%
     select(-N_na) %>% 
-    filter(min < mean, mean < max, min < max, conf >= 0.5) %>%
+    filter(min < mean, mean < max, min < max, conf >= 0.5) %>% 
     # make into a list
     split(., .$sppcode) %>% 
     # make data into a list element 'rawdata')
     lapply(., listSPPdata) %>% 
-    #extract unique Expert names from each species and create graphing parameters
+    #extract unique Expert names from each spp and create graphing parameters
     lapply(., formatSPPdata)
   
   
