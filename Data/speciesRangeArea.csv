@@ -1,0 +1,313 @@
+species,country,spp_abbrev,common_name,area
+Myotis lucifugus,Canada,MYLUC,Little Brown Myotis,5866684136219.28
+Myotis leibii,Canada,MYLEI,Eastern Small-footed Myotis,255663906331.09
+Eptesicus fuscus,Canada,EPFUS,Big Brown Bat,1467211249592.62
+Lasionycteris noctivagans,Canada,LANOC,Silver-haired Bat,2601904633701.9
+Myotis yumanensis,Canada,MYYUM,Yuma Myotis,157419529636.503
+Myotis septentrionalis,Canada,MYSEP,Northern Myotis,3726971357503.81
+Myotis evotis,Canada,MYEVO,Long-eared Myotis,274338495203.822
+Myotis californicus,Canada:Vancouver Island,MYCAL,Californian Myotis,5208524388.34424
+Myotis volans,Canada:Vancouver Island,MYVOL,Long-legged Myotis,6442846683.68639
+Myotis lucifugus,Canada:Vancouver Island,MYLUC,Little Brown Myotis,2228611499.29601
+Lasiurus cinereus,Canada,LACIN,Hoary Bat,1294702162830.84
+Corynorhinus townsendii,Canada,COTOW,Townsend's Big-eared Bat,52743131069.7449
+Perimyotis subflavus,Canada,PESUB,Tricolored Bat,42459741698.0868
+Lasiurus borealis,Canada,LABOR,Eastern Red Bat,718804873835.569
+Eptesicus fuscus,Canada:27,EPFUS,Big Brown Bat,0
+Myotis californicus,Canada,MYCAL,Californian Myotis,78537771302.6373
+Myotis austroriparius,Canada,MYAUS,Southeastern Myotis,0
+Myotis lucifugus,Canada:27,MYLUC,Little Brown Myotis,85204505326.6155
+Myotis volans,Canada,MYVOL,Long-legged Myotis,194360796248.355
+Myotis lucifugus,Canada:Newfoundland,MYLUC,Little Brown Myotis,2269422648.50192
+Lasiurus borealis,Canada:27,LABOR,Eastern Red Bat,0
+Myotis lucifugus,Canada:Moresby Island,MYLUC,Little Brown Myotis,0
+Eptesicus fuscus,USA,EPFUS,Big Brown Bat,266575216045.441
+Myotis yumanensis,USA,MYYUM,Yuma Myotis,63611532.3026891
+Lasionycteris noctivagans,Canada:Vancouver Island,LANOC,Silver-haired Bat,0
+Myotis lucifugus,Canada:Graham Island,MYLUC,Little Brown Myotis,0
+Lasionycteris noctivagans,Canada:Graham Island,LANOC,Silver-haired Bat,0
+Myotis yumanensis,Canada:Vancouver Island,MYYUM,Yuma Myotis,0
+Myotis melanorhinus,Canada,MYMEL,Dark-nosed Small-footed Myotis,0
+Myotis septentrionalis,Canada:27,MYSEP,Northern Myotis,0
+Myotis lucifugus,Canada:Prince Edward Island,MYLUC,Little Brown Myotis,0
+Myotis lucifugus,Canada:Cape Breton Island,MYLUC,Little Brown Myotis,0
+Nycticeius humeralis,Canada,NYHUM,Evening Bat,0
+Macrotus waterhousii,Canada,MAWAT,Waterhouse's Leaf-nosed Bat,0
+Lasionycteris noctivagans,USA,LANOC,Silver-haired Bat,262576265536.999
+Myotis lucifugus,USA,MYLUC,Little Brown Myotis,392080791400.001
+Nycticeius humeralis,USA,NYHUM,Evening Bat,39164663375.9001
+Lasiurus cinereus,USA,LACIN,Hoary Bat,245295777945.432
+Lasiurus borealis,USA,LABOR,Eastern Red Bat,230881797049.311
+Myotis lucifugus,USA:Alaska,MYLUC,Little Brown Myotis,59529222767.1203
+Perimyotis subflavus,USA,PESUB,Tricolored Bat,81444220584.1084
+Myotis sodalis,USA,MYSOD,Indiana Myotis,39405710861.4356
+Myotis septentrionalis,USA,MYSEP,Northern Myotis,99958117305.3382
+Myotis leibii,USA,MYLEI,Eastern Small-footed Myotis,95931355584.5488
+Eptesicus fuscus,USA,EPFUS,Big Brown Bat,92708236961.064
+Myotis yumanensis,USA,MYYUM,Yuma Myotis,93694807724.4405
+Promops centralis,Mexico,PRCEN,Big Crested Mastiff Bat,422394650906.774
+Glossophaga soricina,Mexico,GLSOR,Pallas's Long-tongued Bat,1706993179788.98
+Molossus alvarezi,Mexico,MOALV,Alvarez&apos;s Mastiff Bat,0
+Dermanura phaeotis,Mexico,DEPHA,NA,882405095225.325
+Rhogeessa aeneus,Mexico,RHAEN,Yucatan Yellow Bat,93777965065.9611
+Artibeus lituratus,Mexico,ARLIT,Great Fruit-eating Bat,974026255502.129
+Carollia perspicillata,Mexico,CAPER,Seba's Short-tailed Bat,1253104035509.36
+Artibeus jamaicensis,Mexico,ARJAM,Jamaican Fruit-eating Bat,1149566552535.71
+Centurio senex,Mexico,CESEN,Wrinkle-faced Bat,959007188211.637
+Pteronotus mesoamericanus,Mexico,PTMES,Mesoamerican mustached bat,86148491617.3713
+Pteronotus davyi,Mexico,PTDAV,Davy's Naked-backed Bat,1333328448476.33
+Balantiopteryx plicata,Mexico,BAPLI,Gray Sac-winged Bat,776264816127.466
+Dermanura tolteca,Mexico,DETOL,NA,795846238478.733
+Desmodus rotundus,Mexico,DEROT,Common Vampire Bat,1137450150713.46
+Lasiurus blossevillii,Mexico,LABLO,Western Red Bat,790395484583.68
+Mormoops megalophylla,Mexico,MOMEG,Peters's Ghost-faced Bat,1505392562215.72
+Choeronycteris mexicana,Mexico,CHMEX,Mexican Long-tongued Bat,1145801081825.53
+Macrotus waterhousii,Mexico,MAWAT,Waterhouse's Leaf-nosed Bat,997179075350.517
+Carollia subrufa,Mexico,CASUB,Gray Short-tailed Bat,419778888993.116
+Rhogeessa parvula,Mexico,RHPAR,Little Yellow Bat,1067172013088.62
+Pteronotus personatus,Mexico,PTPER,Wagner's Mustached Bat,878541723052.964
+Lasiurus ega,Mexico,LAEGA,Southern Yellow Bat,1320914362364.71
+Molossus rufus,Mexico,MORUF,Black Mastiff Bat,969396911420.031
+Parastrellus hesperus,Mexico,PAHES,Canyon Bat,1035915768688.93
+Noctilio leporinus,Mexico,NOLEP,Greater Bulldog Bat,825911402375.392
+Micronycteris microtis,Mexico,MIMIC,Common Big-eared Bat,502203512781.061
+Glossophaga commissarisi,Mexico,GLCOM,Commissaris's Long-tongued Bat,512497372061.57
+Glossophaga leachii,Mexico,GLLEA,Gray's Long-tongued Bat,1157277352328.82
+Glossophaga morenoi,Mexico,GLMOR,Western Long-tongued Bat,152769192045.586
+Diclidurus albus,Mexico,DIALB,Northern Ghost Bat,6739955985.36195
+Chiroderma salvini,Mexico,CHSAL,Salvin's Big-eyed Bat,948996683941.262
+Lasiurus xanthinus,Mexico,LAXAN,Western Yellow Bat,331034137354.035
+Leptonycteris yerbabuenae,Mexico,LEYER,Lesser Long-nosed Bat,1142493166894.82
+Molossus sinaloae,Mexico,MOSIN,Sinaloan Mastiff Bat,624923287873.641
+Musonycteris harrisoni,Mexico,MUHAR,Banana Bat,24909581426.626
+Nyctinomops aurispinosus,Mexico,NYAUR,Peale's Free-tailed Bat,941271238492.172
+Saccopteryx bilineata,Mexico,SABIL,Greater Sac-winged Bat,479235075248.367
+Antrozous pallidus,Mexico,ANPAL,Pallid Bat,1157539830883.94
+Myotis velifer,Mexico,MYVEL,Cave Myotis,1467466396387.09
+Anoura geoffroyi,Mexico,ANGEO,Geoffroy's Tailless Bat,770959571139.86
+Dermanura azteca,Mexico,DEAZT,NA,638286719911.768
+Lasiurus intermedius,Mexico,LAINT,Northern Yellow Bat,785773327403.646
+Leptonycteris nivalis,Mexico,LENIV,Mexican Long-nosed Bat,1284698293646.04
+Myotis albescens,Mexico,MYALB,Silver-tipped Myotis,0
+Myotis californicus,Mexico,MYCAL,Californian Myotis,1325092903590.05
+Myotis volans,Mexico,MYVOL,Long-legged Myotis,1193328968769.96
+Macrotus californicus,Mexico,MACAL,Californian Leaf-nosed Bat,579126654060.08
+Corynorhinus mexicanus,Mexico,COMEX,Mexican Big-eared Bat,907062551900.979
+Eptesicus fuscus,Mexico,EPFUS,Big Brown Bat,1610312634084.54
+Artibeus hirsutus,Mexico,ARHIR,Hairy Fruit-eating Bat,420597846672.644
+Myotis yumanensis,Mexico,MYYUM,Yuma Myotis,1151944715955.05
+Myotis leibii,Mexico,MYLEI,Eastern Small-footed Myotis,832302170546.197
+Lasiurus cinereus,Mexico,LACIN,Hoary Bat,1326931138507.11
+Tadarida brasiliensis,Mexico,TABRA,Brazilian Free-tailed Bat,1659160671969.23
+Myotis fortidens,Mexico,MYFOR,Cinnamon Myotis,1022308075636.57
+Myotis evotis,Mexico,MYEVO,Long-eared Myotis,97801741380.4299
+Sturnira parvidens,Mexico,STPAR,Northern Yellow-shouldered Bat,1118181423525.94
+Eptesicus furinalis,Mexico,EPFUR,Argentinian Brown Bat,687200908882.522
+Chiroderma villosum,Mexico,CHVIL,Hairy Big-eyed Bat,587227046707.737
+Rhogeessa tumida,Mexico,RHTUM,Black-winged Little Yellow Bat,330898595265.338
+Diphylla ecaudata,Mexico,DIECA,Hairy-legged Vampire Bat,302876684246.155
+Lampronycteris brachyotis,Mexico,LABRA,Orange-throated Bat,0
+Platyrrhinus helleri,Mexico,PLHEL,Heller's Broad-nosed Bat,178582172413.684
+Bauerus dubiaquercus,Mexico,BADUB,Van Gelder's Bat,0
+Mimon cozumelae,Mexico,MICOZ,Cozumelan Golden Bat,119260263646.413
+Peropteryx macrotis,Mexico,PEMAC,Lesser Dog-like Bat,375535445915.343
+Nyctinomops laticaudatus,Mexico,NYLAT,Broad-eared Free-tailed Bat,623178599550.473
+Lophostoma evotis,Mexico,LOEVO,Davis' Round-eared Bat,0
+Trachops cirrhosus,Mexico,TRCIR,Fringe-lipped Bat,167182445619.934
+Chrotopterus auritus,Mexico,CHAUR,Woolly False Vampire Bat,151342495580.387
+Myotis keaysi,Mexico,MYKEA,Hairy-legged Myotis,355457135176.54
+Myotis thysanodes,Mexico,MYTHY,Fringed Myotis,979160518893.662
+Nyctinomops femorosaccus,Mexico,NYFEM,Pocketed Free-tailed Bat,961609881359.199
+Natalus mexicanus,Mexico,NAMEX,Mexican Greater Funnel-eared Bat,1184843863854.24
+Rhynchonycteris naso,Mexico,RHNAS,Proboscis Bat,178495874566.134
+Myotis nigricans,Mexico,MYNIG,Black Myotis,552591893814.704
+Myotis elegans,Mexico,MYELE,Elegant Myotis,178280067202.779
+Artibeus jamaicensis,Mexico:Isla del Carmen,ARJAM,Jamaican Fruit-eating Bat,0
+Nycticeius humeralis,Mexico,NYHUM,Evening Bat,214026087032.869
+Corynorhinus townsendii,Mexico,COTOW,Townsend's Big-eared Bat,1047736925550.16
+Lonchorhina aurita,Mexico,LOAUR,Common Sword-nosed Bat,166050109975.523
+Rhogeessa genowaysi,Mexico,RHGEN,Genoways' Yellow Bat,0
+Rhogeessa bickhami,Mexico,RHBIC,Bickham&apos;s Yellow Bat,0
+Hylonycteris underwoodi,Mexico,HYUND,Underwood's Long-tongued Bat,1394842861920.68
+Myotis vivesi,Mexico,MYVIV,Fish-eating Myotis,59360822396.7302
+Nyctinomops macrotis,Mexico,NYMAC,Big Free-tailed Bat,1007908958191.07
+Lasiurus borealis,Mexico,LABOR,Eastern Red Bat,1290441343983.58
+Myotis ciliolabrum,Mexico,MYCIL,Western Small-footed Myotis,555122224419.825
+Molossus molossus,Mexico,MOMOL,Pallas's Mastiff Bat,659293453089.467
+Eumops underwoodi,Mexico,EUUND,Underwood's Bonneted Bat,1058446655980.27
+Eumops nanus,Mexico,EUNAN,Dwarf Bonneted Bat,0
+Balantiopteryx io,Mexico,BAIO,Thomas's Sac-winged Bat,67687067567.0681
+Myotis auriculus,Mexico,MYAUR,Southwestern Myotis,725016196294.462
+Eumops perotis,Mexico,EUPER,Greater Bonneted Bat,681257744517.665
+Peropteryx kappleri,Mexico,PEKAP,Greater Dog-like Bat,47109676278.1814
+Phyllostomus discolor,Mexico,PHDIS,Pale Spear-nosed Bat,106398195245.731
+Enchisthenes hartii,Mexico,ENHAR,Velvety Fruit-eating Bat,469835522206.98
+Dermanura watsoni,Mexico,DEWAT,NA,0
+Choeroniscus godmani,Mexico,CHGOD,Godman's Long-tongued Bat,499965312699.205
+Perimyotis subflavus,Mexico,PESUB,Tricolored Bat,149647487388.001
+Myotis planiceps,Mexico,MYPLA,Flat-headed Myotis,0
+Thyroptera tricolor,Mexico,THTRI,Spix's Disk-winged Bat,51878309507.3827
+Myotis occultus,Mexico,MYOCC,Arizona Myotis,22555059095.1492
+Eumops perotis,USA,EUPER,Greater Bonneted Bat,81271200783.1796
+Nyctinomops femorosaccus,USA,NYFEM,Pocketed Free-tailed Bat,79279610855.4597
+Nyctinomops macrotis,USA,NYMAC,Big Free-tailed Bat,85985076851.3071
+Myotis melanorhinus,Mexico,MYMEL,Dark-nosed Small-footed Myotis,0
+Eptesicus brasiliensis,Mexico,EPBRA,Brazilian Brown Bat,1973830612.85828
+Myotis lucifugus,Mexico,MYLUC,Little Brown Myotis,0
+Idionycteris phyllotis,Mexico,IDPHY,Allen's Big-eared Bat,415081732585.226
+Molossus aztecus,Mexico,MOAZT,Aztec Mastiff Bat,17506708094.1499
+Cynomops mexicanus,Mexico,CYMEX,Mexican Dog-faced Bat,2968219715.58203
+Mormoops megalophylla,USA,MOMEG,Peters's Ghost-faced Bat,135187180095.948
+Glyphonycteris sylvestris,Mexico,GLSYL,Tricolored Bat,132035635310.588
+Rhogeessa mira,Mexico,RHMIR,Least Yellow Bat,0
+Carollia sowelli,Mexico,CASOW,Sowell&apos;s Short-tailed Bat,162960516149.168
+Molossus pretiosus,Mexico,MOPRE,Miller's Mastiff Bat,349543052529.457
+Euderma maculatum,Mexico,EUMAC,Spotted Bat,0
+Macrophyllum macrophyllum,Mexico,MAMAC,Long-legged Bat,0
+Diaemus youngi,Mexico,DIYOU,NA,0
+Centronycteris centralis,Mexico,CECEN,Thomas's Shaggy Bat,0
+Myotis peninsularis,Mexico,MYPEN,NA,3332334190.39231
+Myotis thysanodes,USA,MYTHY,Fringed Myotis,60751615428.2509
+Lasionycteris noctivagans,USA,LANOC,Silver-haired Bat,76542326504.9619
+Myotis californicus,USA,MYCAL,Californian Myotis,191294255459.512
+Myotis volans,USA,MYVOL,Long-legged Myotis,57349653996.9754
+Myotis auriculus,USA,MYAUR,Southwestern Myotis,2200987906.14362
+Tadarida brasiliensis,USA,TABRA,Brazilian Free-tailed Bat,227789518573.507
+Myotis lucifugus,USA,MYLUC,Little Brown Myotis,7416271553.58781
+Nycticeius humeralis,USA,NYHUM,Evening Bat,111006083062.128
+Lasiurus cinereus,USA,LACIN,Hoary Bat,229323292202.118
+Lasiurus borealis,USA,LABOR,Eastern Red Bat,187558515861.067
+Leptonycteris yerbabuenae,USA,LEYER,Lesser Long-nosed Bat,1388531232.1698
+Corynorhinus townsendii,USA,COTOW,Townsend's Big-eared Bat,90352004063.9726
+Myotis evotis,USA,MYEVO,Long-eared Myotis,6115561473.08589
+Antrozous pallidus,USA,ANPAL,Pallid Bat,238789810184.928
+Parastrellus hesperus,USA,PAHES,Canyon Bat,83920025456.5479
+Myotis occultus,USA,MYOCC,Arizona Myotis,1391599116.24607
+Myotis ciliolabrum,USA,MYCIL,Western Small-footed Myotis,68661294022.5156
+Myotis melanorhinus,USA,MYMEL,Dark-nosed Small-footed Myotis,11967397723.628
+Perimyotis subflavus,USA,PESUB,Tricolored Bat,9444410496.90561
+Myotis velifer,USA,MYVEL,Cave Myotis,100578840355.362
+Euderma maculatum,USA,EUMAC,Spotted Bat,48841948263.2246
+Lasiurus blossevillii,USA,LABLO,Western Red Bat,9337905018.55062
+Lasiurus xanthinus,USA,LAXAN,Western Yellow Bat,54843893629.9354
+Lasiurus ega,USA,LAEGA,Southern Yellow Bat,193719959818.076
+Macrotus californicus,USA,MACAL,Californian Leaf-nosed Bat,8489005651.38361
+Choeronycteris mexicana,USA,CHMEX,Mexican Long-tongued Bat,98275849928.3713
+Corynorhinus rafinesquii,USA,CORAF,Rafinesque's Big-eared Bat,19469865920.7404
+Myotis leibii,USA,MYLEI,Eastern Small-footed Myotis,41469448703.2282
+Eumops underwoodi,USA,EUUND,Underwood's Bonneted Bat,16473679179.9924
+Leptonycteris nivalis,USA,LENIV,Mexican Long-nosed Bat,19700630172.5254
+Myotis lucifugus,Canada,MYLUC,Little Brown Myotis,645428019118.062
+Myotis leibii,Canada,MYLEI,Eastern Small-footed Myotis,7509392489.89121
+Eptesicus fuscus,Canada,EPFUS,Big Brown Bat,632175304300.949
+Lasionycteris noctivagans,Canada,LANOC,Silver-haired Bat,633950679893.462
+Myotis yumanensis,Canada,MYYUM,Yuma Myotis,82703735.5146484
+Myotis septentrionalis,Canada,MYSEP,Northern Myotis,366554969469.77
+Lasiurus cinereus,Canada,LACIN,Hoary Bat,462580583406.351
+Perimyotis subflavus,Canada,PESUB,Tricolored Bat,3255615427.35034
+Lasiurus borealis,Canada,LABOR,Eastern Red Bat,386124131438.674
+Myotis californicus,Canada,MYCAL,Californian Myotis,15267902.2335205
+Myotis lucifugus,Canada:27,MYLUC,Little Brown Myotis,54934369080.4929
+Lasiurus borealis,Canada:27,LABOR,Eastern Red Bat,0
+Eptesicus fuscus,USA,EPFUS,Big Brown Bat,7819128792801.42
+Myotis yumanensis,USA,MYYUM,Yuma Myotis,3198093509354.37
+Myotis septentrionalis,USA:Alaska,MYSEP,Northern Myotis,0
+Glossophaga soricina,Mexico,GLSOR,Pallas's Long-tongued Bat,15808079100.0332
+Mormoops megalophylla,Mexico,MOMEG,Peters's Ghost-faced Bat,34599181058.2693
+Lasiurus ega,Mexico,LAEGA,Southern Yellow Bat,4515102688.23297
+Parastrellus hesperus,Mexico,PAHES,Canyon Bat,58386316037.2609
+Antrozous pallidus,Mexico,ANPAL,Pallid Bat,82863760584.222
+Myotis velifer,Mexico,MYVEL,Cave Myotis,26642843265.4404
+Lasiurus intermedius,Mexico,LAINT,Northern Yellow Bat,97396952.4309425
+Leptonycteris nivalis,Mexico,LENIV,Mexican Long-nosed Bat,1849046185.63527
+Myotis californicus,Mexico,MYCAL,Californian Myotis,17915992885.4449
+Myotis volans,Mexico,MYVOL,Long-legged Myotis,2079232489.17572
+Corynorhinus mexicanus,Mexico,COMEX,Mexican Big-eared Bat,1952672706.27465
+Eptesicus fuscus,Mexico,EPFUS,Big Brown Bat,59258666836.5173
+Myotis yumanensis,Mexico,MYYUM,Yuma Myotis,86141677987.089
+Myotis leibii,Mexico,MYLEI,Eastern Small-footed Myotis,164952813.740768
+Lasiurus cinereus,Mexico,LACIN,Hoary Bat,52418862296.1222
+Tadarida brasiliensis,Mexico,TABRA,Brazilian Free-tailed Bat,104421067677.339
+Myotis thysanodes,Mexico,MYTHY,Fringed Myotis,13957316244.2584
+Nyctinomops femorosaccus,Mexico,NYFEM,Pocketed Free-tailed Bat,3317833944.79153
+Nycticeius humeralis,Mexico,NYHUM,Evening Bat,33186365966.3757
+Corynorhinus townsendii,Mexico,COTOW,Townsend's Big-eared Bat,19301182141.8086
+Hylonycteris underwoodi,Mexico,HYUND,Underwood's Long-tongued Bat,643859410.441631
+Nyctinomops macrotis,Mexico,NYMAC,Big Free-tailed Bat,8821464457.35001
+Lasiurus borealis,Mexico,LABOR,Eastern Red Bat,51846364901.1829
+Myotis auriculus,Mexico,MYAUR,Southwestern Myotis,2281205055.62065
+Eumops perotis,Mexico,EUPER,Greater Bonneted Bat,3317854125.49244
+Perimyotis subflavus,Mexico,PESUB,Tricolored Bat,13822069.4164429
+Eumops perotis,USA,EUPER,Greater Bonneted Bat,803154476227.415
+Nyctinomops femorosaccus,USA,NYFEM,Pocketed Free-tailed Bat,409022359148.721
+Nyctinomops macrotis,USA,NYMAC,Big Free-tailed Bat,2865866594982.28
+Mormoops megalophylla,USA,MOMEG,Peters's Ghost-faced Bat,334674862999.511
+Myotis thysanodes,USA,MYTHY,Fringed Myotis,3017018300493.87
+Lasionycteris noctivagans,USA,LANOC,Silver-haired Bat,7163765678893.12
+Myotis californicus,USA,MYCAL,Californian Myotis,2809211199100.07
+Myotis volans,USA,MYVOL,Long-legged Myotis,3591109381821.83
+Myotis auriculus,USA,MYAUR,Southwestern Myotis,255182496656.918
+Tadarida brasiliensis,USA,TABRA,Brazilian Free-tailed Bat,5369474390265.57
+Myotis lucifugus,USA,MYLUC,Little Brown Myotis,7108786580013.25
+Nycticeius humeralis,USA,NYHUM,Evening Bat,3715620162845.27
+Lasiurus cinereus,USA,LACIN,Hoary Bat,7675318529045.4
+Lasiurus borealis,USA,LABOR,Eastern Red Bat,6811007525407.7
+Leptonycteris yerbabuenae,USA,LEYER,Lesser Long-nosed Bat,260309556308.078
+Corynorhinus townsendii,USA,COTOW,Townsend's Big-eared Bat,5406431324074.43
+Myotis evotis,USA,MYEVO,Long-eared Myotis,2887041235341.24
+Myotis lucifugus,USA:Alaska,MYLUC,Little Brown Myotis,797417340411.396
+Antrozous pallidus,USA,ANPAL,Pallid Bat,3498386234984.77
+Parastrellus hesperus,USA,PAHES,Canyon Bat,4122009769958.92
+Idionycteris phyllotis,USA,IDPHY,Allen's Big-eared Bat,428603737489.78
+Myotis occultus,USA,MYOCC,Arizona Myotis,651688043332.576
+Myotis ciliolabrum,USA,MYCIL,Western Small-footed Myotis,3115057804441.91
+Myotis melanorhinus,USA,MYMEL,Dark-nosed Small-footed Myotis,1164512887125.24
+Perimyotis subflavus,USA,PESUB,Tricolored Bat,4148393760059.12
+Myotis velifer,USA,MYVEL,Cave Myotis,1487466281494.12
+Myotis lucifugus,USA:49,MYLUC,Little Brown Myotis,0
+Euderma maculatum,USA,EUMAC,Spotted Bat,1890005705142.09
+Lasiurus blossevillii,USA,LABLO,Western Red Bat,1531139995726.35
+Lasiurus intermedius,USA,LAINT,Northern Yellow Bat,1838358388326.66
+Myotis volans,USA:Alaska:Etolin Island,MYVOL,Long-legged Myotis,0
+Myotis yumanensis,USA:Alaska,MYYUM,Yuma Myotis,137445.158750579
+Lasionycteris noctivagans,USA:Alaska,LANOC,Silver-haired Bat,0
+Myotis californicus,USA:Alaska,MYCAL,Californian Myotis,923879722.424583
+Myotis volans,USA:Alaska:Revillagigedo Island,MYVOL,Long-legged Myotis,0
+Myotis lucifugus,USA:Alaska:Revillagigedo Island,MYLUC,Little Brown Myotis,51650078.7690777
+Myotis volans,USA:Alaska,MYVOL,Long-legged Myotis,0
+Eptesicus fuscus,USA:49,EPFUS,Big Brown Bat,0
+Lasiurus cinereus,USA:Alaska,LACIN,Hoary Bat,0
+Lasiurus seminolus,USA,LASEM,Seminole Bat,1022403379792.25
+Lasiurus xanthinus,USA,LAXAN,Western Yellow Bat,319814232298.193
+Lasiurus borealis,USA:49,LABOR,Eastern Red Bat,0
+Lasiurus ega,USA,LAEGA,Southern Yellow Bat,447075009252.768
+Macrotus californicus,USA,MACAL,Californian Leaf-nosed Bat,260804332581.66
+Myotis sodalis,USA,MYSOD,Indiana Myotis,1315490387860.9
+Myotis austroriparius,USA,MYAUS,Southeastern Myotis,1552427525206.28
+Choeronycteris mexicana,USA,CHMEX,Mexican Long-tongued Bat,610649898392.634
+Myotis septentrionalis,USA,MYSEP,Northern Myotis,2233718059757.42
+Corynorhinus rafinesquii,USA,CORAF,Rafinesque's Big-eared Bat,5337796046935.73
+Myotis leibii,USA,MYLEI,Eastern Small-footed Myotis,5816772758611.49
+Eumops floridanus,USA,EUFLO,Florida Bonneted Bat,3339597477.47505
+Eumops underwoodi,USA,EUUND,Underwood's Bonneted Bat,190868391878.493
+Myotis lucifugus,USA:Alaska:Kodiak Island,MYLUC,Little Brown Myotis,30784555.0699615
+Myotis grisescens,USA,MYGRI,Gray Myotis,1347769620149.46
+Carollia perspicillata,USA,CAPER,Seba's Short-tailed Bat,0
+Leptonycteris nivalis,USA,LENIV,Mexican Long-nosed Bat,14034447944.2767
+Lasionycteris noctivagans,USA:Washington:Whidbey Island,LANOC,Silver-haired Bat,0
+Eptesicus fuscus,USA:Washington:Whidbey Island,EPFUS,Big Brown Bat,0
+Artibeus jamaicensis,USA,ARJAM,Jamaican Fruit-eating Bat,0
+Macrotus waterhousii,USA,MAWAT,Waterhouse's Leaf-nosed Bat,173696710835.719
+Lasiurus borealis,USA:48,LABOR,Eastern Red Bat,0
+Myotis septentrionalis,USA:New York:Long Island,MYSEP,Northern Myotis,174034333.590942
+Eptesicus fuscus,USA:New York:Long Island,EPFUS,Big Brown Bat,1169104430.99493
+Lasiurus borealis,USA:New York:Long Island,LABOR,Eastern Red Bat,2050396915.80719
+Diphylla ecaudata,USA,DIECA,Hairy-legged Vampire Bat,0
+Myotis lucifugus,USA:New York:Long Island,MYLUC,Little Brown Myotis,2871791.48153687
+Molossus molossus,USA,MOMOL,Pallas's Mastiff Bat,0
+Lasiurus cinereus,USA:Hawaii,LACIN,Hoary Bat,0
+Desmodus rotundus,USA,DEROT,Common Vampire Bat,0
+Eptesicus fuscus,USA:Alaska,EPFUS,Big Brown Bat,0
+Lasionycteris noctivagans,USA:New York:Long Island,LANOC,Silver-haired Bat,1102008684.31628
+Myotis lucifugus,USA:Maine:Mount Desert Island,MYLUC,Little Brown Myotis,0
+Eptesicus fuscus,USA:Maine:Mount Desert Island,EPFUS,Big Brown Bat,0

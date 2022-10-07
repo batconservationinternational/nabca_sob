@@ -5,6 +5,7 @@ formatData <- function(thisDataDate,
   require(tidyverse)
   require(tidyr)
   require(purrr)
+  library(here)
   
   options(scipen = 999)
   
@@ -40,6 +41,9 @@ formatData <- function(thisDataDate,
     filter(!is.na(question_sub), question_sub != '')
   
   surveyQ$question_sub <- clean_q_names(surveyQ$question_sub)
+  
+  #write cleaned surveyQ df for use downstream. 
+  write_csv(surveyQ, here::here("Data", "cleanedSurveyQuestions.csv"))
   
   # get what column headings are actual data
   ## other columns are often instructions
@@ -190,8 +194,6 @@ formatData <- function(thisDataDate,
     lapply(., formatSPPdata)
   
   
-  
-  
   if(saveData){
     saveRDS(
       data_l,
@@ -206,5 +208,5 @@ formatData <- function(thisDataDate,
     )
   }
   
-  return(data_l)
+  return(list(data = data, data_l = data_l))
 }

@@ -613,34 +613,31 @@ generate_PersonalPlot <- function(thisRow) {
 
 
 
-make_rangeGraphs <- function(d, spp, thiscntry, sppCode) {
+make_rangeGraphs <- function(d, spp, thiscntry) {
   # # Set arguments if testing code
-  # i=1
+  # i=2
   # d=range$data[[i]]
   # spp=range$spp[i]
-  # sppCode=range$sppCode[i]
+  # sppcode=range$sppcode[i]
   # thiscntry=range$cntry[i]
   
   sciName = stringr::str_remove(spp, " \\(.*\\)")
   #function
   require(ggplot2)
   
-  #Find SppRangeVal in database
-  # sppRangeVal='0'
   sppRangeData <-
     read.csv(paste0(here::here(), "/Data/speciesRangeArea.csv")) %>%
-    # distinct() %>%
     mutate(
       cntry = case_when(
         stringr::str_detect(country, 'Canada') ~ 'Canada',
         stringr::str_detect(country, 'USA') ~ 'United States',
-        stringr::str_detect(country, 'Mexico') ~ 'MX'
+        stringr::str_detect(country, 'Mexico') ~ 'Mexico'
       )
     ) %>%
     group_by(species, spp_abbrev, cntry) %>%
     summarize(area = sum(area)) %>%
     # filter(area>0) %>%
-    filter(spp_abbrev == sppCode, cntry == thiscntry) %>%
+    filter(species == spp, cntry == thiscntry) %>%
     mutate(
       area = measurements::conv_unit(area, from = 'm2', to = 'km2'),
       rangeClass = case_when(
@@ -662,24 +659,24 @@ make_rangeGraphs <- function(d, spp, thiscntry, sppCode) {
   sppRangeVal <- sppRangeData$rangeClass
   
   D <- d %>%
-    tidyr::pivot_longer(cols = 2:10,
+    tidyr::pivot_longer(cols = !token,
                         names_to = 'range_size',
                         values_to = 'selected') %>%
     mutate(
       selected2 = case_when(selected == 'Yes' | selected == 'Y' ~ T,
                             T ~ F),
-      range_size = gsub("range\\.([A-Z])\\.", "\\1", range_size),
+      range_size = str_sub(range_size,-1,-1),
       rangeKM = recode(
         .x = range_size,
-        'Z' = '0',
-        'A' = '< 100',
-        'B' = '100-250',
-        'C' = '250-1,000',
-        'D' = '1,000-5,000',
-        'E' = '5,000-20,000',
-        'F' = '20,000-200,000',
-        'G' = '200,000-2,500,000',
-        'H' = '>2,500,000'
+        'z' = '0',
+        'a' = '< 100',
+        'b' = '100-250',
+        'c' = '250-1,000',
+        'd' = '1,000-5,000',
+        'e' = '5,000-20,000',
+        'f' = '20,000-200,000',
+        'g' = '200,000-2,500,000',
+        'h' = '>2,500,000'
       )
     ) %>%
     group_by(rangeKM) %>%
@@ -721,15 +718,12 @@ make_rangeGraphs <- function(d, spp, thiscntry, sppCode) {
     scale_x_discrete(expand = c(0, 0)) +
     scale_y_continuous(expand = c(0, 0), limits = c(0, max(5, max(D$total)))) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
-  # print(h)
-  
-  
+
   ggsave(
     filename = paste0(
       here::here(),
       '/RangeGraphs/range_',
-      sppCode,
+      spp,
       '_',
       thiscntry,
       '.png'

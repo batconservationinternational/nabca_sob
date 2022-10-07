@@ -19,19 +19,19 @@ source(paste0(here::here(), '/RCode/SoB_f_general.R'))
 options(scipen = 999)
 
 # Format Data Properly for Analysis ---------------------------------------
-source(paste0(here::here(), '/RCode/SoB_1_FormatData_new.R'))
+source(paste0(here::here(), '/RCode/SoB_1_FormatData.R'))
 
-nestedData <- formatData(thisDataDate,
+formattedData <- formatData(thisDataDate,
                          thisCountry)
 
+nestedData <- formattedData$data_l
 
+d <- formattedData$data
 
 # Make Range Graphs ---------------------------------------------------------
 source(paste0(here::here(), '/RCode/SoB_2_rangeGraphs.R'))
 
-rangeGraphs <- graphRangeQ(thisDataDate,
-                           thisCountry)
-
+rangeGraphs <- graphRangeQ(d)
 
 # Analyze Stuff -----------------------------------------------------------
 source(paste0(here::here(), '/RCode/SoB_3_analyzeQ.R'))
