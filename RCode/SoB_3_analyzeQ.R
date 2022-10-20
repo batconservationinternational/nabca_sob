@@ -1,5 +1,4 @@
-
-# source(paste0(here::here(), '/RCode/SoB_f_general.R'))
+library(rlist)
 
 analyze_SoB <- function(data,
                         OutputFolder,
@@ -9,20 +8,17 @@ analyze_SoB <- function(data,
                         ) {
 
 require(dplyr)
-# library(purrr)
 require(SHELF)
+
+SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   
-data <- nestedData
-cntrytoAnalyze <- "MX"
-SpptoAnalyze <- c("ANTROZOUS_PALLIDUS", "TADARIDA_BRASILIENSIS")
-  
-  # mydata2 <- data %>%
-  #   ungroup() %>%
-  #   filter(Q_group != 'other') %>%
-  #   mutate(dist = map2(Q_group, Q_sub, choose_dist),
-  #          row = row_number())
-  # 
-  # # rm(data)
+  mydata2 <- data %>%
+    list.ungroup() %>% 
+    # filter(Q_group != 'other') %>%
+    mutate(dist = map2(Q_group, Q_sub, choose_dist),
+           row = row_number())
+
+  # rm(data)
   
   if (!is.null(SpptoAnalyze)){
     data <- data[SpptoAnalyze]
@@ -54,10 +50,10 @@ SpptoAnalyze <- c("ANTROZOUS_PALLIDUS", "TADARIDA_BRASILIENSIS")
   # mydata2$distFit <- pbapply(mydata2[, ], 1, generate_dist, cl = cl)
   
   message("Fit distributions")
-  mydata2$distFit <- pbapply(mydata, 1, getSPPdistributions)
+  mydata2$distFit <- pbapply(data, 1, getSPPdistributions)
   
   message("get 95% confidence interval of answers")
-  mydata2$Quantiles <- pbapply(mydata2, 1, find_quantiles, cl = cl)
+  mydata2$Quantiles <- pbapply(data, 1, find_quantiles, cl = cl)
 
   message("Make Plot")
   mydata2$D_plot <-

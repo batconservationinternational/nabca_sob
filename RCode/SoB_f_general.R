@@ -299,7 +299,7 @@ choose_dist <- function(myGroup_Q, myGroup_sub) {
   ##normal distribution?
   # if(as.numeric(myGroup)==4){
   if (myGroup_Q == 'pop' & myGroup_sub == 'Trend') {
-    thisU = 1.4 ^ 15 #median empiracle population growth rate = 1.0025 - the median exbert lambda = 1.015. Given distribution (slack pub posted by WF) 1.4 is about max
+    thisU = 1.4 ^ 15 #median empiracle population growth rate = 1.0025 - the median expert lambda = 1.015. Given distribution (slack pub posted by WF) 1.4 is about max
     thisL = -1
     thisD = 'normal'
     myXlab = 'Population Trend \n(% Change last 15 years)'

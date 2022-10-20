@@ -1,4 +1,3 @@
-
 calc_Impact <- function(DataDate, 
                         DataFolder,
                         speciestoAnalyze=NULL,
@@ -46,7 +45,7 @@ calc_Impact <- function(DataDate,
    
    # for (f in DataFiles) {
    
-   foreach(f =DataFiles) %dopar% {
+   foreach(f = DataFiles) %dopar% {
   # foreach(f =DataFiles) %do% {
       
       require(dplyr)
