@@ -646,12 +646,9 @@ make_rangeGraphs <- function(d, spp, thiscntry) {
         area >= 100 & area < 250 ~ '100-250',
         area >= 250 & area < 1000 ~ '250-1,000',
         area >= 1000 & area < 5000 ~ '1,000-5,000',
-        area >= 5000 &
-          area < 20000 ~ '5,000-20,000',
-        area >= 20000 &
-          area < 200000 ~ '20,000-200,000',
-        area >= 200000 &
-          area < 2500000 ~ '200,000-2,500,000',
+        area >= 5000 & area < 20000 ~ '5,000-20,000',
+        area >= 20000 & area < 200000 ~ '20,000-200,000',
+        area >= 200000 & area < 2500000 ~ '200,000-2,500,000',
         area > 2500000 ~ '>2,500,000'
       )
     )
@@ -709,7 +706,7 @@ make_rangeGraphs <- function(d, spp, thiscntry) {
     annotate(
       geom = "text",
       x = sppRangeVal,
-      y = 4.5,
+      y = max(D$total)/2, #was 4.5 previously but changed
       label = "*",
       color = 'red',
       size = 25

@@ -45,8 +45,7 @@ formatData <- function(thisDataDate,
   #write cleaned surveyQ df for use downstream. 
   write_csv(surveyQ, here::here("Data", "cleanedSurveyQuestions.csv"))
   
-  # get what column headings are actual data
-  ## other columns are often instructions
+  # get what column headings are actual data. Other columns are often instructions
   dataCols <-
     read.csv(paste0(here::here(), '/Data/dataColumns.csv'),
              stringsAsFactors = F)[, 1]
