@@ -10,22 +10,24 @@ analyze_SoB <- function(data,
 require(dplyr)
 require(SHELF)
 
-SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
-  
-  mydata2 <- data %>%
-    list.ungroup() %>% 
-    # filter(Q_group != 'other') %>%
-    mutate(dist = map2(Q_group, Q_sub, choose_dist),
-           row = row_number())
-
-  # rm(data)
+SpptoAnalyze <- c("ANTROZOUS_PALLIDUS", "EUMOPS_PEROTIS")
+data = nestedData
   
   if (!is.null(SpptoAnalyze)){
     data <- data[SpptoAnalyze]
   }
   
-  if (is.null(SpptoAnalyze)){ SpptoAnalyze <- 'AllSpecies'}
-
+  # if (is.null(SpptoAnalyze)){ SpptoAnalyze <- 'AllSpecies'}
+  
+  data <- enframe(data)
+ 
+ for (i in seq(nrow(data))){
+   data$value[[i]][["popData"]] <- data$value[[i]][["popData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_dist))
+   data$value[[i]][["threatData"]] <- data$value[[i]][["threatData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_dist))
+ }
+ 
+ # mydata <- data %>% mutate(pop_dist = map(value, ~map2(.$popData$Q_group, .$popData$Q_sub, choose_dist)))
+ # mydata <- mydata %>% mutate(threat_dist = map(value, ~map2(.$threatData$Q_group, .$threatData$Q_sub, choose_dist)))
   
   require(pbapply)
   require(parallel)
@@ -45,14 +47,17 @@ SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   #Prepare for graphs
   clusterEvalQ(cl = cl, require(SHELF))
   clusterEvalQ(cl = cl, require(ggplot2))
+
+  message("Fit pop distributions to answers")
+  mydata$popDists <- pbapply(mydata, 1, generateDist, dat_type = "popData")
   
-  # message("Fit distributions to answers")
-  # mydata2$distFit <- pbapply(mydata2[, ], 1, generate_dist, cl = cl)
+  message("Fit threat scope distributions to answers")
+  mydata$scopeDists <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "scope")
   
-  message("Fit distributions")
-  mydata2$distFit <- pbapply(data, 1, getSPPdistributions)
+  message("Fit threat severity distributions to answers")
+  mydata$scopeDists <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "sev")
   
-  message("get 95% confidence interval of answers")
+  message("get quantiles of answers")
   mydata2$Quantiles <- pbapply(data, 1, find_quantiles, cl = cl)
 
   message("Make Plot")
@@ -79,13 +84,6 @@ SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   
   message("Calculate Overlap")
   mydata2$overlap <- pbapply(mydata2[,], 1, calc_Overlap, cl = cl)
-  
-  
-  if(PersonalPlots){
-  message("Create Personal Plots")
-  mydata2$perPlots <-
-    pbapply(mydata2, 1, generate_PersonalPlot, cl = cl)
-  }
   
   mydata2$dataSetName <- paste0(mydata2$cntry, "_", mydata2$sppCode)
   

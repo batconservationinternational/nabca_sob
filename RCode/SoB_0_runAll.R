@@ -1,6 +1,6 @@
 thisDataDate='20220914'
 thisCountry = 'MX'
-thisSpp  = c("ANTROZOUZ_PALLIDUS") #NULL for all species
+thisSpp  = c("ANTROZOUS_PALLIDUS") #NULL for all species
 
 #export data with completed answers only, answer and Q codes
 #Save as MX/US_results_YYYYMMDD.csv
@@ -23,9 +23,7 @@ source(paste0(here::here(), '/RCode/SoB_1_FormatData.R'))
 
 formattedData <- formatData(thisDataDate,
                          thisCountry)
-
 nestedData <- formattedData$data_l
-
 d <- formattedData$data
 
 # Make Range Graphs ---------------------------------------------------------
@@ -43,8 +41,7 @@ analyze_SoB(nestedData,
             OutputFolder = OutputFolder,
             cntrytoAnalyze = thisCountry,
             SpptoAnalyze = thisSpp,
-            PersonalPlots=FALSE,
-            
+            PersonalPlots=FALSE
             )
 
 calc_Impact(thisDataDate, 

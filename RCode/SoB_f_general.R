@@ -76,9 +76,6 @@ formatSPPdata <- function(sppList) {
 
 formatMMM <- function(thisData, type) {
   
-  # print(class(thisData))
-  # print(type)
-  
   if(type=="mmm"){
     mmm <- t(thisData[, c('min', 'mean', 'max')])
     colnames(mmm) <- thisData$token
@@ -97,25 +94,12 @@ formatMMM <- function(thisData, type) {
 
 formatProbs <- function(thisData, type) {
   
-  # print(class(thisData))
-  # print(type)
-  # print(thisData)
-  
   if(type=="mmm"){
     
-    # conf=0.8
-    # dif=(1-conf)/2 #0.1
-    # 
-    # minprob=0.5-dif #0.4
-    # maxprob=0.5+dif #0.6
-    
     conf = thisData$conf/100
-    dif = (1-conf)/2
+    dif = conf/2
     lowerP = 0.5-dif
     upperP = 0.5+dif
-    # lowerP = (1-conf)/2
-    # lowerP = (1 - (thisData$conf)) / 2
-    # upperP = 1 - lowerP
     medianP = rep(0.5, times = length(lowerP))
     
     probs <- matrix(
@@ -131,11 +115,9 @@ formatProbs <- function(thisData, type) {
   if(type == 'Scope' | type=='Severity'){
     x = thisData[[type]][[1]]$conf
     conf = x/100
-    dif = (1-conf)/2
+    dif = conf/2
     lowerP = 0.5-dif
     upperP = 0.5+dif
-    # lowerP = (1 - (thisData[[type]]$conf)) / 2
-    # upperP = 1 - lowerP
     medianP = rep(0.5, times = length(lowerP))
     
     probs <- matrix(
@@ -190,38 +172,84 @@ fn_convertC <- function(col) {
 }
 
 
-getSPPdistributions <- function(thisSPPdata) {
-  popDist <-
-    lapply(thisSPPdata$popData,
-           lowerLimit,
-           upperLimit,
-           distribution)
-  
-  
+
+
+
+
+
+generateDist <- function(thisRow, dat_type, scope_sev){
+  thisRow <- thisRow$value %>% .[[dat_type]] %>% as_tibble()
+  distributions = list()
+  list_names = list()
+  for (i in 1:nrow(thisRow)){
+    dist_info <- make_dist(thisRow[i,], dat_type, scope_sev)
+    list_names <- append(list_names, paste0(thisRow$Q_group[i], "_", thisRow$Q_sub[i]))
+    to_add <- list(dist_info)
+    distributions <- append(distributions, to_add)
+  }
+  names(distributions) <- list_names
+  return(distributions)
 }
 
-generatePopSizeDist <- function(popSizeData,
-                                lowerLimit=0,
-                                upperLimit=1e9,
-                                distribution='gamma'){
+
+
+make_dist <- function(thisRow, dat_type, scope_sev){
+  lower <-  thisRow$dist %>% flatten() %>% .$thisL #is this okay to assume dist for scope and sev are the same?
+  upper <-  thisRow$dist %>% flatten() %>% .$thisU
   
+  if (dat_type == "popData"){
+    mmm <- thisRow$mmm[[1]] %>% as_tibble() %>% as.matrix()
+    probs <- thisRow$probs[[1]] %>% as_tibble() %>% as.matrix()
+    
+  } else if (dat_type == "threatData" & scope_sev == "scope"){
+    mmm <- thisRow$ScopeMMM[[1]] %>% as_tibble() %>% as.matrix()
+    probs <- thisRow$ScopeProbs[[1]] %>% as_tibble() %>% as.matrix()
+    
+  } else if (dat_type == "threatData" & scope_sev == "sev"){
+    mmm <- thisRow$SeverityMMM[[1]] %>% as_tibble() %>% as.matrix()
+    probs <- thisRow$SeverityProbs[[1]] %>% as_tibble() %>% as.matrix()
+  }
   
+  # expertnames <- names(mmm)
+
+  print(thisRow$dist %>% flatten())
+  print("Probs:\n", probs)
+  print("MMM:\n", mmm)
   
+  tryCatch(
+    expr = {
+    out <- SHELF::fitdist(
+      vals = mmm,
+      probs = probs,
+      lower = lower,
+      upper = upper
+      # expertnames = expertnames
+      )  
+    }
+  )
+  
+  return(out)
 }
 
-generateDist <- function(thisRow, 
-                         LowerLimit,
-                         UpperLimit,
-                         Distribution
-) {
-  # print(thisRow)
-  # class(thisRow)
-  # require(SHELF)
-  # print(thisRow$row)
+
+
+
+
+
+
+
+
+
+generateDist <- function(thisRow) {
   
+  # thisRow = data[1,]
+  
+  # thisRow <- thisRow$value %>% flatten()
+  # experts <- thisRow$experts
+  # thisRow <- thisRow$popData
   mmm <- thisRow$mmm
-  probs <- thisRow$probs
-  dist=Distribution
+  # probs <- thisRow$probs
+  # dist <- map(thisRow$dist, ~ unlist(.[3])) %>% flatten()
   
   mmm['min', mmm['min', ] == thisRow$dist$thisL] <-
     sign(thisRow$dist$thisL) * (abs(thisRow$dist$thisL) - 1e-9)
@@ -237,7 +265,8 @@ generateDist <- function(thisRow,
   # }
   
   # names <- names(thisRow$experts$names)
-  names <- (thisRow$data$token)
+  # names <- (thisRow$data$token)
+  names <- experts
   na_cols <-
     unique(which(colSums(is.na(mmm)) > 0), which(colSums(is.na(probs)) > 0))
   
@@ -281,10 +310,6 @@ generateDist <- function(thisRow,
 
 
 choose_dist <- function(myGroup_Q, myGroup_sub) {
-  # print(myGroup)
-  
-  # myGroup = as.character(myGroup) #Pass groupID of page
-  
   
   #Population Size
   # if(as.numeric(myGroup)==3){
@@ -541,78 +566,6 @@ find_quantiles <- function(thisRow) {
   
 }
 
-generate_PersonalPlot <- function(thisRow) {
-  print(thisRow$row)
-  require(ggplot2)
-  
-  if (!('ggplot' %in% class(thisRow$D_plot)))
-    return('no data to graph')
-  
-  experts <- as.character(rownames(thisRow$distFit$ssq))
-  if (length(experts) > 1) {
-    experts <- sort(experts[experts != 'linear pool'])
-  }
-  labs_master <- thisRow$experts$labels
-  
-  # if(length(experts)==1) return('single elicitation')
-  
-  exPlot <- vector(mode = 'list', length = length(experts))
-  names(exPlot) <- experts
-  
-  for (i in experts) {
-    labs = labs_master
-    labs[names(labs) == i] = 'YOU'
-    # if(length(experts)>1) labs=c('Combined', labs)
-    
-    fx = (thisRow$D_plot$data$fx)
-    max = max(fx[which(fx < Inf)])
-    
-    exPlot[[i]] <- thisRow$D_plot +
-      scale_color_manual(
-        values = c(thisRow$experts$colors),
-        name = element_blank(),
-        # breaks=thisRow$Quantiles$expert,
-        labels = labs
-      ) +
-      # labs(caption=paste0('You overlap other experts by ', round(ThisOverlap, 2)*100, '%'))+
-      theme(plot.margin = margin(
-        t = 2,
-        r = 1,
-        b = 0,
-        l = 0.25,
-        unit = 'cm'
-      ))
-    
-    
-    
-    
-    if (length(experts) == 1) {
-      exPlot[[i]] <- exPlot[[i]] +
-        scale_colour_manual(values = '#1B9E77', labels = c('You'))
-      # geom_line(color=thisRow$experts$colors[names(thisRow$experts$colors)==experts])
-      # scale_colour_manual(values=thisRow$experts$colors[names(thisRow$experts$colors)==experts], labels=c('You'))
-    }
-    
-    if (length(experts) > 1) {
-      ThisOverlap <- thisRow$overlap[[i]]
-      exPlot[[i]] <- exPlot[[i]] +
-        labs(caption = paste0(
-          'You overlap other experts by ',
-          round(ThisOverlap, 2) * 100,
-          '%'
-        ))
-    }
-    
-  }
-  
-  names(exPlot) <- experts
-  # exPlot
-  
-  return(exPlot)
-}
-
-
-
 make_rangeGraphs <- function(d, spp, thiscntry) {
   # # Set arguments if testing code
   # i=2
@@ -801,57 +754,6 @@ calc_Overlap <- function(thisRow) {
   return(over)
 }
 
-save_PersonalPlot <- function(thisRow, PPsaveDir, PPcntry, PPspp) {
-  # thisRow
-  require(ggplot2)
-  for (e in names(thisRow$plots)) {
-    ggsave(
-      thisRow$plots[[e]],
-      filename = paste0(
-        PPsaveDir,
-        '/',
-        e,
-        '_',
-        PPcntry,
-        '_',
-        PPspp,
-        '_Pop_',
-        thisRow$Q_sub,
-        '.png'
-      ),
-      width = 9,
-      height = 6,
-      units = "in"
-    )
-    
-  }
-}
-
-generatePersonalReports <- function(thisRow,
-                                    thisDate,
-                                    outDir = "C:/Users/mwhitby/Documents/SoB_SpeciesReports") {
-  outDir <- paste0(outDir, '/', thisDate)
-  if (!dir.exists(outDir)) {
-    dir.create(outDir)
-  }
-  
-  out_fn = paste0(outDir, '/',
-                  thisRow['token'], '_', thisRow['cntry'], '_', thisRow['sppCode'], '.html')
-  
-  rmarkdown::render(
-    paste0(here::here(), "/RCode/SoB_6a_PersonalReport.Rmd"),
-    # output_file=paste0(thisRow['token'], '_', thisRow['cntry'], '_', thisRow['sppCode'], '.html'),
-    # output_dir= paste0(here::here(), '/PersonalReports/', DataDate, '/'),
-    output_file = out_fn,
-    params = list(
-      spp = thisRow['spp'],
-      sppCode = thisRow['sppCode'],
-      cntry = thisRow['cntry'],
-      exprt = thisRow['token'],
-      date = thisDate
-    )
-  )
-}
 
 
 generateSpeciesReports <- function(thisRow,

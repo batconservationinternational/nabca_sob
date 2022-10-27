@@ -140,7 +140,12 @@ formatData <- function(thisDataDate,
     rename(neg = answer) %>%
     select(-Q_ss, -Q_val, -question)
   
-  d3 <- d2 %>% filter(Q_ss != "Neg"|is.na(Q_ss))
+  d3 <- d2 %>% filter(Q_ss != "Neg"|is.na(Q_ss)) %>% 
+    mutate(answer = case_when(
+      stringr::str_detect(question, "poptrend|sev|scope") & stringr::str_detect(question, "min$|mean$|max$") ~ answer/100,
+      T ~ answer
+    )) #turn poptrend and scope and severity responses into percentage between 0-1 
+      #but not for conf because that gets done in the formatProbs function
   
   if (nrow(d3) + nrow(negAns) != nrow(d2)){
     warning('something went wrong generating negligible answers')
@@ -166,10 +171,10 @@ formatData <- function(thisDataDate,
       #100% confidence not accepted (at least on lower end, e.g., 0 probability), so set to almost 100
       #0 not a viable minimum so set to 0.01
       answer_C = case_when(
-        Q_val == 'conf' & neg == 1 ~ 99.99,
-        Q_val == 'min' & neg == 1 ~ 0.01,
-        Q_val == 'mean' & neg == 1  ~ 0.5,
-        Q_val == 'max' & neg == 1  ~ 1,
+        Q_val == 'conf' & neg == 1 ~ 99.99, #will get divided by 100 in formatProbs
+        Q_val == 'min' & neg == 1 ~ 0.0001,
+        Q_val == 'mean' & neg == 1  ~ 0.005,
+        Q_val == 'max' & neg == 1  ~ 0.01,
         T ~ answer_C
       ),
     ) %>%
