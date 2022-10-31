@@ -1,11 +1,6 @@
 formatData <- function(thisDataDate,
                        thisCountry,
                        saveData=T) {
-  require(dplyr)
-  require(tidyverse)
-  require(tidyr)
-  require(purrr)
-  library(here)
   
   options(scipen = 999)
   
@@ -82,13 +77,19 @@ formatData <- function(thisDataDate,
       keep = case_when(
         submitdate >= lubridate::mdy_hm("01/01/1980 00:00") & max_ID == id & submitdate == lastsubmission  ~ T,
         T ~ F),
-      # 5 letter spp Code is not unique! there is one repeat. Change to all Caps of SPPname with no spaces
+      # 5 letter spp Code is not unique! there is one repeat. Change to all caps of SPPname with no spaces
       sppCode = toupper(stringr::str_replace_all(spp, " |-", "_"))
       ) %>%
     filter(keep == T) %>% 
     select(-id, -max_ID,-submitdate,-keep)
   
   colnames(data) <- clean_q_names(colnames(data))
+  
+  weird_pop_size <- data %>% 
+    filter(popsize_sz_min<=0 | popsize_sz_mean<=0 | popsize_sz_max<=0) #filter out negative pop size estimates
+  
+  data <- data %>% 
+    anti_join(weird_pop_size)
 
   # Format Data ---------------------------------------------------------------------------------
   
@@ -132,7 +133,13 @@ formatData <- function(thisDataDate,
       grepl("poptrend", question) ~ 'Trend',
       T ~ Q_sub
     )) %>%
-    arrange(Q_group, Q_sub) 
+    arrange(Q_group, Q_sub)
+  
+  weird_percentage <- d2 %>% 
+    filter(Q_sub != "Size") %>% 
+    filter(answer < -100 | answer > 100)
+  
+  d2 <- d2 %>% anti_join(weird_percentage)
   
   # Get negligible answers and code min, mean, max values
   negAns <- d2 %>%
@@ -140,7 +147,7 @@ formatData <- function(thisDataDate,
     rename(neg = answer) %>%
     select(-Q_ss, -Q_val, -question)
   
-  d3 <- d2 %>% filter(Q_ss != "Neg"|is.na(Q_ss)) %>% 
+  d3 <- d2 %>% filter(Q_ss != "Neg" | is.na(Q_ss)) %>% #include NA values b/c otherwise they are dropped. NA's are pop size q's. 
     mutate(answer = case_when(
       stringr::str_detect(question, "poptrend|sev|scope") & stringr::str_detect(question, "min$|mean$|max$") ~ answer/100,
       T ~ answer
@@ -171,7 +178,7 @@ formatData <- function(thisDataDate,
       #100% confidence not accepted (at least on lower end, e.g., 0 probability), so set to almost 100
       #0 not a viable minimum so set to 0.01
       answer_C = case_when(
-        Q_val == 'conf' & neg == 1 ~ 99.99, #will get divided by 100 in formatProbs
+        Q_val == 'conf' & neg == 1 ~ 99.99, # will get divided by 100 in formatProbs
         Q_val == 'min' & neg == 1 ~ 0.0001,
         Q_val == 'mean' & neg == 1  ~ 0.005,
         Q_val == 'max' & neg == 1  ~ 0.01,
@@ -190,6 +197,10 @@ formatData <- function(thisDataDate,
     filter(N_na == 0) %>%
     select(-N_na) %>% 
     filter(min < mean, mean < max, min < max, conf >= 0.5) %>% 
+    mutate(across(c(min, mean, max), ~if_else(.==0, 0.0001, .))) # replace 0s in min/mean/max with 0.0001
+    # 0s were causing issues with fitting log distributions later on. 
+  
+  data_l <- data_l %>% 
     # make into a list
     split(., .$sppcode) %>% 
     # make data into a list element 'rawdata')
@@ -212,5 +223,8 @@ formatData <- function(thisDataDate,
     )
   }
   
-  return(list(data = data, data_l = data_l))
+  return(list(data = data, 
+              data_l = data_l, 
+              weird_pop_size = weird_pop_size,
+              weird_percentage = weird_percentage))
 }

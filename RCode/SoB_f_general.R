@@ -156,7 +156,7 @@ fn_convertC <- function(col) {
     } else if (toupper(col[i]) == "YES" | toupper(col[i]) == "Y") {
       rc[i] = 1
     } else if (toupper(col[i]) == "NO" |
-               toupper(col[i]) == "N" | is.na(col[i]) | toupper(col[i]) == "") {
+               toupper(col[i]) == "N" | toupper(col[i]) == "") {
       rc[i] = 0
     } else if (is.character(col[i])) {
       rc[i] = as.numeric(stringr::str_replace_all(
@@ -179,6 +179,7 @@ fn_convertC <- function(col) {
 
 generateDist <- function(thisRow, dat_type, scope_sev){
   thisRow <- thisRow$value %>% .[[dat_type]] %>% as_tibble()
+  print(thisRow)
   distributions = list()
   list_names = list()
   for (i in 1:nrow(thisRow)){
@@ -188,6 +189,7 @@ generateDist <- function(thisRow, dat_type, scope_sev){
     distributions <- append(distributions, to_add)
   }
   names(distributions) <- list_names
+  print(distributions)
   return(distributions)
 }
 
@@ -196,6 +198,7 @@ generateDist <- function(thisRow, dat_type, scope_sev){
 make_dist <- function(thisRow, dat_type, scope_sev){
   lower <-  thisRow$dist %>% flatten() %>% .$thisL #is this okay to assume dist for scope and sev are the same?
   upper <-  thisRow$dist %>% flatten() %>% .$thisU
+  dist <- thisRow$dist %>% flatten() %>% .$thisD
   
   if (dat_type == "popData"){
     mmm <- thisRow$mmm[[1]] %>% as_tibble() %>% as.matrix()
@@ -212,9 +215,16 @@ make_dist <- function(thisRow, dat_type, scope_sev){
   
   # expertnames <- names(mmm)
 
-  print(thisRow$dist %>% flatten())
-  print("Probs:\n", probs)
-  print("MMM:\n", mmm)
+  print(paste("Probs:"))
+  print(probs)
+  print(paste("MMM:"))
+  print(mmm)
+  print(paste("Lower:"))
+  print(lower)
+  print(paste("Upper:"))
+  print(upper)
+  print(paste("Dist:"))
+  print(dist)
   
   tryCatch(
     expr = {
@@ -240,59 +250,59 @@ make_dist <- function(thisRow, dat_type, scope_sev){
 
 
 
-generateDist <- function(thisRow) {
-  
-  # thisRow = data[1,]
-  
-  # thisRow <- thisRow$value %>% flatten()
-  # experts <- thisRow$experts
-  # thisRow <- thisRow$popData
-  mmm <- thisRow$mmm
-  # probs <- thisRow$probs
-  # dist <- map(thisRow$dist, ~ unlist(.[3])) %>% flatten()
-  
-  mmm['min', mmm['min', ] == thisRow$dist$thisL] <-
-    sign(thisRow$dist$thisL) * (abs(thisRow$dist$thisL) - 1e-9)
-  mmm['max', mmm['max', ] == thisRow$dist$thisU] <-
-    sign(thisRow$dist$thisU) * (abs(thisRow$dist$thisU) - 1e-9)
-  
-  if (ncol(mmm) != ncol(probs)) {
-    stop(c("min mean max and probabilities not same number of experts"))
-  }
-  
-  # if (length(thisRow$experts$names) != ncol(mmm)) {
-  #   stop(c("expert names not same length as data"))
-  # }
-  
-  # names <- names(thisRow$experts$names)
-  # names <- (thisRow$data$token)
-  names <- experts
-  na_cols <-
-    unique(which(colSums(is.na(mmm)) > 0), which(colSums(is.na(probs)) > 0))
-  
-  
-  if (length(na_cols) > 0) {
-    mmm <- mmm[, -na_cols]
-    probs <- probs[, -na_cols]
-    names <- names[-na_cols]
-  }
-  
-  
-  tryCatch({
-    dist <- SHELF::fitdist(
-      vals = mmm,
-      probs = probs,
-      # dist=thisRow$dist$thisD,
-      lower = thisRow$dist$thisL,
-      upper = thisRow$dist$thisU,
-      expertnames = names
-    )
-    
-    return(dist)
-  },
-  error = function(e)
-    e)
-}
+# generateDist <- function(thisRow) {
+#   
+#   # thisRow = data[1,]
+#   
+#   # thisRow <- thisRow$value %>% flatten()
+#   # experts <- thisRow$experts
+#   # thisRow <- thisRow$popData
+#   mmm <- thisRow$mmm
+#   # probs <- thisRow$probs
+#   # dist <- map(thisRow$dist, ~ unlist(.[3])) %>% flatten()
+#   
+#   mmm['min', mmm['min', ] == thisRow$dist$thisL] <-
+#     sign(thisRow$dist$thisL) * (abs(thisRow$dist$thisL) - 1e-9)
+#   mmm['max', mmm['max', ] == thisRow$dist$thisU] <-
+#     sign(thisRow$dist$thisU) * (abs(thisRow$dist$thisU) - 1e-9)
+#   
+#   if (ncol(mmm) != ncol(probs)) {
+#     stop(c("min mean max and probabilities not same number of experts"))
+#   }
+#   
+#   # if (length(thisRow$experts$names) != ncol(mmm)) {
+#   #   stop(c("expert names not same length as data"))
+#   # }
+#   
+#   # names <- names(thisRow$experts$names)
+#   # names <- (thisRow$data$token)
+#   names <- experts
+#   na_cols <-
+#     unique(which(colSums(is.na(mmm)) > 0), which(colSums(is.na(probs)) > 0))
+#   
+#   
+#   if (length(na_cols) > 0) {
+#     mmm <- mmm[, -na_cols]
+#     probs <- probs[, -na_cols]
+#     names <- names[-na_cols]
+#   }
+#   
+#   
+#   tryCatch({
+#     dist <- SHELF::fitdist(
+#       vals = mmm,
+#       probs = probs,
+#       # dist=thisRow$dist$thisD,
+#       lower = thisRow$dist$thisL,
+#       upper = thisRow$dist$thisU,
+#       expertnames = names
+#     )
+#     
+#     return(dist)
+#   },
+#   error = function(e)
+#     e)
+# }
 
 
 
@@ -495,12 +505,13 @@ generate_Densityplot <- function(thisRow,
   return(myplotLP)
 }
 
-find_quantiles <- function(thisRow) {
+find_quantiles <- function(thisRow, dist_type) {
   print(thisRow$row)
   
   if (class(thisRow$distFit) != 'elicitation')
     return('Not a valid elicitation')
   
+  thisRow <- thisRow[[dist_type]] %>% as_tibble()
   
   # Q50 <-
   #   SHELF:::qlinearpool(thisRow$distFit, q = c(0.25,0.5,0.75), d = thisRow$dist$thisD)

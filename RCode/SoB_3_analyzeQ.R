@@ -1,14 +1,9 @@
-library(rlist)
-
 analyze_SoB <- function(data,
                         OutputFolder,
                         cntrytoAnalyze=NULL,
                         SpptoAnalyze=NULL,
                         PersonalPlots=F
                         ) {
-
-require(dplyr)
-require(SHELF)
 
 SpptoAnalyze <- c("ANTROZOUS_PALLIDUS", "EUMOPS_PEROTIS")
 data = nestedData
@@ -17,6 +12,22 @@ data = nestedData
     data <- data[SpptoAnalyze]
   }
   
+
+# for (i in seq(1:length(colnames(mmm)))){
+#   testmmm <- mmm[1:3,i]
+#   testprobs <- probs[1:3,i]
+#   print(paste("Column",i,":"))
+#   print(testmmm)
+#   print(probs)
+#   testout <- SHELF::fitdist(
+#     vals = testmmm,
+#     probs = testprobs,
+#     lower=0,
+#     upper=1
+#   )
+#   print(testout$ssq$beta)
+# }
+
   # if (is.null(SpptoAnalyze)){ SpptoAnalyze <- 'AllSpecies'}
   
   data <- enframe(data)
@@ -26,11 +37,15 @@ data = nestedData
    data$value[[i]][["threatData"]] <- data$value[[i]][["threatData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_dist))
  }
  
+  mydata <- data
+  
+  # for testing
+  thisRow <- mydata[[2]][[1]][["threatData"]] 
+  dat_type  = "threatData"
+  scope_sev = "scope"
+  
  # mydata <- data %>% mutate(pop_dist = map(value, ~map2(.$popData$Q_group, .$popData$Q_sub, choose_dist)))
  # mydata <- mydata %>% mutate(threat_dist = map(value, ~map2(.$threatData$Q_group, .$threatData$Q_sub, choose_dist)))
-  
-  require(pbapply)
-  require(parallel)
   
   cl <- makeCluster(16, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
   
@@ -55,10 +70,10 @@ data = nestedData
   mydata$scopeDists <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "scope")
   
   message("Fit threat severity distributions to answers")
-  mydata$scopeDists <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "sev")
+  mydata$sevDists <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "sev")
   
   message("get quantiles of answers")
-  mydata2$Quantiles <- pbapply(data, 1, find_quantiles, cl = cl)
+  mydata2$popQuantiles <- pbapply(mydata, 1, find_quantiles, dist_type = "popDists")
 
   message("Make Plot")
   mydata2$D_plot <-

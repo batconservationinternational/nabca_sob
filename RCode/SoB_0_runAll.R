@@ -8,11 +8,15 @@ thisSpp  = c("ANTROZOUS_PALLIDUS") #NULL for all species
 
 # Load necessary Components ----------------------------------------------
 
-library(dplyr)
-library(purrr)
-require(SHELF)
-library(tidyr)
+# library(dplyr)
+# library(purrr)
+# library(tidyr)
+library(tidyverse)
+library(pbapply)
+library(parallel)
 library(ggpubr)
+library(rlist)
+library(SHELF)
 
 source(paste0(here::here(), '/RCode/SoB_f_general.R'))
 
@@ -25,6 +29,8 @@ formattedData <- formatData(thisDataDate,
                          thisCountry)
 nestedData <- formattedData$data_l
 d <- formattedData$data
+weird_pop_size <- formattedData$weird_pop_size
+weird_percentage <- formattedData$weird_percentage
 
 # Make Range Graphs ---------------------------------------------------------
 source(paste0(here::here(), '/RCode/SoB_2_rangeGraphs.R'))
