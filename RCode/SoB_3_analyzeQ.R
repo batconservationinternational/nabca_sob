@@ -22,15 +22,15 @@ data = nestedData
   
   mydata <- data
   
-  cl <- makeCluster(16, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
+  cl <- makeCluster(8, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
   
   # message("Add labels (A,B,C...) to token values for consistent graphs")
   # mydata2$experts <- pblapply(mydata2$experts, expertNames, cl = cl)
   # mydata2$experts <- lapply(mydata2$experts, expertNames)
   
   # Prepare for graphs
-  clusterEvalQ(cl = cl, require(SHELF))
-  clusterEvalQ(cl = cl, require(ggplot2))
+  clusterEvalQ(cl = cl)
+  clusterEvalQ(cl = cl)
 
   # Fit distributions
   message("Fit pop distributions to answers")
@@ -53,6 +53,7 @@ data = nestedData
   quants <- list()
   for (i in seq(1:nrow(mydata))){
     out <- find_quantiles(mydata[i,])
+    print("Generating quantiles:")
     print(paste0(i, "/", nrow(mydata)))
     print(out)
     quants <- append(quants, list(out))
@@ -82,14 +83,18 @@ data = nestedData
     pmap_dfr(generate_Densityplot)
   
   # Random draw
-  message("Draw values from Dist")
+  message("Draw random values from dist")
   mydata$randomDraw <- map(mydata$dist_info, generate_sample, Nsamples = 1000)
   
   # Calculate overlap
   message("Calculate Overlap")
-  mydata2$overlap <- pbapply(mydata2[,], 1, calc_Overlap, cl = cl)
+  mydata$overlap <- mydata %>% select(dist_type, randomDraw) %>% 
+    pmap(calc_Overlap)
   
-  mydata2$dataSetName <- paste0(mydata2$cntry, "_", mydata2$sppCode)
+  
+  
+  
+  mydata$dataSetName <- paste0(mydata2$cntry, "_", mydata2$sppCode)
   
 
   thisOutputFolder <- OutputFolder

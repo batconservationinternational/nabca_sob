@@ -352,7 +352,11 @@ generate_sample <- function(dist_info, Nsamples = 10000) {
   tokens <- dist_info$best.fitting %>% rownames()
   samples <- vector('list', length(tokens))
   names(samples) <- tokens
-  # if(length(tokens)==1 | is.null(tokens)) return('single elicitation: no overlap')
+  
+  if (length(tokens)==1 | is.null(tokens)){
+    return('single elicitation: no overlap')
+  }
+  
   for (i in 1:length(tokens)) {
     samples[[i]] <- SHELF::sampleFit(thisDist, expert = i, n = Nsamples)
   }
@@ -366,51 +370,32 @@ generate_sample <- function(dist_info, Nsamples = 10000) {
 
 
 
-calc_Overlap <- function(thisRow) {
-  print(thisRow$row)
+calc_Overlap <- function(dist_type, randomDraw) {
   
-  experts <- rownames(thisRow$distFit$ssq)
-  if (length(experts) == 1 |
-      is.null(experts))
-    return('single valid elicitation: no overlap')
+  samples <- randomDraw
+  experts <- names(samples)
   
-  samples <- thisRow$randomDraw
-  thisD <- thisRow$dist$thisD
-  # names(samples)
-  boundaries <-
-    list(
-      from = c(thisRow$dist$thisL, thisRow$dist$thisL),
-      to = c(thisRow$dist$thisU, thisRow$dist$thisU)
-    )
+  lists_to_compare = list()
   
-  
-  over <- vector('list', length(samples))
-  
-  for (i in 1:length(samples)) {
-    ex <- samples[[i]][, thisD]
-    otherEX = plyr::ldply(samples[-i])[, thisD]
-    
-    thisCompare <- list(ex, otherEX)
-    names(thisCompare) <- c('YOU', 'All Others')
-    
-    if (thisRow$dist$thisU == Inf) {
-      maxB <- max(c(ex, otherEX), na.rm = T)
-      
-      boundaries <-
-        list(
-          from = c(thisRow$dist$thisL, thisRow$dist$thisL),
-          to = c(maxB, maxB)
-        )
-    }
-    
-    
-    
-    over[[i]] <-
-      overlapping::overlap(thisCompare, boundaries = boundaries)$OV
-    
+  for (i in 1:length(experts)){
+    exp_name <- experts[i]
+    sample <- samples[exp_name][[1]][,thisD]
+    lists_to_compare <- append(lists_to_compare, list(sample))
   }
   
-  names(over) <- experts
+  names(lists_to_compare) <- experts
+  
+  thisD <- dist_type[[1]]$thisD
+  thisL <- dist_type[[1]]$thisL
+  thisU <- dist_type[[1]]$thisU
+
+  upper <- list(rep(thisU, length(experts)))
+  lower <- list(rep(thisL, length(experts)))
+  boundaries <- list(upper, lower)
+  
+  over <- overlapping::ovmult(lists_to_compare)
+                      # type = "1", # do we want type 1 or type 2???
+  
   return(over)
 }
 
@@ -434,7 +419,6 @@ myplot <- SHELF:::plotfit(thisDist,
                              xlab=dist_type[[1]][["myXlab"]],
                              ylab=expression(f[X](x)),
                              lp = T,
-                             # lpname='linear pool',
                              returnPlot = T)
 return(myplot)
 }
@@ -446,117 +430,117 @@ return(myplot)
 
 
 
-generate_Densityplot <- function(thisRow,
-                                 save = F) {
-  print(thisRow$row)
-  require(ggplot2)
-  
-  if (class(thisRow$distFit) != 'elicitation')
-    return('Not a valid elicitation to graph')
-
-  
-  maxX <-
-    thisRow$Quantiles$Median + (2.5 * (thisRow$Quantiles$Q3 - thisRow$Quantiles$Q1))
-  
-  myplot <- SHELF::plotfit(
-    fit = thisRow$distFit,
-    lp = T,
-    returnPlot = T,
-    d = thisRow$dist$thisD,
-    xl = thisRow$dist$thisL,
-    xu = ifelse(thisRow$groupNum <= 4,
-                maxX,
-                thisRow$dist$thisU),
-    # expertnames =rownames(thisRow$distFit$ssq),
-    xlab = thisRow$dist$myXlab,
-    ylab = expression(f[X](x)),
-    # lpname='Combined'
-  ) +
-    labs(title = element_blank())
-  
-  
-  if (nrow(thisRow$distFit$ssq) == 1) {
-    q <- ggplot_build(myplot)
-    q
-  }
-  
-  fx <- myplot$data$fx
-  fx[is.infinite(fx)] <- NA
-  maxY <- max(fx, na.rm = T)
-  
-  thisRow$Quantiles$y = seq(
-    from = -maxY * (1 / 1.75),
-    to = -maxY * (1 / 10),
-    length = nrow(thisRow$Quantiles)
-  )
-  thisRow$Quantiles$size = 1
-  thisRow$Quantiles[thisRow$Quantiles$expert == 'linear pool', 'size'] =
-    2
-  
-  
-  myplotLP <-   myplot +
-    scale_size_manual(values = thisRow$experts$SZ, guide = 'none') +
-    geom_pointrange(
-      data = thisRow$Quantiles,
-      aes(
-        x = Median,
-        xmin = Q1,
-        xmax = Q3,
-        y = y,
-        color = expert
-      ),
-      size = thisRow$Quantiles$size / 1.5
-    ) +
-    theme_classic() +
-    coord_cartesian(expand = F, ylim = c(min(thisRow$Quantiles$y) * 1.1, maxY *
-                                           1.1)) +
-    scale_color_manual(
-      values = c(thisRow$experts$colors),
-      name = "Expert",
-      # breaks=thisRow$Quantiles$expert,
-      labels = thisRow$experts$labels
-    ) +
-    scale_linetype_manual(values = thisRow$experts$LT, guide = 'none') +
-    scale_y_continuous(breaks = NULL)
-  
-  
-  if (nrow(thisRow$distFit$ssq) == 1) {
-    colorNOcombine <- thisRow$experts$colors
-    colorNOcombine['linear pool'] <- NA
-    myplotLP <- myplotLP +
-      scale_color_manual(
-        values = colorNOcombine,
-        name = "Expert",
-        breaks = thisRow$Quantiles$expert,
-        labels = thisRow$experts$labels[names(thisRow$experts$labels) ==
-                                          thisRow$Quantiles$expert]
-      )
-  }
-  
-  # myplotLP
-  
-  if (thisRow$Q_sub == 'Size') {
-    myplotLP <- myplotLP +
-      scale_x_log10() +
-      # scale_x_continuous(trans='log')+
-      xlab('Population size \n (axis scaled to log base 10)')
-  }
-  #
-  # print(thisRow$row)
-  if (save) {
-    ggsave(
-      plot = myplotLP,
-      filename = paste0("TestGraphs/row_",
-                        thisRow$row,
-                        ".png"),
-      width = 4,
-      height = 2.5,
-      units = "in"
-    )
-  }
-  
-  return(myplotLP)
-}
+# generate_Densityplot <- function(thisRow,
+#                                  save = F) {
+#   print(thisRow$row)
+#   require(ggplot2)
+#   
+#   if (class(thisRow$distFit) != 'elicitation')
+#     return('Not a valid elicitation to graph')
+# 
+#   
+#   maxX <-
+#     thisRow$Quantiles$Median + (2.5 * (thisRow$Quantiles$Q3 - thisRow$Quantiles$Q1))
+#   
+#   myplot <- SHELF::plotfit(
+#     fit = thisRow$distFit,
+#     lp = T,
+#     returnPlot = T,
+#     d = thisRow$dist$thisD,
+#     xl = thisRow$dist$thisL,
+#     xu = ifelse(thisRow$groupNum <= 4,
+#                 maxX,
+#                 thisRow$dist$thisU),
+#     # expertnames =rownames(thisRow$distFit$ssq),
+#     xlab = thisRow$dist$myXlab,
+#     ylab = expression(f[X](x)),
+#     # lpname='Combined'
+#   ) +
+#     labs(title = element_blank())
+#   
+#   
+#   if (nrow(thisRow$distFit$ssq) == 1) {
+#     q <- ggplot_build(myplot)
+#     q
+#   }
+#   
+#   fx <- myplot$data$fx
+#   fx[is.infinite(fx)] <- NA
+#   maxY <- max(fx, na.rm = T)
+#   
+#   thisRow$Quantiles$y = seq(
+#     from = -maxY * (1 / 1.75),
+#     to = -maxY * (1 / 10),
+#     length = nrow(thisRow$Quantiles)
+#   )
+#   thisRow$Quantiles$size = 1
+#   thisRow$Quantiles[thisRow$Quantiles$expert == 'linear pool', 'size'] =
+#     2
+#   
+#   
+#   myplotLP <-   myplot +
+#     scale_size_manual(values = thisRow$experts$SZ, guide = 'none') +
+#     geom_pointrange(
+#       data = thisRow$Quantiles,
+#       aes(
+#         x = Median,
+#         xmin = Q1,
+#         xmax = Q3,
+#         y = y,
+#         color = expert
+#       ),
+#       size = thisRow$Quantiles$size / 1.5
+#     ) +
+#     theme_classic() +
+#     coord_cartesian(expand = F, ylim = c(min(thisRow$Quantiles$y) * 1.1, maxY *
+#                                            1.1)) +
+#     scale_color_manual(
+#       values = c(thisRow$experts$colors),
+#       name = "Expert",
+#       # breaks=thisRow$Quantiles$expert,
+#       labels = thisRow$experts$labels
+#     ) +
+#     scale_linetype_manual(values = thisRow$experts$LT, guide = 'none') +
+#     scale_y_continuous(breaks = NULL)
+#   
+#   
+#   if (nrow(thisRow$distFit$ssq) == 1) {
+#     colorNOcombine <- thisRow$experts$colors
+#     colorNOcombine['linear pool'] <- NA
+#     myplotLP <- myplotLP +
+#       scale_color_manual(
+#         values = colorNOcombine,
+#         name = "Expert",
+#         breaks = thisRow$Quantiles$expert,
+#         labels = thisRow$experts$labels[names(thisRow$experts$labels) ==
+#                                           thisRow$Quantiles$expert]
+#       )
+#   }
+#   
+#   # myplotLP
+#   
+#   if (thisRow$Q_sub == 'Size') {
+#     myplotLP <- myplotLP +
+#       scale_x_log10() +
+#       # scale_x_continuous(trans='log')+
+#       xlab('Population size \n (axis scaled to log base 10)')
+#   }
+#   #
+#   # print(thisRow$row)
+#   if (save) {
+#     ggsave(
+#       plot = myplotLP,
+#       filename = paste0("TestGraphs/row_",
+#                         thisRow$row,
+#                         ".png"),
+#       width = 4,
+#       height = 2.5,
+#       units = "in"
+#     )
+#   }
+#   
+#   return(myplotLP)
+# }
 
 
 
