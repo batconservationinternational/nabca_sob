@@ -33,19 +33,14 @@ data = nestedData
   data <- enframe(data)
  
  for (i in seq(nrow(data))){
-   data$value[[i]][["popData"]] <- data$value[[i]][["popData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_dist))
-   data$value[[i]][["threatData"]] <- data$value[[i]][["threatData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_dist))
+   data$value[[i]][["popSizeData"]] <- data$value[[i]][["popSizeData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
+   data$value[[i]][["popTrendData"]] <- data$value[[i]][["popTrendData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
+   data$value[[i]][["threatData"]] <- data$value[[i]][["threatData"]] %>% mutate(dist = map(Q_group, choose_threats_dist))
  }
- 
+  
+  
+  
   mydata <- data
-  
-  # for testing
-  thisRow <- mydata[[2]][[1]][["threatData"]] 
-  dat_type  = "threatData"
-  scope_sev = "scope"
-  
- # mydata <- data %>% mutate(pop_dist = map(value, ~map2(.$popData$Q_group, .$popData$Q_sub, choose_dist)))
- # mydata <- mydata %>% mutate(threat_dist = map(value, ~map2(.$threatData$Q_group, .$threatData$Q_sub, choose_dist)))
   
   cl <- makeCluster(16, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
   
@@ -53,27 +48,30 @@ data = nestedData
   # mydata2$experts <- pblapply(mydata2$experts, expertNames, cl = cl)
   # mydata2$experts <- lapply(mydata2$experts, expertNames)
   
-  # message("Format min, mean, max properly for analysis")
-  # mydata2$mmm <- pblapply(mydata2$data, extract_vals, cl = cl)
-  # 
-  # message("Format probabilities properly for analysis")
-  # mydata2$probs <- pblapply(mydata2$data, extract_probs, cl = cl)
-  
   #Prepare for graphs
   clusterEvalQ(cl = cl, require(SHELF))
   clusterEvalQ(cl = cl, require(ggplot2))
 
+  #Fit distributions
   message("Fit pop distributions to answers")
-  mydata$popDists <- pbapply(mydata, 1, generateDist, dat_type = "popData")
+  mydata$popSize <- pbapply(mydata, 1, generateDist, dat_type = "popSizeData", scope_sev = NA)
+  mydata$popTrend <- pbapply(mydata, 1, generateDist, dat_type = "popTrendData", scope_sev = NA)
   
   message("Fit threat scope distributions to answers")
-  mydata$scopeDists <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "scope")
+  mydata$Scope <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "scope")
   
   message("Fit threat severity distributions to answers")
-  mydata$sevDists <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "sev")
+  mydata$Severity <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "sev")
   
+  #Unnest distributions
+  mydata <- mydata %>% pivot_longer(!c(name, value),
+                                  names_to = "q_type",
+                                  values_to = "dist_info") %>% 
+    unnest_longer(dist_info, values_to = "dist_info")
+  
+  #Get quantiles
   message("get quantiles of answers")
-  mydata2$popQuantiles <- pbapply(mydata, 1, find_quantiles, dist_type = "popDists")
+  mydata2$popQuantiles <- pbapply(mydata, 1, find_quantiles)
 
   message("Make Plot")
   mydata2$D_plot <-

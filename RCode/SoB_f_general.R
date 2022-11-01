@@ -13,50 +13,56 @@ formatSPPdata <- function(sppList) {
   expertColors <- ggsci::pal_igv()(length(experts))
   names(expertColors) <- experts
   expertColors['linear pool'] = 'black'
-  # expertColors['Combined'] ='black'
   expertColors <- expertColors[!is.na(names(expertColors))]
   
   # message('add line style')
   expertLT <- rep('solid', times = length(experts))
   names(expertLT) <- experts
   expertLT['linear pool'] = 'solid'
-  # expertLT['Combined'] ='solid'
   
   # message('add line size')
   expertSZ <- rep(0.5, times = length(experts))
   names(expertSZ) <- experts
   expertSZ['linear pool'] = 1
-  # expertSZ['Combined'] =1
   
-  popData <- sppList[['rawdata']] %>% #[["ANTROZOUS_PALLIDUS"]]
-    filter(Q_group == 'pop') %>%
+  popSizeData <- sppList[['rawdata']] %>% 
+    filter(Q_group == 'pop' & Q_sub == 'Size') %>%
     dplyr::select(-Q_ss) %>%
     group_by(Q_group, Q_sub) %>%
     nest() %>%
-    mutate(mmm = map(data, formatMMM, "mmm"),
-           probs=map(data, formatProbs, "mmm")
+    mutate(mmm = map(data, formatMMM),
+           probs=map(data, formatProbs)
+    ) %>% 
+    select(-data)
+  
+  popTrendData <- sppList[['rawdata']] %>% 
+    filter(Q_group == 'pop' & Q_sub == 'Trend') %>%
+    dplyr::select(-Q_ss) %>%
+    group_by(Q_group, Q_sub) %>%
+    nest() %>%
+    mutate(mmm = map(data, formatMMM),
+           probs=map(data, formatProbs)
     ) %>% 
     select(-data)
   
   
-  threatData <-  sppList[['rawdata']]  %>% #[["ANTROZOUS_PALLIDUS"]]
+  threatData <-  sppList[['rawdata']]  %>% 
     filter(Q_group != 'pop') %>%
-    group_by(cntry, spp, sppcode, Q_group, Q_sub, Q_ss) %>%
+    group_by(Q_group, Q_sub, Q_ss) %>% 
     nest() %>%
     ungroup() %>%
     pivot_wider(names_from = Q_ss, values_from = data) %>%
     left_join(., read.csv(file = paste0(here::here(), '/Data/ThreatNum.csv')),
-              by = c("Q_group", "Q_sub")) %>% #names in these aren't matched up
+              by = c("Q_group", "Q_sub")) %>% 
     arrange(Q_group, Q_sub) %>%
     group_by(Q_group, Q_sub) %>%
-    nest() %>% 
-    mutate( #issue here with list structure getting passed to the function
-      ScopeMMM = map(data, formatMMM, type = 'Scope'),
-      ScopeProbs = map(data, formatProbs, type = 'Scope'),
-      SeverityMMM = map(data, formatMMM, type = 'Severity'),
-      SeverityProbs = map(data, formatProbs, type = 'Severity')
+    mutate( 
+      ScopeMMM = map(Scope, formatMMM),
+      ScopeProbs = map(Scope, formatProbs),
+      SeverityMMM = map(Severity, formatMMM),
+      SeverityProbs = map(Severity, formatProbs)
     ) %>% 
-    select(-data)
+    nest()
   
   
   
@@ -67,7 +73,8 @@ formatSPPdata <- function(sppList) {
       colors = expertColors,
       expertLT = expertLT,
       expertSZ = expertSZ,
-      popData = popData,
+      popSizeData = popSizeData,
+      popTrendData = popTrendData,
       threatData = threatData
     )
   )
@@ -75,60 +82,29 @@ formatSPPdata <- function(sppList) {
 
 
 formatMMM <- function(thisData, type) {
-  
-  if(type=="mmm"){
-    mmm <- t(thisData[, c('min', 'mean', 'max')])
-    colnames(mmm) <- thisData$token
-  }
-  
-  
-  # thisData = mydata2[['data']][[1]]
-  if(type == 'Scope' | type== 'Severity') {
-    mmm <- t(thisData[[type]][[1]][, c('min', 'mean', 'max')])
-    colnames(mmm) <- thisData[[type]][[1]]$token
-  }
-  
+
+  mmm <- t(thisData[, c('min', 'mean', 'max')])
+  colnames(mmm) <- thisData$token
   return(mmm)
 }
 
 
 formatProbs <- function(thisData, type) {
+    
+  conf = thisData$conf/100
+  dif = conf/2
+  lowerP = 0.5-dif
+  upperP = 0.5+dif
+  medianP = rep(0.5, times = length(lowerP))
   
-  if(type=="mmm"){
-    
-    conf = thisData$conf/100
-    dif = conf/2
-    lowerP = 0.5-dif
-    upperP = 0.5+dif
-    medianP = rep(0.5, times = length(lowerP))
-    
-    probs <- matrix(
-      data = c(lowerP, medianP, upperP),
-      nrow = 3,
-      byrow = T
-    )
-    
-    rownames(probs) <- c('lowerP', 'medianP', 'upperP')
-    colnames(probs) <- thisData$token
-  }
+  probs <- matrix(
+    data = c(lowerP, medianP, upperP),
+    nrow = 3,
+    byrow = T
+  )
   
-  if(type == 'Scope' | type=='Severity'){
-    x = thisData[[type]][[1]]$conf
-    conf = x/100
-    dif = conf/2
-    lowerP = 0.5-dif
-    upperP = 0.5+dif
-    medianP = rep(0.5, times = length(lowerP))
-    
-    probs <- matrix(
-      data = c(lowerP, medianP, upperP),
-      nrow = 3,
-      byrow = T
-    )
-    rownames(probs) <- c('lowerP', 'medianP', 'upperP')
-    colnames(probs) <- thisData[[type]]$token
-  }
-  
+  rownames(probs) <- c('lowerP', 'medianP', 'upperP')
+  colnames(probs) <- thisData$token
   
   return(probs)
 }
@@ -177,14 +153,63 @@ fn_convertC <- function(col) {
 
 
 
+choose_pop_dist <- function(myGroup_Q, mySubGroup) {
+
+  #Population Size
+  if (myGroup_Q == 'pop' & mySubGroup == 'Size') {
+    thisU = 1e9 #max pop size = 1 B which is 10 times the max TABR estimate (100M)
+    thisL = 0
+    thisD = 'gamma'
+    myXlab = 'Population Size'
+  }
+  
+  #Population Trend
+  ##normal distribution?
+  if (myGroup_Q == 'pop' & mySubGroup == 'Trend') {
+    thisU = 1.4 #median empiracle population growth rate = 1.0025 - the median expert lambda = 1.015. Given distribution (slack pub posted by WF) 1.4 is about max
+    thisL = -1
+    thisD = 'normal'
+    myXlab = 'Population Trend \n(% Change last 15 years)'
+  }
+
+  return(list(
+    thisU = thisU,
+    thisL = thisL,
+    thisD = thisD,
+    myXlab = myXlab
+  ))
+}
+
+
+
+choose_threats_dist <- function(myGroup){
+  thisU = 1
+  thisL = 0
+  thisD = 'beta'
+  myXlab = 'Percent'
+    
+  return(list(
+    thisU = thisU,
+    thisL = thisL,
+    thisD = thisD,
+    myXlab = myXlab
+  ))
+  
+}
+
+
+
+
+
+
+
 generateDist <- function(thisRow, dat_type, scope_sev){
   thisRow <- thisRow$value %>% .[[dat_type]] %>% as_tibble()
-  print(thisRow)
   distributions = list()
   list_names = list()
   for (i in 1:nrow(thisRow)){
     dist_info <- make_dist(thisRow[i,], dat_type, scope_sev)
-    list_names <- append(list_names, paste0(thisRow$Q_group[i], "_", thisRow$Q_sub[i]))
+    list_names <- append(list_names, paste0(thisRow$Q_group[i],"_", thisRow$Q_sub[i]))
     to_add <- list(dist_info)
     distributions <- append(distributions, to_add)
   }
@@ -195,25 +220,29 @@ generateDist <- function(thisRow, dat_type, scope_sev){
 
 
 
+
+
+
 make_dist <- function(thisRow, dat_type, scope_sev){
-  lower <-  thisRow$dist %>% flatten() %>% .$thisL #is this okay to assume dist for scope and sev are the same?
+  
+  lower <-  thisRow$dist %>% flatten() %>% .$thisL
   upper <-  thisRow$dist %>% flatten() %>% .$thisU
   dist <- thisRow$dist %>% flatten() %>% .$thisD
   
-  if (dat_type == "popData"){
+  if (dat_type == "popSizeData" | dat_type == "popTrendData"){
     mmm <- thisRow$mmm[[1]] %>% as_tibble() %>% as.matrix()
     probs <- thisRow$probs[[1]] %>% as_tibble() %>% as.matrix()
     
   } else if (dat_type == "threatData" & scope_sev == "scope"){
-    mmm <- thisRow$ScopeMMM[[1]] %>% as_tibble() %>% as.matrix()
-    probs <- thisRow$ScopeProbs[[1]] %>% as_tibble() %>% as.matrix()
+    mmm <- thisRow$data[[1]]$ScopeMMM[[1]] %>% as_tibble() %>% as.matrix()
+    probs <- thisRow$data[[1]]$ScopeProbs[[1]] %>% as_tibble() %>% as.matrix()
     
   } else if (dat_type == "threatData" & scope_sev == "sev"){
-    mmm <- thisRow$SeverityMMM[[1]] %>% as_tibble() %>% as.matrix()
-    probs <- thisRow$SeverityProbs[[1]] %>% as_tibble() %>% as.matrix()
+    mmm <- thisRow$data[[1]]$SeverityMMM[[1]] %>% as_tibble() %>% as.matrix()
+    probs <- thisRow$data[[1]]$SeverityProbs[[1]] %>% as_tibble() %>% as.matrix()
   }
   
-  # expertnames <- names(mmm)
+  expertnames <- names(mmm)
 
   print(paste("Probs:"))
   print(probs)
@@ -232,8 +261,8 @@ make_dist <- function(thisRow, dat_type, scope_sev){
       vals = mmm,
       probs = probs,
       lower = lower,
-      upper = upper
-      # expertnames = expertnames
+      upper = upper,
+      expertnames = expertnames
       )  
     }
   )
@@ -248,60 +277,63 @@ make_dist <- function(thisRow, dat_type, scope_sev){
 
 
 
+find_quantiles <- function(thisRow) {
+  
+  dist_id <- thisRow$dist_info_id
+  thisDist <- thisRow$dist_info[[dist_id]]
+  
+  if (q_type == "popSize"){
+    dist <- "gamma"
+  } else if (q_type == "popTrend"){
+    dist <- "normal"
+  } else if (q_type == "Scope" | q_type == "Severity"){
+    dist <- "beta"
+    d <- thisRow$dist_info[["pop_Trend"]]
+  }
+  
+  Q50 <- SHELF:::qlinearpool(thisDist,
+                             q = c(0.25, 0.5, 0.75, 0.999),
+                             d = dist)
+  lp_data <-
+    data.frame(
+      'Q1' = Q50[1],
+      'Median' = Q50[2],
+      'Q3' = Q50[3],
+      'P99' = Q50[4],
+      expert = 'linear pool'
+    )
+  
+  data_Q50 <- feedback(
+    thisDist,
+    quantiles = c(0.25, 0.5, 0.75, 0.999),
+    dist = dist
+  )$expert.quantiles
+  
+  data_Q50 <- as.data.frame(t(data_Q50))
+  colnames(data_Q50) <- c('Q1', 'Median', 'Q3', 'P99')
+  data_Q50$expert <- rownames(thisDist$best.fitting)
+  
+  data_Q50 <- rbind(lp_data, data_Q50)
+  row.names(data_Q50) <- data_Q50$expert
+  return(data_Q50)
+}
 
-
-# generateDist <- function(thisRow) {
-#   
-#   # thisRow = data[1,]
-#   
-#   # thisRow <- thisRow$value %>% flatten()
-#   # experts <- thisRow$experts
-#   # thisRow <- thisRow$popData
-#   mmm <- thisRow$mmm
-#   # probs <- thisRow$probs
-#   # dist <- map(thisRow$dist, ~ unlist(.[3])) %>% flatten()
-#   
-#   mmm['min', mmm['min', ] == thisRow$dist$thisL] <-
-#     sign(thisRow$dist$thisL) * (abs(thisRow$dist$thisL) - 1e-9)
-#   mmm['max', mmm['max', ] == thisRow$dist$thisU] <-
-#     sign(thisRow$dist$thisU) * (abs(thisRow$dist$thisU) - 1e-9)
-#   
-#   if (ncol(mmm) != ncol(probs)) {
-#     stop(c("min mean max and probabilities not same number of experts"))
-#   }
-#   
-#   # if (length(thisRow$experts$names) != ncol(mmm)) {
-#   #   stop(c("expert names not same length as data"))
-#   # }
-#   
-#   # names <- names(thisRow$experts$names)
-#   # names <- (thisRow$data$token)
-#   names <- experts
-#   na_cols <-
-#     unique(which(colSums(is.na(mmm)) > 0), which(colSums(is.na(probs)) > 0))
-#   
-#   
-#   if (length(na_cols) > 0) {
-#     mmm <- mmm[, -na_cols]
-#     probs <- probs[, -na_cols]
-#     names <- names[-na_cols]
-#   }
-#   
-#   
-#   tryCatch({
-#     dist <- SHELF::fitdist(
-#       vals = mmm,
-#       probs = probs,
-#       # dist=thisRow$dist$thisD,
-#       lower = thisRow$dist$thisL,
-#       upper = thisRow$dist$thisU,
-#       expertnames = names
+# if (nrow(thisRow$distFit$ssq) == 1) {
+#   # lp_data$expert <- rownames(thisRow$distFit$ssq)
+#   Q50 <-
+#     feedback(thisRow$distFit, quantiles = c(0.25, 0.5, 0.75, 0.999))$fitted.quantiles[thisRow$dist$thisD]
+#   lp_data <-
+#     data.frame(
+#       'Q1' = Q50[1, 1],
+#       'Median' = Q50[2, 1],
+#       'Q3' = Q50[3, 1],
+#       'P99' = Q50[4, 1],
+#       expert = rownames(thisRow$distFit$ssq)
 #     )
-#     
-#     return(dist)
-#   },
-#   error = function(e)
-#     e)
+# }
+# 
+# return(lp_data)
+# 
 # }
 
 
@@ -311,52 +343,6 @@ make_dist <- function(thisRow, dat_type, scope_sev){
 
 
 
-
-
-
-
-
-
-
-
-choose_dist <- function(myGroup_Q, myGroup_sub) {
-  
-  #Population Size
-  # if(as.numeric(myGroup)==3){
-  if (myGroup_Q == 'pop' & myGroup_sub == 'Size') {
-    thisU = 1e9 #max pop size = 1 B which is 10 times the max TABR estimate (100M)
-    thisL = 0
-    thisD = 'gamma'
-    myXlab = 'Population Size'
-  }
-  
-  #Population Trend
-  ##normal distribution?
-  # if(as.numeric(myGroup)==4){
-  if (myGroup_Q == 'pop' & myGroup_sub == 'Trend') {
-    thisU = 1.4 ^ 15 #median empiracle population growth rate = 1.0025 - the median expert lambda = 1.015. Given distribution (slack pub posted by WF) 1.4 is about max
-    thisL = -1
-    thisD = 'normal'
-    myXlab = 'Population Trend \n(% Change last 15 years)'
-  }
-  
-  #threats
-  ##group 8 = development
-  if (stringr::str_detect(myGroup_sub, 'sub')) {
-    thisU = 1
-    thisL = 0
-    thisD = 'beta'
-    myXlab = 'Percent'
-  }
-  
-  return(list(
-    thisU = thisU,
-    thisL = thisL,
-    thisD = thisD,
-    myXlab = myXlab
-  ))
-  
-}
 
 combine_dist <- function(dist) {
   if (class(dist) != 'elicitation')
@@ -368,6 +354,86 @@ combine_dist <- function(dist) {
   error = function(e)
     e)
 }
+
+
+
+
+
+
+
+generate_sample <- function(thisRow,
+                            Nsamples = 10000) {
+  print(thisRow$row)
+  
+  tokens <- rownames(thisRow$distFit$ssq)
+  
+  samples <- vector('list', length(tokens))
+  names(samples) <- names(tokens)
+  
+  # if(length(tokens)==1 | is.null(tokens)) return('single elicitation: no overlap')
+  
+  for (i in 1:length(tokens)) {
+    samples[[i]] <-
+      SHELF::sampleFit(thisRow$distFit, expert = i, n = Nsamples)
+  }
+  
+  names(samples) <- tokens
+  return(samples)
+}
+
+calc_Overlap <- function(thisRow) {
+  print(thisRow$row)
+  
+  experts <- rownames(thisRow$distFit$ssq)
+  if (length(experts) == 1 |
+      is.null(experts))
+    return('single valid elicitation: no overlap')
+  
+  samples <- thisRow$randomDraw
+  thisD <- thisRow$dist$thisD
+  # names(samples)
+  boundaries <-
+    list(
+      from = c(thisRow$dist$thisL, thisRow$dist$thisL),
+      to = c(thisRow$dist$thisU, thisRow$dist$thisU)
+    )
+  
+  
+  over <- vector('list', length(samples))
+  
+  for (i in 1:length(samples)) {
+    ex <- samples[[i]][, thisD]
+    otherEX = plyr::ldply(samples[-i])[, thisD]
+    
+    thisCompare <- list(ex, otherEX)
+    names(thisCompare) <- c('YOU', 'All Others')
+    
+    if (thisRow$dist$thisU == Inf) {
+      maxB <- max(c(ex, otherEX), na.rm = T)
+      
+      boundaries <-
+        list(
+          from = c(thisRow$dist$thisL, thisRow$dist$thisL),
+          to = c(maxB, maxB)
+        )
+    }
+    
+    
+    
+    over[[i]] <-
+      overlapping::overlap(thisCompare, boundaries = boundaries)$OV
+    
+  }
+  
+  names(over) <- experts
+  return(over)
+}
+
+
+
+
+
+
 
 
 generate_Densityplot <- function(thisRow,
@@ -505,77 +571,15 @@ generate_Densityplot <- function(thisRow,
   return(myplotLP)
 }
 
-find_quantiles <- function(thisRow, dist_type) {
-  print(thisRow$row)
-  
-  if (class(thisRow$distFit) != 'elicitation')
-    return('Not a valid elicitation')
-  
-  thisRow <- thisRow[[dist_type]] %>% as_tibble()
-  
-  # Q50 <-
-  #   SHELF:::qlinearpool(thisRow$distFit, q = c(0.25,0.5,0.75), d = thisRow$dist$thisD)
-  #
-  # lp_data <- data.frame('Q1'=Q50[1], 'Median'=Q50[2], 'Q3'=Q50[3],
-  #                       expert='Combined')
-  # y=-0.5, #y position for graphing
-  # size=2) #line size for graphing
-  
-  
-  
-  if (nrow(thisRow$distFit$ssq) > 1) {
-    print(c(thisRow$row, 'more than 1'))
-    
-    Q50 <-
-      SHELF:::qlinearpool(thisRow$distFit,
-                          q = c(0.25, 0.5, 0.75, 0.999),
-                          d = thisRow$dist$thisD)
-    
-    lp_data <-
-      data.frame(
-        'Q1' = Q50[1],
-        'Median' = Q50[2],
-        'Q3' = Q50[3],
-        'P99' = Q50[4],
-        expert = 'linear pool'
-      )
-    
-    data_Q50 <- feedback(
-      thisRow$distFit,
-      quantiles = c(0.25, 0.5, 0.75, 0.999),
-      dist = thisRow$dist$thisD
-    )$expert.quantiles
-    
-    data_Q50 <- as.data.frame(t(data_Q50))
-    colnames(data_Q50) <- c('Q1', 'Median', 'Q3', 'P99')
-    data_Q50$expert <- rownames(thisRow$distFit$best.fitting)
-    # #y position for graphing
-    # data_Q50$y= seq(from=-1, to =-3, length.out=nrow(thisRow$distFit$ssq))
-    # #line size for graphing
-    # data_Q50$size=1
-    
-    data_Q50 <- rbind(lp_data, data_Q50)
-    row.names(data_Q50) <- data_Q50$expert
-    return(data_Q50)
-  }
-  
-  if (nrow(thisRow$distFit$ssq) == 1) {
-    # lp_data$expert <- rownames(thisRow$distFit$ssq)
-    Q50 <-
-      feedback(thisRow$distFit, quantiles = c(0.25, 0.5, 0.75, 0.999))$fitted.quantiles[thisRow$dist$thisD]
-    lp_data <-
-      data.frame(
-        'Q1' = Q50[1, 1],
-        'Median' = Q50[2, 1],
-        'Q3' = Q50[3, 1],
-        'P99' = Q50[4, 1],
-        expert = rownames(thisRow$distFit$ssq)
-      )
-  }
-  
-  return(lp_data)
-  
-}
+
+
+
+
+
+
+
+
+
 
 make_rangeGraphs <- function(d, spp, thiscntry) {
   # # Set arguments if testing code
@@ -586,8 +590,6 @@ make_rangeGraphs <- function(d, spp, thiscntry) {
   # thiscntry=range$cntry[i]
   
   sciName = stringr::str_remove(spp, " \\(.*\\)")
-  #function
-  require(ggplot2)
   
   sppRangeData <-
     read.csv(paste0(here::here(), "/Data/speciesRangeArea.csv")) %>%
@@ -697,73 +699,12 @@ make_rangeGraphs <- function(d, spp, thiscntry) {
 
 
 
-generate_sample <- function(thisRow,
-                            Nsamples = 10000) {
-  print(thisRow$row)
-  
-  tokens <- rownames(thisRow$distFit$ssq)
-  
-  samples <- vector('list', length(tokens))
-  names(samples) <- names(tokens)
-  
-  # if(length(tokens)==1 | is.null(tokens)) return('single elicitation: no overlap')
-  
-  for (i in 1:length(tokens)) {
-    samples[[i]] <-
-      SHELF::sampleFit(thisRow$distFit, expert = i, n = Nsamples)
-  }
-  
-  names(samples) <- tokens
-  return(samples)
-}
 
-calc_Overlap <- function(thisRow) {
-  print(thisRow$row)
-  
-  experts <- rownames(thisRow$distFit$ssq)
-  if (length(experts) == 1 |
-      is.null(experts))
-    return('single valid elicitation: no overlap')
-  
-  samples <- thisRow$randomDraw
-  thisD <- thisRow$dist$thisD
-  # names(samples)
-  boundaries <-
-    list(
-      from = c(thisRow$dist$thisL, thisRow$dist$thisL),
-      to = c(thisRow$dist$thisU, thisRow$dist$thisU)
-    )
-  
-  
-  over <- vector('list', length(samples))
-  
-  for (i in 1:length(samples)) {
-    ex <- samples[[i]][, thisD]
-    otherEX = plyr::ldply(samples[-i])[, thisD]
-    
-    thisCompare <- list(ex, otherEX)
-    names(thisCompare) <- c('YOU', 'All Others')
-    
-    if (thisRow$dist$thisU == Inf) {
-      maxB <- max(c(ex, otherEX), na.rm = T)
-      
-      boundaries <-
-        list(
-          from = c(thisRow$dist$thisL, thisRow$dist$thisL),
-          to = c(maxB, maxB)
-        )
-    }
-    
-    
-    
-    over[[i]] <-
-      overlapping::overlap(thisCompare, boundaries = boundaries)$OV
-    
-  }
-  
-  names(over) <- experts
-  return(over)
-}
+
+
+
+
+
 
 
 
