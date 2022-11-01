@@ -242,7 +242,7 @@ make_dist <- function(thisRow, dat_type, scope_sev){
     probs <- thisRow$data[[1]]$SeverityProbs[[1]] %>% as_tibble() %>% as.matrix()
   }
   
-  expertnames <- names(mmm)
+  expert_names <- colnames(mmm)
 
   print(paste("Probs:"))
   print(probs)
@@ -254,6 +254,9 @@ make_dist <- function(thisRow, dat_type, scope_sev){
   print(upper)
   print(paste("Dist:"))
   print(dist)
+  print(paste("Expert Names:"))
+  print(expert_names)
+  
   
   tryCatch(
     expr = {
@@ -262,7 +265,7 @@ make_dist <- function(thisRow, dat_type, scope_sev){
       probs = probs,
       lower = lower,
       upper = upper,
-      expertnames = expertnames
+      expertnames = expert_names
       )  
     }
   )
@@ -282,18 +285,17 @@ find_quantiles <- function(thisRow) {
   dist_id <- thisRow$dist_info_id
   thisDist <- thisRow$dist_info[[dist_id]]
   
-  if (q_type == "popSize"){
-    dist <- "gamma"
-  } else if (q_type == "popTrend"){
-    dist <- "normal"
-  } else if (q_type == "Scope" | q_type == "Severity"){
-    dist <- "beta"
-    d <- thisRow$dist_info[["pop_Trend"]]
+  if (thisRow$q_type == "popSize"){
+    dist_type <- "gamma"
+  } else if (thisRow$q_type == "popTrend"){
+    dist_type <- "normal"
+  } else if (thisRow$q_type == "Scope" | thisRow$q_type == "Severity"){
+    dist_type <- "beta"
   }
   
   Q50 <- SHELF:::qlinearpool(thisDist,
                              q = c(0.25, 0.5, 0.75, 0.999),
-                             d = dist)
+                             d = dist_type)
   lp_data <-
     data.frame(
       'Q1' = Q50[1],
@@ -306,7 +308,7 @@ find_quantiles <- function(thisRow) {
   data_Q50 <- feedback(
     thisDist,
     quantiles = c(0.25, 0.5, 0.75, 0.999),
-    dist = dist
+    dist = dist_type
   )$expert.quantiles
   
   data_Q50 <- as.data.frame(t(data_Q50))

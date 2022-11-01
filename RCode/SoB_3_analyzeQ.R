@@ -69,9 +69,18 @@ data = nestedData
                                   values_to = "dist_info") %>% 
     unnest_longer(dist_info, values_to = "dist_info")
   
-  #Get quantiles
-  message("get quantiles of answers")
-  mydata2$popQuantiles <- pbapply(mydata, 1, find_quantiles)
+  # Get quantiles
+  quants <- list()
+  for (i in seq(1:nrow(mydata))){
+    out <- find_quantiles(mydata[i,])
+    print(paste0(i, "/", nrow(mydata)))
+    print(out)
+    quants <- append(quants, list(out))
+  }
+  mydata$popQuantiles <- quants
+  
+  # message("get quantiles of answers")
+  # mydata$popQuantiles <- pbapply(mydata, 1, find_quantiles)
 
   message("Make Plot")
   mydata2$D_plot <-
