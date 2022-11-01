@@ -1,23 +1,17 @@
+
 calc_Impact <- function(DataDate, 
                         DataFolder,
                         speciestoAnalyze=NULL,
                         countrytoAnalyze=NULL,
-                        doPar=T,
-                        PersonalPlots=FALSE) {
+                        doPar=T) {
   
-  if(PersonalPlots){
-   saveDir = paste0(here::here(), '/PersonalGraphs/', DataDate, '/')
-   if (!dir.exists(saveDir)) {
-      dir.create(saveDir)
-   }
-  }
-   # DataFolder = paste0(here::here(), '/Data/derived/AnalysisExport', DataDate)
+  # DataDate = 20211109
+  # DataFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', DataDate)
+  # speciestoAnalyze = 'ANPAL'
+  # countrytoAnalyze = 'MX'
    
-   DataFiles <- list.files(DataFolder, full.names = T)
-   DataFiles <- DataFiles[!grepl("_T2.RDS", DataFiles)]
-   
-   
-   # DataFiles <- DataFiles[grepl("Canada_", DataFiles)]
+  DataFiles <- list.files(DataFolder, full.names = T)
+  DataFiles <- DataFiles[!grepl("_T2.RDS", DataFiles)]
    
    #Table of threat lables
    Threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv'))
@@ -34,92 +28,86 @@ calc_Impact <- function(DataDate,
    
    #ForEachDataFile
    
-   require(doParallel)
-   require(foreach)
-   require(parallel)
-
-   
    cl <- makeCluster(detectCores()-1, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
    # cl <- makeCluster(2, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
    registerDoParallel(cl)
    
    # for (f in DataFiles) {
    
-   foreach(f = DataFiles) %dopar% {
+   foreach(f =DataFiles) %dopar% {
   # foreach(f =DataFiles) %do% {
       
-      require(dplyr)
+     f = DataFiles
+      
+     require(dplyr)
       require(tidyr)
       require(ggpubr)
       
       
       # f = DataFiles[1] #For Debugging
-      print(paste0('reading', f))
+      print(paste0('reading: ', f))
       
-      if(PersonalPlots){
-      sppData <- readRDS(f) %>%
-         select(
-            cntry,
-            spp,
-            sppCode,
-            LimeGroup,
-            subQ,
-            experts,
-            Q_group,
-            Q_ss,
-            Q_sub,
-            randomDraw,
-            perPlots,
-            D_plot
-         ) %>%
-         mutate(plots = case_when(perPlots == 'single elicitation' ~ D_plot,
-                                  T ~ perPlots)) %>%
-         select(-perPlots,-D_plot)
-      } else {
-        sppData <- readRDS(f) %>%
+      experts <- unique(readRDS(f)$experts)
+      
+      if(length(experts>1)){stop('multiple expert list')} 
+      
+       sppData <- readRDS(f) %>%
           select(
             cntry,
             spp,
             sppCode,
-            LimeGroup,
+            # LimeGroup,
             subQ,
-            experts,
+            # experts,
             Q_group,
             Q_ss,
             Q_sub,
             randomDraw,
-            # perPlots,
-            D_plot
-          ) %>%
-          mutate(plots=D_plot) %>%
-          select(-D_plot)
-      }
-      
-      
-      
+            D_plot)%>% 
+         left_join(Threats) 
+
       thisSpecies = unique(sppData$sppCode)
       thisCountry = unique(sppData$cntry)
       
-      #### Combine Threat Graphs ####
-      threatData <- sppData %>%
-         filter(Q_group != 'pop')
+      if(length(thisSpecies)>1 | length(thisCountry)>1) {
+        stop( cat('More than 1 species or country in data file', 
+                  '\nSpecies: ', thisSpecies, 
+                  '\nCountry: ', thisCountry, 
+                  '\ndatafile: ', f)
+              )}
+      
+      # #### Combine Threat Graphs ####
+      # threatData <- sppData %>%
+      #   filter(Q_group != 'pop') %>% 
+      #   left_join(Threats) %>% 
+      #   pivot_wider(names_from = Q_ss,
+      #               values_from = c('randomDraw', 'D_plot'))
+
+      
+      
+      ScopeData <- sppData %>%
+        filter(Q_ss == 'Scope') %>% 
+        arrange(Q_group, Q_sub)
+      
+      SeverityData <- sppData %>%
+        filter(Q_ss == 'Severity')%>% 
+        arrange(Q_group, Q_sub)
       
       #IF NO THREAT DATA GO TO NEXT FILE
-      if (nrow(threatData) < 1) {
+      if (nrow(ScopeData) < 1 | nrow(SeverityData) < 1 ) {
          rm(sppData)
          rm(threatData)
          next
       }
       
+      if (!identical(ScopeData[, c('Q_sub', 'subTnum', 'Threat', 'subT')],
+                     SeverityData[, c('Q_sub', 'subTnum', 'Threat', 'subT')])) {
+        stop('Something is not equivelent in scope and severity order')
+      }
       
-      
-      threatData <- threatData %>%
-         pivot_wider(names_from = Q_ss,
-                     values_from = c('randomDraw', 'plots')) %>%
-         left_join(Threats, by = c('LimeGroup', 'subQ'))
-      
-      SS_impact <- vector(mode = 'list', length = nrow(threatData))
-      
+      impactData <- left_join(ScopeData, SeverityData, by=c('Q_sub', 'subTnum', 'Threat', 'subT'),
+                              suffix=c('.Scope','.Severity')) %>% 
+        mutate(impact=randomDraw.Scope * randomDraw.Severity)
       
       #For each row, and expert, calculate distribution and quantiles, then grapgh
       for (i in 1:nrow(threatData)) {

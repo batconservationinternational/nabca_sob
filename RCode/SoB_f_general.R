@@ -553,12 +553,6 @@ return(myplot)
 
 
 make_rangeGraphs <- function(d, spp, thiscntry) {
-  # # Set arguments if testing code
-  # i=2
-  # d=range$data[[i]]
-  # spp=range$spp[i]
-  # sppcode=range$sppcode[i]
-  # thiscntry=range$cntry[i]
   
   sciName = stringr::str_remove(spp, " \\(.*\\)")
   

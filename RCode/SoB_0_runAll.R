@@ -16,6 +16,8 @@ library(rlist)
 library(SHELF)
 library(progress)
 library(overlapping)
+library(doParallel)
+library(foreach)
 
 source(paste0(here::here(), '/RCode/SoB_f_general.R'))
 
@@ -38,21 +40,19 @@ rangeGraphs <- graphRangeQ(d)
 
 # Analyze Stuff -----------------------------------------------------------
 source(paste0(here::here(), '/RCode/SoB_3_analyzeQ.R'))
-source(paste0(here::here(), '/RCode/SoB_4_GroupANDcalcTotalImpactANDpersonalPlots.R'))
+source(paste0(here::here(), '/RCode/SoB_4_GroupANDcalcTotalImpact.R'))
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate)
 
 analyze_SoB(nestedData,
             OutputFolder = OutputFolder,
             cntrytoAnalyze = thisCountry,
-            SpptoAnalyze = thisSpp,
-            PersonalPlots=FALSE
+            SpptoAnalyze = thisSpp
             )
 
 calc_Impact(thisDataDate, 
             speciestoAnalyze = thisSpp,
-            DataFolder = OutputFolder,
-            PersonalPlots=FALSE)
+            DataFolder = OutputFolder)
 
 
 # Make Population Graphs --------------------------------------------------
