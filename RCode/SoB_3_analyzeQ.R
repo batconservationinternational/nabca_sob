@@ -12,24 +12,6 @@ data = nestedData
     data <- data[SpptoAnalyze]
   }
   
-
-# for (i in seq(1:length(colnames(mmm)))){
-#   testmmm <- mmm[1:3,i]
-#   testprobs <- probs[1:3,i]
-#   print(paste("Column",i,":"))
-#   print(testmmm)
-#   print(probs)
-#   testout <- SHELF::fitdist(
-#     vals = testmmm,
-#     probs = testprobs,
-#     lower=0,
-#     upper=1
-#   )
-#   print(testout$ssq$beta)
-# }
-
-  # if (is.null(SpptoAnalyze)){ SpptoAnalyze <- 'AllSpecies'}
-  
   data <- enframe(data)
  
  for (i in seq(nrow(data))){
@@ -37,8 +19,6 @@ data = nestedData
    data$value[[i]][["popTrendData"]] <- data$value[[i]][["popTrendData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
    data$value[[i]][["threatData"]] <- data$value[[i]][["threatData"]] %>% mutate(dist = map(Q_group, choose_threats_dist))
  }
-  
-  
   
   mydata <- data
   
@@ -48,11 +28,11 @@ data = nestedData
   # mydata2$experts <- pblapply(mydata2$experts, expertNames, cl = cl)
   # mydata2$experts <- lapply(mydata2$experts, expertNames)
   
-  #Prepare for graphs
+  # Prepare for graphs
   clusterEvalQ(cl = cl, require(SHELF))
   clusterEvalQ(cl = cl, require(ggplot2))
 
-  #Fit distributions
+  # Fit distributions
   message("Fit pop distributions to answers")
   mydata$popSize <- pbapply(mydata, 1, generateDist, dat_type = "popSizeData", scope_sev = NA)
   mydata$popTrend <- pbapply(mydata, 1, generateDist, dat_type = "popTrendData", scope_sev = NA)
@@ -63,7 +43,7 @@ data = nestedData
   message("Fit threat severity distributions to answers")
   mydata$Severity <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "sev")
   
-  #Unnest distributions
+  # Unnest distributions
   mydata <- mydata %>% pivot_longer(!c(name, value),
                                   names_to = "q_type",
                                   values_to = "dist_info") %>% 
@@ -79,31 +59,33 @@ data = nestedData
   }
   mydata$popQuantiles <- quants
   
-  # message("get quantiles of answers")
-  # mydata$popQuantiles <- pbapply(mydata, 1, find_quantiles)
+  # Pull out distribution type info
+  dist_types <- list()
+  for (i in seq(nrow(mydata))){
+    q_type <- mydata[i,]$q_type
+    thisRow <- mydata[i,]$value[[1]]
+    if (q_type == "popSize"){
+      dist_type <- thisRow$popSizeData$dist
+    } else if (q_type == "popTrend"){
+      dist_type <- thisRow$popTrendData$dist
+    } else if (q_type == "Scope" | q_type == "Severity"){
+      dist_type <- thisRow$threatData$dist
+    }
+  dist_types <- append(dist_types, list(dist_type))
+  }
+  mydata$dist_type <- dist_types
 
+  # Make plot
   message("Make Plot")
-  mydata2$D_plot <-
-    pbapply(mydata2[,],
-            1,
-            generate_Densityplot,
-            cl = cl,
-            save = F)
+  mydata$plots <- mydata %>% 
+    select(value, q_type, dist_info, popQuantiles, dist_type) %>% 
+    pmap_dfr(generate_Densityplot)
   
-  # mydata2$D_plot <-
-  #   apply(mydata2[,],
-  #           1,
-  #           generate_Densityplot,
-  #           save = T)
-  
+  # Random draw
   message("Draw values from Dist")
-  mydata2$randomDraw <-
-    pbapply(mydata2[,],
-            1,
-            generate_sample,
-            Nsamples = 1000,
-            cl = cl)
+  mydata$randomDraw <- map(mydata$dist_info, generate_sample, Nsamples = 1000)
   
+  # Calculate overlap
   message("Calculate Overlap")
   mydata2$overlap <- pbapply(mydata2[,], 1, calc_Overlap, cl = cl)
   

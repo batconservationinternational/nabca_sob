@@ -320,23 +320,6 @@ find_quantiles <- function(thisRow) {
   return(data_Q50)
 }
 
-# if (nrow(thisRow$distFit$ssq) == 1) {
-#   # lp_data$expert <- rownames(thisRow$distFit$ssq)
-#   Q50 <-
-#     feedback(thisRow$distFit, quantiles = c(0.25, 0.5, 0.75, 0.999))$fitted.quantiles[thisRow$dist$thisD]
-#   lp_data <-
-#     data.frame(
-#       'Q1' = Q50[1, 1],
-#       'Median' = Q50[2, 1],
-#       'Q3' = Q50[3, 1],
-#       'P99' = Q50[4, 1],
-#       expert = rownames(thisRow$distFit$ssq)
-#     )
-# }
-# 
-# return(lp_data)
-# 
-# }
 
 
 
@@ -363,25 +346,25 @@ combine_dist <- function(dist) {
 
 
 
-generate_sample <- function(thisRow,
-                            Nsamples = 10000) {
-  print(thisRow$row)
+generate_sample <- function(dist_info, Nsamples = 10000) {
   
-  tokens <- rownames(thisRow$distFit$ssq)
-  
+  thisDist <- dist_info
+  tokens <- dist_info$best.fitting %>% rownames()
   samples <- vector('list', length(tokens))
-  names(samples) <- names(tokens)
-  
-  # if(length(tokens)==1 | is.null(tokens)) return('single elicitation: no overlap')
-  
-  for (i in 1:length(tokens)) {
-    samples[[i]] <-
-      SHELF::sampleFit(thisRow$distFit, expert = i, n = Nsamples)
-  }
-  
   names(samples) <- tokens
+  # if(length(tokens)==1 | is.null(tokens)) return('single elicitation: no overlap')
+  for (i in 1:length(tokens)) {
+    samples[[i]] <- SHELF::sampleFit(thisDist, expert = i, n = Nsamples)
+  }
   return(samples)
 }
+
+
+
+
+
+
+
 
 calc_Overlap <- function(thisRow) {
   print(thisRow$row)
@@ -437,6 +420,31 @@ calc_Overlap <- function(thisRow) {
 
 
 
+generate_Densityplot <- function(value, q_type, dist_info, popQuantiles, dist_type) {
+  
+  thisDist <- dist_info
+  maxX <- popQuantiles[["Median"]][1] +
+    (2.5 * (popQuantiles[["Q3"]][1] - popQuantiles[["Q1"]][1]))
+
+myplot <- SHELF:::plotfit(thisDist,
+                             xl=dist_type[[1]][["thisL"]],
+                             xu=maxX,
+                             d=dist_type[[1]][["thisD"]],
+                             lwd=2,
+                             xlab=dist_type[[1]][["myXlab"]],
+                             ylab=expression(f[X](x)),
+                             lp = T,
+                             # lpname='linear pool',
+                             returnPlot = T)
+return(myplot)
+}
+  
+  
+  
+  
+
+
+
 
 generate_Densityplot <- function(thisRow,
                                  save = F) {
@@ -445,29 +453,7 @@ generate_Densityplot <- function(thisRow,
   
   if (class(thisRow$distFit) != 'elicitation')
     return('Not a valid elicitation to graph')
-  
-  # #This screws up the names, so have to go to internal SHELF functions to get it right
-  # SHELF::plotfit(fit = thisRow$distFit,
-  #                      lp = T,
-  #                      returnPlot = T,
-  #                      d=thisRow$dist$thisD,
-  #                      xlab=thisRow$dist$myXlab,
-  #
-  #                          )
-  #
-  # myplot <- SHELF:::makeLinearPoolPlot(thisRow$distFit,
-  #                              xl=thisRow$dist$thisL,
-  #                              xu=ifelse(thisRow$groupNum<=4, Inf, thisRow$dist$thisU),
-  #                              d=thisRow$dist$thisD,
-  #                              # expertnames =rownames(thisRow$distFit$ssq),
-  #                              lwd=2,
-  #                              # ql=0.25,
-  #                              # qu=0.75,
-  #                              xlab=thisRow$dist$myXlab,
-  #                              ylab=expression(f[X](x)),
-  #                              lpname='linear pool')
-  
-  #This screws up the names, so have to go to internal SHELF functions to get it right
+
   
   maxX <-
     thisRow$Quantiles$Median + (2.5 * (thisRow$Quantiles$Q3 - thisRow$Quantiles$Q1))
@@ -506,7 +492,6 @@ generate_Densityplot <- function(thisRow,
   thisRow$Quantiles$size = 1
   thisRow$Quantiles[thisRow$Quantiles$expert == 'linear pool', 'size'] =
     2
-  # maxX <-
   
   
   myplotLP <-   myplot +
