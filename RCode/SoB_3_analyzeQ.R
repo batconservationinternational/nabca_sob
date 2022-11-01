@@ -21,11 +21,11 @@ analyze_SoB <- function(data,
   
   mydata <- data
   
-  cl <- makeCluster(8, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
+  # cl <- makeCluster(8, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
   
   # Prepare for graphs
-  clusterEvalQ(cl = cl)
-  clusterEvalQ(cl = cl)
+  # clusterEvalQ(cl = cl)
+  # clusterEvalQ(cl = cl)
 
   # Fit distributions
   message("Fit pop distributions to answers")
