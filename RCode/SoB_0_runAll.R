@@ -5,9 +5,7 @@ thisSpp  = c("ANTROZOUS_PALLIDUS") #NULL for all species
 #export data with completed answers only, answer and Q codes
 #Save as MX/US_results_YYYYMMDD.csv
 
-
 # Load necessary Components ----------------------------------------------
-
 library(tidyverse)
 library(pbapply)
 library(parallel)
@@ -45,15 +43,15 @@ source(paste0(here::here(), '/RCode/SoB_4_GroupANDcalcTotalImpact.R'))
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate)
 
-analyze_SoB(nestedData,
+analyzed_data <- analyze_SoB(nestedData,
             OutputFolder = OutputFolder,
             cntrytoAnalyze = thisCountry,
-            SpptoAnalyze = thisSpp
-            )
+            SpptoAnalyze = thisSpp)
 
-calc_Impact(thisDataDate, 
+impact_data <- calc_Impact(thisDataDate, 
             speciestoAnalyze = thisSpp,
-            DataFolder = OutputFolder)
+            DataFolder = OutputFolder,
+            countrytoAnalyze = thisCountry)
 
 
 # Make Population Graphs --------------------------------------------------

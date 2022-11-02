@@ -346,7 +346,7 @@ combine_dist <- function(dist) {
 
 
 
-generate_sample <- function(dist_info, Nsamples = 10000) {
+generate_sample <- function(dist_info, Nsamples = 10000, pb) {
   
   thisDist <- dist_info
   tokens <- dist_info$best.fitting %>% rownames()
@@ -371,7 +371,7 @@ generate_sample <- function(dist_info, Nsamples = 10000) {
 
 
 
-calc_Overlap <- function(dist_type, randomDraw) {
+calc_Overlap <- function(dist_type, randomDraw, pb) {
   
   samples <- randomDraw
   experts <- names(samples)
@@ -392,8 +392,8 @@ calc_Overlap <- function(dist_type, randomDraw) {
   }
   
   names(lists_to_compare) <- experts
-  
-  over <- overlapping::ovmult(lists_to_compare)
+
+  over <- overlapping::ovmult(lists_to_compare)$OV
                       # type = "1", # do we want type 1 or type 2???
   pb$tick()
   return(over)
@@ -405,7 +405,7 @@ calc_Overlap <- function(dist_type, randomDraw) {
 
 
 
-generate_Densityplot <- function(value, q_type, dist_info, popQuantiles, dist_type) {
+generate_Densityplot <- function(value, q_type, dist_info, popQuantiles, dist_type, pb) {
   
   thisDist <- dist_info
   maxX <- popQuantiles[["Median"]][1] +

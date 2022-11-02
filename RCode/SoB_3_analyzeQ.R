@@ -70,21 +70,21 @@ SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   pb <- progress::progress_bar$new(total = ticks)
   
   # Density plots
-  message("Make density plotslot")
+  message("Make density plots")
   mydata$plots <- mydata %>% 
     select(value, q_type, dist_info, popQuantiles, dist_type) %>% 
-    pmap(generate_Densityplot)
+    pmap(generate_Densityplot, pb=pb)
   
   # Random draw
   pb <- progress::progress_bar$new(total = ticks)
   message("Draw random values from dist")
-  mydata$randomDraw <- map(mydata$dist_info, generate_sample, Nsamples = 1000)
+  mydata$randomDraw <- map(mydata$dist_info, generate_sample, Nsamples = 1000, pb=pb)
   
   # Calculate overlap
   pb <- progress::progress_bar$new(total = ticks)
   message("Calculate Overlap")
   mydata$overlap <- mydata %>% select(dist_type, randomDraw) %>% 
-    pmap(calc_Overlap)
+    pmap(calc_Overlap, pb=pb)
   
   
   message("Save Data")
@@ -93,4 +93,6 @@ SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   dataSetName <- paste0(cntrytoAnalyze, "_", SpptoAnalyze, "_", dataDate, ".RDS")
   
   saveRDS(mydata, here::here(OutputFolder, dataSetName))
+  
+  return(mydata)
 }
