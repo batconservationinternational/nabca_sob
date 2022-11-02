@@ -5,121 +5,58 @@ calc_Impact <- function(DataDate,
                         countrytoAnalyze=NULL,
                         doPar=T) {
   
-  # DataDate = 20211109
-  # DataFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', DataDate)
-  # speciestoAnalyze = 'ANPAL'
-  # countrytoAnalyze = 'MX'
+  # DataFolder=OutputFolder
+  # speciestoAnalyze=thisSpp
+  # countrytoAnalyze=thisCountry
+  
+  files <- list.files(DataFolder, full.names = T)
    
-  DataFiles <- list.files(DataFolder, full.names = T)
-  DataFiles <- DataFiles[!grepl("_T2.RDS", DataFiles)]
+   #Table of threat labels
+   Threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv')) %>% 
+     unite("threat_abbr", Q_group, Q_sub, sep = "_", remove = F)
    
-   #Table of threat lables
-   Threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv'))
+   if (!is.null(speciestoAnalyze) & !is.null(countrytoAnalyze)) {
+     f <- files[str_detect(files, speciestoAnalyze) & 
+                              str_detect(files, countrytoAnalyze)]
+   } else {return(message("Country or species not provided to calc_Impact function"))}
    
-   if(!is.null(speciestoAnalyze)) {
-     fileSPP <- stringr::str_sub(DataFiles, start=-26, end=-22)
-     DataFiles <- DataFiles[fileSPP %in% speciestoAnalyze]
-   }
+   print(paste0('reading: ', f))
+   #For each data file
    
-   if(!is.null(countrytoAnalyze)) {
-     fileCNTRY <- stringr::str_sub(DataFiles, start=-29, end=-28)
-     DataFiles <- DataFiles[fileCNTRY %in% countrytoAnalyze]
-   }
+   # cl <- makeCluster(detectCores()-1, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
    
-   #ForEachDataFile
-   
-   cl <- makeCluster(detectCores()-1, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
-   # cl <- makeCluster(2, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
-   registerDoParallel(cl)
-   
-   # for (f in DataFiles) {
-   
-   foreach(f =DataFiles) %dopar% {
-  # foreach(f =DataFiles) %do% {
-      
-     f = DataFiles
-      
-     require(dplyr)
-      require(tidyr)
-      require(ggpubr)
-      
-      
-      # f = DataFiles[1] #For Debugging
-      print(paste0('reading: ', f))
-      
-      experts <- unique(readRDS(f)$experts)
-      
-      if(length(experts>1)){stop('multiple expert list')} 
-      
-       sppData <- readRDS(f) %>%
-          select(
-            cntry,
-            spp,
-            sppCode,
-            # LimeGroup,
-            subQ,
-            # experts,
-            Q_group,
-            Q_ss,
-            Q_sub,
-            randomDraw,
-            D_plot)%>% 
-         left_join(Threats) 
+   # registerDoParallel(cl)
 
-      thisSpecies = unique(sppData$sppCode)
-      thisCountry = unique(sppData$cntry)
-      
-      if(length(thisSpecies)>1 | length(thisCountry)>1) {
+     sppData <- readRDS(f)
+     
+     thisSpecies = unique(sppData$name)
+     thisCountry = unique(sppData$cntry)
+     
+     #make sure there is only one species and one country in the dataset
+     if(length(thisSpecies) > 1 | length(thisCountry) > 1) {
         stop( cat('More than 1 species or country in data file', 
                   '\nSpecies: ', thisSpecies, 
                   '\nCountry: ', thisCountry, 
                   '\ndatafile: ', f)
               )}
       
-      # #### Combine Threat Graphs ####
-      # threatData <- sppData %>%
-      #   filter(Q_group != 'pop') %>% 
-      #   left_join(Threats) %>% 
-      #   pivot_wider(names_from = Q_ss,
-      #               values_from = c('randomDraw', 'D_plot'))
-
-      
-      
-      ScopeData <- sppData %>%
-        filter(Q_ss == 'Scope') %>% 
-        arrange(Q_group, Q_sub)
-      
-      SeverityData <- sppData %>%
-        filter(Q_ss == 'Severity')%>% 
-        arrange(Q_group, Q_sub)
-      
-      #IF NO THREAT DATA GO TO NEXT FILE
-      if (nrow(ScopeData) < 1 | nrow(SeverityData) < 1 ) {
-         rm(sppData)
-         rm(threatData)
-         next
+      #If not threat data, skip 
+     threat_data <- sppData %>% filter(q_type=="Scope" | q_type == "Severity")
+     if (nrow(threat_data)<1) {
+         return(message("No threat data present in dataset."))
       }
+     
+     threat_data <- threat_data %>% select(name, cntry, q_type, dist_info_id, randomDraw) %>% 
+       pivot_wider(names_from = "q_type", values_from = "randomDraw") 
+     
+     # Multiply across the random draws of scope and severity to get impact
+     threat_data$impact <- map2(threat_data$Scope, threat_data$Severity, ~ .x * .y)
       
-      if (!identical(ScopeData[, c('Q_sub', 'subTnum', 'Threat', 'subT')],
-                     SeverityData[, c('Q_sub', 'subTnum', 'Threat', 'subT')])) {
-        stop('Something is not equivelent in scope and severity order')
-      }
-      
-      impactData <- left_join(ScopeData, SeverityData, by=c('Q_sub', 'subTnum', 'Threat', 'subT'),
-                              suffix=c('.Scope','.Severity')) %>% 
-        mutate(impact=randomDraw.Scope * randomDraw.Severity)
-      
-      #For each row, and expert, calculate distribution and quantiles, then grapgh
-      for (i in 1:nrow(threatData)) {
-         # i = 1   #for debugging
+      # For each row, and expert, calculate distribution and quantiles, then grapgh
+      for (i in 1:nrow(threat_data)) {
          print(paste0('i=', i, ' in ', f))
          
-         # thisNames <- names(threatData$experts[[i]]$names)
-         thisNames <- threatData$experts[[i]]$experts
-         
-         # if (length(thisNames) == 1) {
-         #    thisNames <- 1
-         # }
+         thisNames <- threat_data[i,]$impact[[1]] %>% names()
          
          Impact <- vector(mode = 'list', length = 4)
          
@@ -129,18 +66,13 @@ calc_Impact <- function(DataDate,
               'Impact_randomDraw',
               'ImpactPlot')
          
-         # ImpactPlot <- ggplot()
-         
          for (e in thisNames) {
-            #Impact for each expert
-            # e = thisNames[1] ##For Debugging
-            
-            
+           
             print(paste('expert', e))
-            if (!is.null(threatData$randomDraw_Scope[[i]][[e]]) &
-                !is.null(threatData$randomDraw_Severity[[i]][[e]])) {
-               thisImpact <-
-                  threatData$randomDraw_Scope[[i]][[e]][, 'beta'] * threatData$randomDraw_Severity[[i]][[e]][, 'beta']
+           
+            if (!is.null(threat_data$impact[[i]][[e]])) {
+              
+               thisImpact <- threat_data[i,]$impact[[1]][[e]]
                
                Impact[['ImpactBeta']][[e]] <-
                   EnvStats::ebeta(thisImpact, method = 'mle')
@@ -155,35 +87,24 @@ calc_Impact <- function(DataDate,
                                                            Impact[['ImpactBeta']][[e]]$parameters['shape1'],
                                                            Impact[['ImpactBeta']][[e]]$parameters['shape2'])
                
-               # Impact[[e]]$Impact_plot <-
-               #    ggplot()+
-               #    geom_density(aes(x=Impact[[e]]$Impact_randomDraw), color='red', size=5)+
-               #    theme_classic()+
-               #    coord_cartesian(xlim=c(0,1), expand=F)
-               
-            } else {
-               Impact[[e]]$ImpactBeta <- NULL
-               Impact[[e]]$Quantiles <- NULL
             }
             
-         }# End impact for each expert
+         } # End impact for each expert
          
          allImpact_Beta <- NULL
          allImpact_Quantiles <- NULL
          allImpact_Draw <- NULL
-         Impact$ImpactPlot <- NULL
          
-         #combine each expert's impact dist to one randomDraw
+         # Combine each expert's impact dist to one randomDraw
          if (!is.null(Impact$Impact_randomDraw)) {
-            allImpact_Draw <-
-               plyr::ldply(Impact$Impact_randomDraw, .id = 'expert') %>%
-               pivot_longer(
-                  cols = -1,
+            allImpact_Draw <- plyr::ldply(data.frame(Impact$Impact_randomDraw), .id = 'expert') %>%
+               pivot_longer(cols = -1,
                   names_to = 'sample',
-                  values_to = 'fx'
-               )
+                  values_to = 'fx') %>% 
+              mutate(fx = as.numeric(fx)) %>% 
+              dplyr::filter(expert %in% thisNames)
             
-            #get combined dist
+            # Get combined dist
             allImpact_Beta <-
                EnvStats::ebeta(allImpact_Draw$fx, method = 'mle')
             
@@ -197,8 +118,7 @@ calc_Impact <- function(DataDate,
             
             Impact[['ImpactBeta']][['linear pool']] <- allImpact_Beta
             Impact[['Quantiles']][['linear pool']] <- allImpact_Quantiles
-            Impact[['Impact_randomDraw']][['linear pool']] <-
-               allImpact_Draw
+            Impact[['Impact_randomDraw']][['linear pool']] <- allImpact_Draw
             
             
             combined <- allImpact_Draw
@@ -213,7 +133,7 @@ calc_Impact <- function(DataDate,
                theme_classic() +
                theme(axis.text.y = element_blank())
             
-            ##CODE FROM f_general for plots
+            # CODE FROM f_general for plots
             maxY <-
                max(ggplot_build(Impact$ImpactPlot)$layout$panel_scales_y[[1]]$range$range)
             

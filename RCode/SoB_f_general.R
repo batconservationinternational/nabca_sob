@@ -1,8 +1,7 @@
 formatSPPdata <- function(sppList) {
   
-  # print(unique(sppList[['rawdata']]$sppCode))
-  
   experts <- unique(sppList[['rawdata']]$token)
+  cntry <- unique(sppList[['rawdata']]$cntry)
   
   # message('add labels')
   labels <- c(experts, 'Combined')
@@ -69,6 +68,7 @@ formatSPPdata <- function(sppList) {
   return(
     list(
       experts = c(experts, 'linear pool'),
+      country = cntry,
       labels = labels,
       colors = expertColors,
       expertLT = expertLT,
@@ -346,8 +346,11 @@ combine_dist <- function(dist) {
 
 
 
-generate_sample <- function(dist_info, Nsamples = 10000, pb) {
+generate_sample <- function(dist_info, dist_type, Nsamples = 10000, pb) {
   
+  #get distribution that we care about to use to filter samples
+  dist_of_interest <- dist_type[[1]]$thisD
+  #get elicitation object
   thisDist <- dist_info
   tokens <- dist_info$best.fitting %>% rownames()
   samples <- vector('list', length(tokens))
@@ -358,8 +361,14 @@ generate_sample <- function(dist_info, Nsamples = 10000, pb) {
   }
   
   for (i in 1:length(tokens)) {
-    samples[[i]] <- SHELF::sampleFit(thisDist, expert = i, n = Nsamples)
+    #generate random sample
+    samples[[i]] <- SHELF::sampleFit(thisDist, expert = i, n = Nsamples) %>% 
+      as_tibble()
   }
+  
+  # Pluck only the distribution of interest out for all experts
+  samples <- map(samples, dist_of_interest) %>% as_tibble()
+  
   pb$tick()
   return(samples)
 }
@@ -371,33 +380,33 @@ generate_sample <- function(dist_info, Nsamples = 10000, pb) {
 
 
 
-calc_Overlap <- function(dist_type, randomDraw, pb) {
-  
-  samples <- randomDraw
-  experts <- names(samples)
-  thisD <- dist_type[[1]]$thisD
-  thisL <- dist_type[[1]]$thisL
-  thisU <- dist_type[[1]]$thisU
-  
-  # upper <- list(rep(thisU, length(experts)))
-  # lower <- list(rep(thisL, length(experts)))
-  # boundaries <- list(upper, lower)
-  
-  lists_to_compare = list()
-  
-  for (i in 1:length(experts)){
-    exp_name <- experts[i]
-    sample <- samples[exp_name][[1]][,thisD]
-    lists_to_compare <- append(lists_to_compare, list(sample))
-  }
-  
-  names(lists_to_compare) <- experts
-
-  over <- overlapping::ovmult(lists_to_compare)$OV
-                      # type = "1", # do we want type 1 or type 2???
-  pb$tick()
-  return(over)
-}
+# calc_Overlap <- function(dist_type, randomDraw, pb) {
+#   
+#   samples <- randomDraw
+#   experts <- names(samples)
+#   thisD <- dist_type[[1]]$thisD
+#   thisL <- dist_type[[1]]$thisL
+#   thisU <- dist_type[[1]]$thisU
+#   
+#   # upper <- list(rep(thisU, length(experts)))
+#   # lower <- list(rep(thisL, length(experts)))
+#   # boundaries <- list(upper, lower)
+#   
+#   lists_to_compare = list()
+#   
+#   for (i in 1:length(experts)){
+#     exp_name <- experts[i]
+#     sample <- samples[exp_name][[1]][,thisD]
+#     lists_to_compare <- append(lists_to_compare, list(sample))
+#   }
+#   
+#   names(lists_to_compare) <- experts
+# 
+#   over <- overlapping::ovmult(samples)$OV
+#                       # type = "1", # do we want type 1 or type 2???
+#   pb$tick()
+#   return(over)
+# }
 
 
 

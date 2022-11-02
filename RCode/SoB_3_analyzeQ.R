@@ -5,7 +5,7 @@ analyze_SoB <- function(data,
                         PersonalPlots=F
                         ) {
 
-SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
+# SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   
   if (!is.null(SpptoAnalyze)){
     data <- data[SpptoAnalyze]
@@ -18,6 +18,9 @@ SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
    data$value[[i]][["popTrendData"]] <- data$value[[i]][["popTrendData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
    data$value[[i]][["threatData"]] <- data$value[[i]][["threatData"]] %>% mutate(dist = map(Q_group, choose_threats_dist))
  }
+  
+  # Pluck country to be it's own columns.
+  data$cntry <- data %>% pluck("value", 1, "country")
   
   mydata <- data
 
@@ -33,7 +36,7 @@ SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   mydata$Severity <- pbapply(mydata, 1, generateDist, dat_type = "threatData", scope_sev = "sev")
   
   # Unnest distributions
-  mydata <- mydata %>% pivot_longer(!c(name, value),
+  mydata <- mydata %>% pivot_longer(!c(name, value, cntry),
                                   names_to = "q_type",
                                   values_to = "dist_info") %>% 
     unnest_longer(dist_info, values_to = "dist_info")
@@ -78,13 +81,15 @@ SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   # Random draw
   pb <- progress::progress_bar$new(total = ticks)
   message("Draw random values from dist")
-  mydata$randomDraw <- map(mydata$dist_info, generate_sample, Nsamples = 1000, pb=pb)
+  mydata$randomDraw <- mydata %>% select(dist_info, dist_type) %>% 
+    pmap(generate_sample, Nsamples = 1000, pb=pb)
   
   # Calculate overlap
-  pb <- progress::progress_bar$new(total = ticks)
+  # pb <- progress::progress_bar$new(total = ticks)
   message("Calculate Overlap")
-  mydata$overlap <- mydata %>% select(dist_type, randomDraw) %>% 
-    pmap(calc_Overlap, pb=pb)
+  # mydata$overlap <- mydata %>% select(dist_type, randomDraw) %>% 
+  #   pmap(calc_Overlap, pb=pb)
+  mydata$overlap <- map(mydata$randomDraw, overlapping::ovmult) %>% map(1, "OV")
   
   
   message("Save Data")
