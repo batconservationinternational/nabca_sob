@@ -5,7 +5,7 @@ analyze_SoB <- function(data,
                         PersonalPlots=F
                         ) {
 
-# SpptoAnalyze <- c("ANTROZOUS_PALLIDUS", "EUMOPS_PEROTIS")
+SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   
   if (!is.null(SpptoAnalyze)){
     data <- data[SpptoAnalyze]
@@ -20,12 +20,6 @@ analyze_SoB <- function(data,
  }
   
   mydata <- data
-  
-  # cl <- makeCluster(8, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
-  
-  # Prepare for graphs
-  # clusterEvalQ(cl = cl)
-  # clusterEvalQ(cl = cl)
 
   # Fit distributions
   message("Fit pop distributions to answers")
@@ -71,23 +65,30 @@ analyze_SoB <- function(data,
   }
   mydata$dist_type <- dist_types
 
-  # Make plot
-  message("Make Plot")
+  #Set up progress bar for map functions
+  ticks <- nrow(mydata)
+  pb <- progress::progress_bar$new(total = ticks)
+  
+  # Density plots
+  message("Make density plotslot")
   mydata$plots <- mydata %>% 
     select(value, q_type, dist_info, popQuantiles, dist_type) %>% 
-    pmap_dfr(generate_Densityplot)
+    pmap(generate_Densityplot)
   
   # Random draw
+  pb <- progress::progress_bar$new(total = ticks)
   message("Draw random values from dist")
   mydata$randomDraw <- map(mydata$dist_info, generate_sample, Nsamples = 1000)
   
   # Calculate overlap
+  pb <- progress::progress_bar$new(total = ticks)
   message("Calculate Overlap")
   mydata$overlap <- mydata %>% select(dist_type, randomDraw) %>% 
     pmap(calc_Overlap)
   
   
   message("Save Data")
+  if (!dir.exists(OutputFolder)){dir.create(OutputFolder, recursive = T)}
   dataDate <- stringr::str_sub(OutputFolder, -8)
   dataSetName <- paste0(cntrytoAnalyze, "_", SpptoAnalyze, "_", dataDate, ".RDS")
   

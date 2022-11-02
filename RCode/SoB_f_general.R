@@ -360,6 +360,7 @@ generate_sample <- function(dist_info, Nsamples = 10000) {
   for (i in 1:length(tokens)) {
     samples[[i]] <- SHELF::sampleFit(thisDist, expert = i, n = Nsamples)
   }
+  pb$tick()
   return(samples)
 }
 
@@ -374,6 +375,13 @@ calc_Overlap <- function(dist_type, randomDraw) {
   
   samples <- randomDraw
   experts <- names(samples)
+  thisD <- dist_type[[1]]$thisD
+  thisL <- dist_type[[1]]$thisL
+  thisU <- dist_type[[1]]$thisU
+  
+  # upper <- list(rep(thisU, length(experts)))
+  # lower <- list(rep(thisL, length(experts)))
+  # boundaries <- list(upper, lower)
   
   lists_to_compare = list()
   
@@ -385,17 +393,9 @@ calc_Overlap <- function(dist_type, randomDraw) {
   
   names(lists_to_compare) <- experts
   
-  thisD <- dist_type[[1]]$thisD
-  thisL <- dist_type[[1]]$thisL
-  thisU <- dist_type[[1]]$thisU
-
-  upper <- list(rep(thisU, length(experts)))
-  lower <- list(rep(thisL, length(experts)))
-  boundaries <- list(upper, lower)
-  
   over <- overlapping::ovmult(lists_to_compare)
                       # type = "1", # do we want type 1 or type 2???
-  
+  pb$tick()
   return(over)
 }
 
@@ -411,16 +411,17 @@ generate_Densityplot <- function(value, q_type, dist_info, popQuantiles, dist_ty
   maxX <- popQuantiles[["Median"]][1] +
     (2.5 * (popQuantiles[["Q3"]][1] - popQuantiles[["Q1"]][1]))
 
-myplot <- SHELF:::plotfit(thisDist,
-                             xl=dist_type[[1]][["thisL"]],
-                             xu=maxX,
-                             d=dist_type[[1]][["thisD"]],
-                             lwd=2,
-                             xlab=dist_type[[1]][["myXlab"]],
-                             ylab=expression(f[X](x)),
-                             lp = T,
-                             returnPlot = T)
-return(myplot)
+  myplot <- SHELF:::plotfit(thisDist,
+                               xl=dist_type[[1]][["thisL"]],
+                               xu=maxX,
+                               d=dist_type[[1]][["thisD"]],
+                               lwd=2,
+                               xlab=dist_type[[1]][["myXlab"]],
+                               ylab=expression(f[X](x)),
+                               lp = T,
+                               returnPlot = T)
+  pb$tick()
+  return(myplot)
 }
   
   
