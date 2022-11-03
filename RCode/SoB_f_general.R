@@ -577,7 +577,7 @@ make_rangeGraphs <- function(d, spp, thiscntry) {
       )
     ) %>%
     group_by(species, spp_abbrev, cntry) %>%
-    summarize(area = sum(area)) %>%
+    summarize(area = sum(area)) %>% # do we really want to be summing these?
     # filter(area>0) %>%
     filter(species == spp, cntry == thiscntry) %>%
     mutate(
@@ -648,7 +648,7 @@ make_rangeGraphs <- function(d, spp, thiscntry) {
     annotate(
       geom = "text",
       x = sppRangeVal,
-      y = max(D$total)/2, #was 4.5 previously but changed
+      y = max(D$total)/2, #was 4.5 previously but changed to make dynamic
       label = "*",
       color = 'red',
       size = 25
@@ -681,46 +681,3 @@ make_rangeGraphs <- function(d, spp, thiscntry) {
 
 
 
-
-
-
-generateSpeciesReports <- function(thisRow,
-                                   thisDate,
-                                   fileType = "pdf_document",
-                                   outDir = "C:/Users/mwhitby/Documents/SoB_SpeciesReports") {
-  if (fileType == 'html_document') {
-    ext = 'html'
-  }
-  if (fileType == 'pdf_document') {
-    ext = 'pdf'
-  }
-  
-  outDir <- paste0(outDir, '/', thisDate)
-  if (!dir.exists(outDir)) {
-    dir.create(outDir)
-  }
-  
-  out_fn = paste0(outDir, '/',
-                  thisRow['cntry'], '_', thisRow['sppCode'], '.', ext)
-  
-  tryCatch(
-    rmarkdown::render(
-      paste0(here::here(), "/RCode/SoB_7a_SppReport.Rmd"),
-      # output_file=paste0(here::here(), '/SpeciesReports/', DataDate, '/',
-      #                    thisRow['cntry'], '_', thisRow['sppCode'], '.', ext),
-      output_file = out_fn,
-      # output_dir= paste0(here::here(), '/SpeciesReports/', DataDate),
-      params = list(
-        spp = thisRow['spp'],
-        sppCode = thisRow['sppCode'],
-        cntry = thisRow['cntry'],
-        date = thisDate
-      ),
-      envir = new.env(),
-      output_format = fileType
-    ),
-    error = function(e)
-      e
-  )
-  
-}

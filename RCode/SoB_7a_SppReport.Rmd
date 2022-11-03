@@ -1,5 +1,5 @@
 ---
-date: "11/9/2021"
+date: Sys.Date()
 output:
   pdf_document:
     toc: yes
@@ -20,19 +20,12 @@ fontsize: 14pt
 ---
 
 ```{r setup, include=FALSE, echo=F}
-
-
 library(dplyr)
 library(tidyr)
 require(ggplot2)
 require(ggpubr)
-
-
-knitr::opts_chunk$set(echo = FALSE,
-                      message= FALSE,
-                      warning= FALSE)
+knitr::opts_chunk$set(echo = FALSE, message= FALSE, warning= FALSE)
 options(scipen = 999)
-
 knitr::knit_hooks$set(
   inline = function(x) {
     if (!is.numeric(x)) {
@@ -42,9 +35,7 @@ knitr::knit_hooks$set(
     }
   }
 )
-
 title = paste("Assessment of", params$spp, "in", params$cntry)
-
 ```
 
 ---
@@ -52,21 +43,14 @@ title: `r title`
 ---
 
 ```{r dataimport}
-
-saveDir = paste0(params$rootDir, '/SpeciesReports/', params$date, '/')
-if (!dir.exists(saveDir)) {
-  dir.create(saveDir)
-}
-
 DataFolder = paste0(params$rootDir, '/Data/derived/AnalysisExport_', params$date)
-
 DataFiles <- list.files(DataFolder, full.names = T)
 DataFile <-
   DataFiles[grepl(
     paste0(
       "SurveyAnswers_",
       params$date,
-      "__",
+      "_",
       params$cntry,
       '_',
       params$sppCode,
@@ -75,24 +59,18 @@ DataFile <-
     DataFiles
   )]
 
-
 #Table of threat lables
 Threats <- read.csv(paste0(params$rootDir, '/Data/ThreatNum.csv'))
-
-# Threats <- read.csv(paste0(params$rootDir, '/Data/ThreatNum.csv')) %>% 
-#   mutate(Threat = paste0(ThreatN, ": ", Threat))
 ```
 
 ```{r}
 sppData <- readRDS(DataFile) %>%
   select(-one_of('perPlots', 'overlap')) %>% suppressWarnings()
-
 ```
 \captionsetup[table]{labelformat=empty}
 # Range Size
 ```{r out.width = "90%", fig.align='center'}
 thisRangeFN <- paste0(params$rootDir, '/RangeGraphs/range_', params$sppCode, "_", params$cntry, '.png')
-
 knitr::include_graphics(thisRangeFN)
 ```
 \newpage

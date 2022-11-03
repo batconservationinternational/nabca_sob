@@ -1,15 +1,11 @@
 analyze_SoB <- function(mydata,
                         OutputFolder,
+                        SpptoAnalyze,
                         cntrytoAnalyze=NULL,
-                        SpptoAnalyze=NULL,
                         PersonalPlots=F
                         ) {
 
 # SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
-  
-  if (!is.null(SpptoAnalyze)){
-    mydata <- mydata[SpptoAnalyze]
-  }
   
   mydata <- enframe(mydata)
  
@@ -96,6 +92,4 @@ analyze_SoB <- function(mydata,
   dataSetName <- paste0(cntrytoAnalyze, "_", SpptoAnalyze, "_", dataDate, ".RDS")
   
   saveRDS(mydata, here::here(OutputFolder, dataSetName))
-  
-  return(mydata)
 }
