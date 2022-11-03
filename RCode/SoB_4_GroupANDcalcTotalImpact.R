@@ -46,84 +46,91 @@ calc_Impact <- function(DataDate,
          return(message("No threat data present in dataset."))
       }
      
-     threat_data <- threat_data %>% select(name, cntry, q_type, dist_info_id, randomDraw) %>% 
+     threat_data <- threat_data %>% select(name, cntry, value, q_type, dist_info_id, randomDraw) %>% 
        pivot_wider(names_from = "q_type", values_from = "randomDraw") 
      
      # Multiply across the random draws of scope and severity to get impact
      threat_data$impact <- map2(threat_data$Scope, threat_data$Severity, ~ .x * .y)
       
-      # For each row, and expert, calculate distribution and quantiles, then grapgh
-      for (i in 1:nrow(threat_data)) {
-         print(paste0('i=', i, ' in ', f))
+      # For each row, and expert, calculate distribution and quantiles
+     calc_expert_impact <- function(impact){
+       thisNames <- impact %>% names()
+       Impact <- vector(mode = 'list', length = 4)
+       names(Impact) <-
+         c('ImpactBeta',
+           'Quantiles',
+           'Impact_randomDraw',
+           'ImpactPlot')
+       for (e in thisNames) {
+         if (!is.null(impact[[e]])) {
+           thisImpact <- impact[[e]]
+           Impact[['ImpactBeta']][[e]] <-
+             EnvStats::ebeta(thisImpact, method = 'mle')
+           Impact[['Quantiles']][[e]] <- qbeta(
+             p = c(0.25, 0.5, 0.75),
+             shape1 = Impact[['ImpactBeta']][[e]]$parameters['shape1'],
+             shape2 = Impact[['ImpactBeta']][[e]]$parameters['shape2']
+           )
+           Impact[['Impact_randomDraw']][[e]] <- rbeta(n = 10000,
+                                                       Impact[['ImpactBeta']][[e]]$parameters['shape1'],
+                                                       Impact[['ImpactBeta']][[e]]$parameters['shape2'])
+         }
+       }
+       pb$tick()
+       return(Impact)
+     }
+     
+     ticks <- nrow(threat_data)
+     pb <- progress::progress_bar$new(total = ticks)
+     threat_data$expert_impact <- purrr::map(threat_data$impact, calc_expert_impact)
+     
+     
+    calc_total_impact <- function(expert_impact){
+      allImpact_Beta <- NULL
+      allImpact_Quantiles <- NULL
+      allImpact_Draw <- NULL
+      thisNames <- expert_impact$Impact_randomDraw %>% names()
+      # Combine each expert's impact dist to one randomDraw
+      if (!is.null(expert_impact$Impact_randomDraw)) {
+        allImpact_Draw <- plyr::ldply(data.frame(expert_impact$Impact_randomDraw), .id = 'expert') %>%
+          pivot_longer(cols = -1,
+                       names_to = 'sample',
+                       values_to = 'fx') %>% 
+          mutate(fx = as.numeric(fx)) %>% 
+          dplyr::filter(expert %in% thisNames)
+        
+        # Get combined dist
+        allImpact_Beta <-
+          EnvStats::ebeta(allImpact_Draw$fx, method = 'mle')
+        
+        allImpact_Quantiles <- qbeta(
+          p = c(0.25, 0.5, 0.75),
+          shape1 = allImpact_Beta$parameters['shape1'],
+          shape2 = allImpact_Beta$parameters['shape2']
+        )
+        expert_impact[['ImpactBeta']][['linear pool']] <- allImpact_Beta
+        expert_impact[['Quantiles']][['linear pool']] <- allImpact_Quantiles
+        expert_impact[['Impact_randomDraw']][['linear pool']] <- allImpact_Draw
+        pb$tick()
+        return(expert_impact)
+      }
+    }
+    
+    pb <- progress::progress_bar$new(total = ticks)
+    threat_data$expert_impact <- purrr::map(threat_data$expert_impact, calc_total_impact)
+    
+    # Make plots of impact
+    
          
-         thisNames <- threat_data[i,]$impact[[1]] %>% names()
          
-         Impact <- vector(mode = 'list', length = 4)
-         
-         names(Impact) <-
-            c('ImpactBeta',
-              'Quantiles',
-              'Impact_randomDraw',
-              'ImpactPlot')
-         
-         for (e in thisNames) {
-           
-            print(paste('expert', e))
-           
-            if (!is.null(threat_data$impact[[i]][[e]])) {
-              
-               thisImpact <- threat_data[i,]$impact[[1]][[e]]
-               
-               Impact[['ImpactBeta']][[e]] <-
-                  EnvStats::ebeta(thisImpact, method = 'mle')
-               
-               Impact[['Quantiles']][[e]] <- qbeta(
-                  p = c(0.25, 0.5, 0.75),
-                  shape1 = Impact[['ImpactBeta']][[e]]$parameters['shape1'],
-                  shape2 = Impact[['ImpactBeta']][[e]]$parameters['shape2']
-               )
-               
-               Impact[['Impact_randomDraw']][[e]] <- rbeta(n = 10000,
-                                                           Impact[['ImpactBeta']][[e]]$parameters['shape1'],
-                                                           Impact[['ImpactBeta']][[e]]$parameters['shape2'])
-               
-            }
-            
-         } # End impact for each expert
-         
-         allImpact_Beta <- NULL
-         allImpact_Quantiles <- NULL
-         allImpact_Draw <- NULL
-         
-         # Combine each expert's impact dist to one randomDraw
-         if (!is.null(Impact$Impact_randomDraw)) {
-            allImpact_Draw <- plyr::ldply(data.frame(Impact$Impact_randomDraw), .id = 'expert') %>%
-               pivot_longer(cols = -1,
-                  names_to = 'sample',
-                  values_to = 'fx') %>% 
-              mutate(fx = as.numeric(fx)) %>% 
-              dplyr::filter(expert %in% thisNames)
-            
-            # Get combined dist
-            allImpact_Beta <-
-               EnvStats::ebeta(allImpact_Draw$fx, method = 'mle')
-            
-            allImpact_Quantiles <- qbeta(
-               p = c(0.25, 0.5, 0.75),
-               shape1 = allImpact_Beta$parameters['shape1'],
-               shape2 = allImpact_Beta$parameters['shape2']
-            )
+      combined <- allImpact_Draw
+      combined$expert <- 'linear pool'
+      allImpact_all <- rbind(allImpact_Draw, combined)
+
             
             
             
-            Impact[['ImpactBeta']][['linear pool']] <- allImpact_Beta
-            Impact[['Quantiles']][['linear pool']] <- allImpact_Quantiles
-            Impact[['Impact_randomDraw']][['linear pool']] <- allImpact_Draw
             
-            
-            combined <- allImpact_Draw
-            combined$expert <- 'linear pool'
-            allImpact_all <- rbind(allImpact_Draw, combined)
             
             Impact$ImpactPlot = ggplot(allImpact_all) +
                geom_density(aes(x = fx, color = expert), size = 1) +
@@ -134,8 +141,7 @@ calc_Impact <- function(DataDate,
                theme(axis.text.y = element_blank())
             
             # CODE FROM f_general for plots
-            maxY <-
-               max(ggplot_build(Impact$ImpactPlot)$layout$panel_scales_y[[1]]$range$range)
+            maxY <- max(ggplot_build(Impact$ImpactPlot)$layout$panel_scales_y[[1]]$range$range)
             
             Quantiles_pos = data.frame(
                y = seq(
@@ -150,13 +156,12 @@ calc_Impact <- function(DataDate,
             Quantiles_df <- plyr::ldply(Impact$Quantiles, .id = 'expert')
             colnames(Quantiles_df) <- c('expert', 'Q1', 'Median', 'Q3')
             
-            Quantiles_df <- left_join(Quantiles_df, Quantiles_pos) %>%
-               left_join(as_tibble(c(threatData[[i, 'experts']][[1]]$labels), rownames =
-                                      'expert')) %>%
-               rename(label = value)
+            Quantiles_df <- left_join(Quantiles_df, Quantiles_pos) 
+               # left_join(as_tibble(c(threatData[[i, 'experts']][[1]]$labels), rownames =
+               #                        'expert')) %>% rename(label = value)
             
             
-            Quantiles_df[Quantiles_df$expert == 'Combined', 'size'] = 1
+            Quantiles_df[Quantiles_df$expert == 'linear pool', 'size'] = 1
             
             Impact$ImpactPlot <-   Impact$ImpactPlot +
                scale_size_manual(values = threatData[[i, 'experts']][[1]]$SZ, guide =
