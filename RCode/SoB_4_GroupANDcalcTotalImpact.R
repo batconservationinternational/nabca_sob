@@ -15,45 +15,45 @@ calc_Impact <- function(DataDate,
    Threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv')) %>% 
      unite("threat_abbr", Q_group, Q_sub, sep = "_", remove = F)
    
+   # get path to data file for specified species and country
    if (!is.null(speciestoAnalyze) & !is.null(countrytoAnalyze)) {
      f <- files[str_detect(files, speciestoAnalyze) & 
                               str_detect(files, countrytoAnalyze)]
    } else {return(message("Country or species not provided to calc_Impact function"))}
    
    print(paste0('reading: ', f))
-   #For each data file
    
    # cl <- makeCluster(detectCores()-1, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
    
    # registerDoParallel(cl)
 
-     sppData <- readRDS(f)
+   #load in data
+   sppData <- readRDS(f)
      
-     thisSpecies = unique(sppData$name)
-     thisCountry = unique(sppData$cntry)
-     
-     #make sure there is only one species and one country in the dataset
-     if(length(thisSpecies) > 1 | length(thisCountry) > 1) {
+   #make sure there is only one species and one country in the dataset
+   thisSpecies = unique(sppData$name)
+   thisCountry = unique(sppData$cntry)
+   if(length(thisSpecies) > 1 | length(thisCountry) > 1) {
         stop( cat('More than 1 species or country in data file', 
                   '\nSpecies: ', thisSpecies, 
                   '\nCountry: ', thisCountry, 
                   '\ndatafile: ', f)
               )}
       
-      #If not threat data, skip 
-     threat_data <- sppData %>% filter(q_type=="Scope" | q_type == "Severity")
-     if (nrow(threat_data)<1) {
-         return(message("No threat data present in dataset."))
-      }
-     
-     threat_data <- threat_data %>% select(name, cntry, value, q_type, dist_info_id, randomDraw) %>% 
+   threat_data <- sppData %>% filter(q_type=="Scope" | q_type == "Severity") #filter out popSize and popTrend
+   
+   #If not threat data, skip 
+   if (nrow(threat_data)<1) {return(message("No threat data present in dataset."))}
+   
+   # Pivot Scope and Severity info wider
+   threat_data <- threat_data %>% select(name, cntry, value, q_type, dist_info_id, randomDraw) %>% 
        pivot_wider(names_from = "q_type", values_from = "randomDraw") 
-     
-     # Multiply across the random draws of scope and severity to get impact
-     threat_data$impact <- map2(threat_data$Scope, threat_data$Severity, ~ .x * .y)
+   
+   # Multiply across the random draws of scope and severity to get impact
+   threat_data$impact <- map2(threat_data$Scope, threat_data$Severity, ~ .x * .y)
       
-      # For each row, and expert, calculate distribution and quantiles
-     calc_expert_impact <- function(impact){
+   # For each row, and expert, calculate distribution and quantiles
+   calc_expert_impact <- function(impact){
        thisNames <- impact %>% names()
        Impact <- vector(mode = 'list', length = 4)
        names(Impact) <-
@@ -85,6 +85,7 @@ calc_Impact <- function(DataDate,
      threat_data$expert_impact <- purrr::map(threat_data$impact, calc_expert_impact)
      
      
+    # Calc total impact
     calc_total_impact <- function(expert_impact){
       allImpact_Beta <- NULL
       allImpact_Quantiles <- NULL
@@ -96,104 +97,104 @@ calc_Impact <- function(DataDate,
           pivot_longer(cols = -1,
                        names_to = 'sample',
                        values_to = 'fx') %>% 
-          mutate(fx = as.numeric(fx)) %>% 
-          dplyr::filter(expert %in% thisNames)
+          #change expert name to 'linear pool' for graphing purposes downstream
+          mutate(expert = 'linear pool')
         
         # Get combined dist
         allImpact_Beta <-
-          EnvStats::ebeta(allImpact_Draw$fx, method = 'mle')
+          EnvStats::ebeta(allImpact_Draw$fx, method = 'mle') #this is using all values for all experts plus linear pool. That doesn't seem right?
         
         allImpact_Quantiles <- qbeta(
           p = c(0.25, 0.5, 0.75),
           shape1 = allImpact_Beta$parameters['shape1'],
           shape2 = allImpact_Beta$parameters['shape2']
         )
-        expert_impact[['ImpactBeta']][['linear pool']] <- allImpact_Beta
-        expert_impact[['Quantiles']][['linear pool']] <- allImpact_Quantiles
-        expert_impact[['Impact_randomDraw']][['linear pool']] <- allImpact_Draw
+        pooled_impact <- vector(mode = 'list', length = 4)
+        names(pooled_impact) <-
+          c('pooled_ImpactBeta',
+            'pooled_Quantiles',
+            'pooled_Impact_randomDraw',
+            'pooled_ImpactPlot')
+        pooled_impact$pooled_ImpactBeta <- allImpact_Beta
+        pooled_impact$pooled_Quantiles <- allImpact_Quantiles
+        pooled_impact$pooled_Impact_randomDraw <- allImpact_Draw
         pb$tick()
-        return(expert_impact)
+        return(pooled_impact)
       }
     }
     
     pb <- progress::progress_bar$new(total = ticks)
-    threat_data$expert_impact <- purrr::map(threat_data$expert_impact, calc_total_impact)
+    threat_data$pooled_impact <- purrr::map(threat_data$expert_impact, calc_total_impact)
     
     # Make plots of impact
     
-         
-         
-      combined <- allImpact_Draw
-      combined$expert <- 'linear pool'
-      allImpact_all <- rbind(allImpact_Draw, combined)
+    # combined <- allImpact_Draw
+    # combined$expert <- 'linear pool'
+    # allImpact_all <- rbind(allImpact_Draw, combined)
 
+    make_threat_plots <- function(expert_impact, pooled_impact){
+
+      pooled_impact$pooled_ImpactPlot = ggplot(pooled_impact$pooled_Impact_randomDraw) +
+        geom_density(aes(x = fx, color = expert), size = 1) +
+        xlab('Total Population Impact (%)') +
+        ylab(expression(f[X](x))) +
+        theme_classic() +
+        theme(axis.text.y = element_blank())
             
-            
-            
-            
-            
-            Impact$ImpactPlot = ggplot(allImpact_all) +
-               geom_density(aes(x = fx, color = expert), size = 1) +
-               xlab('Total Population Impact (%)') +
-               ylab(expression(f[X](x))) +
-               # coord_cartesian(xlim=c(0,0.0025), expand=F)+
-               theme_classic() +
-               theme(axis.text.y = element_blank())
-            
-            # CODE FROM f_general for plots
-            maxY <- max(ggplot_build(Impact$ImpactPlot)$layout$panel_scales_y[[1]]$range$range)
-            
-            Quantiles_pos = data.frame(
-               y = seq(
-                  from = -maxY * (1 / 1.75),
-                  to = -maxY * (1 / 10),
-                  length = length(Impact$Quantiles)
-               ),
-               size = 0.5,
-               expert = names(Impact$Quantiles)
-            )
-            
-            Quantiles_df <- plyr::ldply(Impact$Quantiles, .id = 'expert')
-            colnames(Quantiles_df) <- c('expert', 'Q1', 'Median', 'Q3')
-            
-            Quantiles_df <- left_join(Quantiles_df, Quantiles_pos) 
-               # left_join(as_tibble(c(threatData[[i, 'experts']][[1]]$labels), rownames =
-               #                        'expert')) %>% rename(label = value)
-            
-            
-            Quantiles_df[Quantiles_df$expert == 'linear pool', 'size'] = 1
-            
-            Impact$ImpactPlot <-   Impact$ImpactPlot +
-               scale_size_manual(values = threatData[[i, 'experts']][[1]]$SZ, guide =
+        # CODE FROM f_general for plots
+        maxY <- max(ggplot_build(Impact$ImpactPlot)$layout$panel_scales_y[[1]]$range$range)
+        
+        Quantiles_pos = data.frame(
+           y = seq(
+              from = -maxY * (1 / 1.75),
+              to = -maxY * (1 / 10),
+              length = length(pooled_impact$pooled_Quantiles)
+           ),
+           size = 0.5,
+           expert = names(pooled_impact$pooled_Quantiles)
+        )
+        
+        Quantiles_df <- plyr::ldply(Impact$Quantiles, .id = 'expert')
+        colnames(Quantiles_df) <- c('expert', 'Q1', 'Median', 'Q3')
+        
+        Quantiles_df <- left_join(Quantiles_df, Quantiles_pos) 
+           # left_join(as_tibble(c(threatData[[i, 'experts']][[1]]$labels), rownames =
+           #                        'expert')) %>% rename(label = value)
+        
+        
+        Quantiles_df[Quantiles_df$expert == 'linear pool', 'size'] = 1
+        
+        Impact$ImpactPlot <-   Impact$ImpactPlot +
+           scale_size_manual(values = threatData[[i, 'experts']][[1]]$SZ, guide =
+                                'none') +
+           # scale_linetype_discrete(guide='none')+
+           geom_pointrange(
+              data = Quantiles_df,
+              aes(
+                 x = Median,
+                 xmin = Q1,
+                 xmax = Q3,
+                 y = y,
+                 color = expert
+              ),
+              size = Quantiles_df$size
+           ) +
+           theme_classic() +
+           coord_cartesian(
+              expand = F,
+              ylim = c(min(Quantiles_df$y) * 1.1, maxY * 1.1),
+              xlim = c(0, 1)
+           ) +
+           scale_color_manual(
+              values = c(threatData[[i, 'experts']][[1]]$colors),
+              name = "Expert",
+              breaks = Quantiles_df$expert,
+              labels = Quantiles_df$label
+           ) +
+           scale_linetype_manual(values = threatData[[i, 'experts']][[1]]$LT, guide =
                                     'none') +
-               # scale_linetype_discrete(guide='none')+
-               geom_pointrange(
-                  data = Quantiles_df,
-                  aes(
-                     x = Median,
-                     xmin = Q1,
-                     xmax = Q3,
-                     y = y,
-                     color = expert
-                  ),
-                  size = Quantiles_df$size
-               ) +
-               theme_classic() +
-               coord_cartesian(
-                  expand = F,
-                  ylim = c(min(Quantiles_df$y) * 1.1, maxY * 1.1),
-                  xlim = c(0, 1)
-               ) +
-               scale_color_manual(
-                  values = c(threatData[[i, 'experts']][[1]]$colors),
-                  name = "Expert",
-                  breaks = Quantiles_df$expert,
-                  labels = Quantiles_df$label
-               ) +
-               scale_linetype_manual(values = threatData[[i, 'experts']][[1]]$LT, guide =
-                                        'none') +
-               scale_y_continuous(breaks = NULL) +
-               theme(legend.position = 'bottom')
+           scale_y_continuous(breaks = NULL) +
+           theme(legend.position = 'bottom')
             
             #
             # if(nrow(thisRow$distFit$ssq)==1){

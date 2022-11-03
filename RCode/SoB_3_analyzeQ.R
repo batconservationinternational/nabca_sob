@@ -1,4 +1,4 @@
-analyze_SoB <- function(data,
+analyze_SoB <- function(mydata,
                         OutputFolder,
                         cntrytoAnalyze=NULL,
                         SpptoAnalyze=NULL,
@@ -8,21 +8,19 @@ analyze_SoB <- function(data,
 # SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   
   if (!is.null(SpptoAnalyze)){
-    data <- data[SpptoAnalyze]
+    mydata <- mydata[SpptoAnalyze]
   }
   
-  data <- enframe(data)
+  mydata <- enframe(mydata)
  
- for (i in seq(nrow(data))){
-   data$value[[i]][["popSizeData"]] <- data$value[[i]][["popSizeData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
-   data$value[[i]][["popTrendData"]] <- data$value[[i]][["popTrendData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
-   data$value[[i]][["threatData"]] <- data$value[[i]][["threatData"]] %>% mutate(dist = map(Q_group, choose_threats_dist))
+ for (i in seq(nrow(mydata))){
+   mydata$value[[i]][["popSizeData"]] <- mydata$value[[i]][["popSizeData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
+   mydata$value[[i]][["popTrendData"]] <- mydata$value[[i]][["popTrendData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
+   mydata$value[[i]][["threatData"]] <- mydata$value[[i]][["threatData"]] %>% mutate(dist = map(Q_group, choose_threats_dist))
  }
   
   # Pluck country to be it's own columns.
-  data$cntry <- data %>% pluck("value", 1, "country")
-  
-  mydata <- data
+  mydata$cntry <- mydata %>% pluck("value", 1, "country")
 
   # Fit distributions
   message("Fit pop distributions to answers")
@@ -52,7 +50,7 @@ analyze_SoB <- function(data,
   }
   mydata$popQuantiles <- quants
   
-  # Pull out distribution type info
+  # Pull out distribution type info for easier access to use in functions below
   dist_types <- list()
   for (i in seq(nrow(mydata))){
     q_type <- mydata[i,]$q_type

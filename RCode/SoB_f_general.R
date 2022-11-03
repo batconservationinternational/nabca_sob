@@ -204,7 +204,7 @@ choose_threats_dist <- function(myGroup){
 
 
 generateDist <- function(thisRow, dat_type, scope_sev){
-  thisRow <- thisRow$value %>% .[[dat_type]] %>% as_tibble()
+  thisRow <- thisRow$value[[dat_type]] %>% as_tibble()
   distributions = list()
   list_names = list()
   for (i in 1:nrow(thisRow)){
@@ -356,6 +356,7 @@ generate_sample <- function(dist_info, dist_type, Nsamples = 10000, pb) {
   samples <- vector('list', length(tokens))
   names(samples) <- tokens
   
+  # if only one sample, we don't need to worry about calculating overlap, so don't need this sample
   if (length(tokens)==1 | is.null(tokens)){
     return('single elicitation: no overlap')
   }
