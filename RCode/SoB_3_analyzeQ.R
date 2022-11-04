@@ -15,7 +15,7 @@ analyze_SoB <- function(mydata,
    mydata$value[[i]][["threatData"]] <- mydata$value[[i]][["threatData"]] %>% mutate(dist = map(Q_group, choose_threats_dist))
  }
   
-  # Pluck country to be it's own columns.
+  # Pluck country to be its own column.
   mydata$cntry <- mydata %>% pluck("value", 1, "country")
 
   # Fit distributions
@@ -36,15 +36,15 @@ analyze_SoB <- function(mydata,
     unnest_longer(dist_info, values_to = "dist_info")
   
   # Get quantiles
-  quants <- list()
-  for (i in seq(1:nrow(mydata))){
-    out <- find_quantiles(mydata[i,])
-    print("Generating quantiles:")
-    print(paste0(i, "/", nrow(mydata)))
-    print(out)
-    quants <- append(quants, list(out))
-  }
-  mydata$popQuantiles <- quants
+  # quants <- list()
+  # for (i in seq(1:nrow(mydata))){
+  #   out <- find_quantiles(mydata[i,])
+  #   print("Generating quantiles:")
+  #   print(paste0(i, "/", nrow(mydata)))
+  #   print(out)
+  #   quants <- append(quants, list(out))
+  # }
+  # mydata$popQuantiles <- quants
   
   # Pull out distribution type info for easier access to use in functions below
   dist_types <- list()
@@ -67,10 +67,10 @@ analyze_SoB <- function(mydata,
   pb <- progress::progress_bar$new(total = ticks)
   
   # Density plots
-  message("Make density plots")
-  mydata$plots <- mydata %>% 
-    select(value, q_type, dist_info, popQuantiles, dist_type) %>% 
-    pmap(generate_Densityplot, pb=pb)
+  # message("Make density plots")
+  # mydata$plots <- mydata %>%
+  #   select(value, q_type, dist_info, popQuantiles, dist_type) %>%
+  #   pmap(generate_Densityplot, pb=pb)
   
   # Random draw
   pb <- progress::progress_bar$new(total = ticks)
@@ -85,11 +85,9 @@ analyze_SoB <- function(mydata,
   #   pmap(calc_Overlap, pb=pb)
   mydata$overlap <- map(mydata$randomDraw, overlapping::ovmult) %>% map(1, "OV")
   
-  
   message("Save Data")
   if (!dir.exists(OutputFolder)){dir.create(OutputFolder, recursive = T)}
   dataDate <- stringr::str_sub(OutputFolder, -8)
   dataSetName <- paste0(cntrytoAnalyze, "_", SpptoAnalyze, "_", dataDate, ".RDS")
-  
   saveRDS(mydata, here::here(OutputFolder, dataSetName))
 }

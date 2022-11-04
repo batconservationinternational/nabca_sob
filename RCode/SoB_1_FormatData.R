@@ -139,7 +139,7 @@ formatData <- function(thisDataDate,
     filter(Q_sub != "Size") %>% 
     filter(answer < -100 | answer > 100)
   
-  d2 <- d2 %>% anti_join(weird_percentage)
+  d2 <- d2 %>% anti_join(weird_percentage) #filter out instances where %'s are outside of -100 to 100
   
   # Get negligible answers and code min, mean, max values
   negAns <- d2 %>%

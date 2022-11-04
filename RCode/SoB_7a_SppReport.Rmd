@@ -187,7 +187,7 @@ The expert rated the threat as 'neglibile' if min =0, central=0.5, max=1, and co
 ```{r functions}
 
 show_DataTable <- function(t, e){
-  t%>% 
+  t %>% 
   select(min, mean, max, conf, token) %>% 
   # left_join(as_tibble(e, rownames=c('token'))) %>% 
   mutate(conf=paste0(conf*100, "%")) %>% 

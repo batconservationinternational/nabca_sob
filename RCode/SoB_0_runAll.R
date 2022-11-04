@@ -1,6 +1,5 @@
 thisDataDate='20220914'
 thisCountry = 'MX'
-thisSpp  = c("ANTROZOUS_PALLIDUS") 
 
 #export data with completed answers only, answer and Q codes
 #Save as MX/US_results_YYYYMMDD.csv
@@ -49,6 +48,7 @@ rangeGraphs <- graphRangeQ(d)
 # Analyze Stuff -----------------------------------------------------------
 source(paste0(here::here(), '/RCode/SoB_3_analyzeQ.R'))
 source(paste0(here::here(), '/RCode/SoB_4_GroupANDcalcTotalImpact.R'))
+source(paste0(here::here(), '/RCode/SoB_calcImpactFunctions.R'))
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate)
 all_species <- unique(d$sppcode)
@@ -75,11 +75,8 @@ for (spp in all_species){
 # Make Population Graphs --------------------------------------------------
 
 source(paste0(here::here(), '/RCode/SoB_5_popGraphs.R'))
-make_PopGraphs(thisDataDate,
-               Dir = paste0(here::here()))
-
+make_PopGraphs(thisDataDate, Dir = paste0(here::here()))
 dataCols <- read.csv(paste0(here::here(), '/Data/dataColumns.csv'), stringsAsFactors = F)[,1]
-
 data <- read.csv(paste0(here::here(), '/Data/', thisCountry, '_results_', thisDataDate, '.csv'), stringsAsFactors = F) %>% 
   select(sppCode, spp, cntry) %>% 
   distinct()

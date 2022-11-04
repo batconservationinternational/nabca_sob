@@ -417,11 +417,10 @@ generate_sample <- function(dist_info, dist_type, Nsamples = 10000, pb) {
 
 generate_Densityplot <- function(value, q_type, dist_info, popQuantiles, dist_type, pb) {
   
-  thisDist <- dist_info
   maxX <- popQuantiles[["Median"]][1] +
     (2.5 * (popQuantiles[["Q3"]][1] - popQuantiles[["Q1"]][1]))
 
-  myplot <- SHELF:::plotfit(thisDist,
+  myplot <- SHELF:::plotfit(dist_info,
                                xl=dist_type[[1]][["thisL"]],
                                xu=maxX,
                                d=dist_type[[1]][["thisD"]],

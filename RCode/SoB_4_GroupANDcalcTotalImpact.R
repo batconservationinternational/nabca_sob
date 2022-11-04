@@ -40,91 +40,50 @@ calc_Impact <- function(DataDate,
                   '\ndatafile: ', f)
               )}
       
-   threat_data <- sppData %>% filter(q_type=="Scope" | q_type == "Severity") #filter out popSize and popTrend
+   threat_data <- sppData %>% filter(q_type == "Scope" | q_type == "Severity") 
+   pop_size_data <- sppData %>% filter(q_type == "popSize")
+   pop_trend_data <- sppData %>% filter(q_type == "popTrend")
+   # Bring pop distributions up a level for use in the next function
+   pop_size_data$randomDraw <- pop_size_data %>% pluck("randomDraw", "pop_Size") 
+   pop_trend_data$randomDraw <- pop_trend_data %>% pluck("randomDraw", "pop_Trend") 
+   pop_data <- bind_rows(pop_size_data, pop_trend_data)
    
-   #If not threat data, skip 
-   if (nrow(threat_data)<1) {return(message("No threat data present in dataset."))}
-   
-   # Pivot Scope and Severity info wider
-   threat_data <- threat_data %>% select(name, cntry, value, q_type, dist_info_id, randomDraw) %>% 
-       pivot_wider(names_from = "q_type", values_from = "randomDraw") 
-   
-   # Multiply across the random draws of scope and severity to get impact
-   threat_data$impact <- map2(threat_data$Scope, threat_data$Severity, ~ .x * .y)
-      
-   # For each row, and expert, calculate distribution and quantiles
-   calc_expert_impact <- function(impact){
-       thisNames <- impact %>% names()
-       Impact <- vector(mode = 'list', length = 4)
-       names(Impact) <-
-         c('ImpactBeta',
-           'Quantiles',
-           'Impact_randomDraw',
-           'ImpactPlot')
-       for (e in thisNames) {
-         if (!is.null(impact[[e]])) {
-           thisImpact <- impact[[e]]
-           Impact[['ImpactBeta']][[e]] <-
-             EnvStats::ebeta(thisImpact, method = 'mle')
-           Impact[['Quantiles']][[e]] <- qbeta(
-             p = c(0.25, 0.5, 0.75),
-             shape1 = Impact[['ImpactBeta']][[e]]$parameters['shape1'],
-             shape2 = Impact[['ImpactBeta']][[e]]$parameters['shape2']
-           )
-           Impact[['Impact_randomDraw']][[e]] <- rbeta(n = 10000,
-                                                       Impact[['ImpactBeta']][[e]]$parameters['shape1'],
-                                                       Impact[['ImpactBeta']][[e]]$parameters['shape2'])
-         }
-       }
-       pb$tick()
-       return(Impact)
-     }
+   if (nrow(threat_data)>0){ #only do if there is threat_data
+     # Pivot Scope and Severity info wider
+     threat_data <- threat_data %>% select(name, cntry, value, q_type, dist_info_id, randomDraw) %>% 
+         pivot_wider(names_from = "q_type", values_from = "randomDraw") 
      
+     # Multiply across the random draws of scope and severity to get impact
+     threat_data$impact <- map2(threat_data$Scope, threat_data$Severity, ~ .x * .y)
+   }
+     
+     # For each row, and expert, calculate distribution and quantiles and do a random draw
      ticks <- nrow(threat_data)
      pb <- progress::progress_bar$new(total = ticks)
-     threat_data$expert_impact <- purrr::map(threat_data$impact, calc_expert_impact)
+     if (nrow(threat_data)>0){ #only do if there is threat_data
+       threat_data$expert_impact <- purrr::map2(threat_data$dist_info_id, 
+                                               threat_data$impact,
+                                               calc_expert_impact)
+     }
+     pb <- progress::progress_bar$new(total = ticks)
+     pop_data$expert_impact <- purrr::map2(pop_data$dist_info_id,
+                                          pop_data$randomDraw, 
+                                          calc_expert_impact)
      
-     
-    # Calc total impact
-    calc_total_impact <- function(expert_impact){
-      allImpact_Beta <- NULL
-      allImpact_Quantiles <- NULL
-      allImpact_Draw <- NULL
-      thisNames <- expert_impact$Impact_randomDraw %>% names()
-      # Combine each expert's impact dist to one randomDraw
-      if (!is.null(expert_impact$Impact_randomDraw)) {
-        allImpact_Draw <- plyr::ldply(data.frame(expert_impact$Impact_randomDraw), .id = 'expert') %>%
-          pivot_longer(cols = -1,
-                       names_to = 'sample',
-                       values_to = 'fx') %>% 
-          #change expert name to 'linear pool' for graphing purposes downstream
-          mutate(expert = 'linear pool')
-        
-        # Get combined dist
-        allImpact_Beta <-
-          EnvStats::ebeta(allImpact_Draw$fx, method = 'mle') #this is using all values for all experts plus linear pool. That doesn't seem right?
-        
-        allImpact_Quantiles <- qbeta(
-          p = c(0.25, 0.5, 0.75),
-          shape1 = allImpact_Beta$parameters['shape1'],
-          shape2 = allImpact_Beta$parameters['shape2']
-        )
-        pooled_impact <- vector(mode = 'list', length = 4)
-        names(pooled_impact) <-
-          c('pooled_ImpactBeta',
-            'pooled_Quantiles',
-            'pooled_Impact_randomDraw',
-            'pooled_ImpactPlot')
-        pooled_impact$pooled_ImpactBeta <- allImpact_Beta
-        pooled_impact$pooled_Quantiles <- allImpact_Quantiles
-        pooled_impact$pooled_Impact_randomDraw <- allImpact_Draw
-        pb$tick()
-        return(pooled_impact)
-      }
-    }
-    
+    # Calc pooled distributions
     pb <- progress::progress_bar$new(total = ticks)
-    threat_data$pooled_impact <- purrr::map(threat_data$expert_impact, calc_total_impact)
+    if (nrow(threat_data)>0){
+      threat_data$pooled_dist <- purrr::map2(threat_data$dist_info_id,
+                                            threat_data$expert_impact, 
+                                            calc_total_impact)
+    }
+    pb <- progress::progress_bar$new(total = ticks)
+    pop_data$pooled_dist <- purrr::map2(pop_data$dist_info_id,
+                                       pop_data$expert_impact, 
+                                       calc_total_impact)
+    
+    # Bind pop and threat data back together
+    data <- bind_rows(threat_data, pop_data)
     
     # Make plots of impact
     
@@ -133,7 +92,7 @@ calc_Impact <- function(DataDate,
     # allImpact_all <- rbind(allImpact_Draw, combined)
 
     make_threat_plots <- function(expert_impact, pooled_impact){
-
+      
       pooled_impact$pooled_ImpactPlot = ggplot(pooled_impact$pooled_Impact_randomDraw) +
         geom_density(aes(x = fx, color = expert), size = 1) +
         xlab('Total Population Impact (%)') +
