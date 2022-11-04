@@ -1,7 +1,7 @@
 analyze_SoB <- function(mydata,
                         OutputFolder,
                         SpptoAnalyze,
-                        cntrytoAnalyze=NULL,
+                        cntrytoAnalyze,
                         PersonalPlots=F
                         ) {
 
@@ -64,7 +64,7 @@ analyze_SoB <- function(mydata,
 
   #Set up progress bar for map functions
   ticks <- nrow(mydata)
-  pb <- progress::progress_bar$new(total = ticks)
+  # pb <- progress::progress_bar$new(total = ticks)
   
   # Density plots
   # message("Make density plots")
@@ -79,10 +79,7 @@ analyze_SoB <- function(mydata,
     pmap(generate_sample, Nsamples = 1000, pb=pb)
   
   # Calculate overlap
-  # pb <- progress::progress_bar$new(total = ticks)
   message("Calculate Overlap")
-  # mydata$overlap <- mydata %>% select(dist_type, randomDraw) %>% 
-  #   pmap(calc_Overlap, pb=pb)
   mydata$overlap <- map(mydata$randomDraw, overlapping::ovmult) %>% map(1, "OV")
   
   message("Save Data")

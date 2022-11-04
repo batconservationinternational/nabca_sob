@@ -6,9 +6,9 @@ calc_Impact <- function(DataDate,
                         doPar=T) {
   
   # DataFolder=OutputFolder
-  # speciestoAnalyze=thisSpp
+  # speciestoAnalyze=spp
   # countrytoAnalyze=thisCountry
-  
+
   files <- list.files(DataFolder, full.names = T)
    
    #Table of threat labels
@@ -41,12 +41,13 @@ calc_Impact <- function(DataDate,
               )}
       
    threat_data <- sppData %>% filter(q_type == "Scope" | q_type == "Severity") 
-   pop_size_data <- sppData %>% filter(q_type == "popSize")
-   pop_trend_data <- sppData %>% filter(q_type == "popTrend")
-   # Bring pop distributions up a level for use in the next function
-   pop_size_data$randomDraw <- pop_size_data %>% pluck("randomDraw", "pop_Size") 
-   pop_trend_data$randomDraw <- pop_trend_data %>% pluck("randomDraw", "pop_Trend") 
-   pop_data <- bind_rows(pop_size_data, pop_trend_data)
+   pop_data <- sppData %>% filter(q_type == "pop_Size" | q_type == "pop_Trend") 
+   # pop_size_data <- sppData %>% filter(q_type == "popSize")
+   # pop_trend_data <- sppData %>% filter(q_type == "popTrend")
+   # # Bring pop distributions up a level for use in the next function
+   # pop_size_data$randomDraw <- pop_size_data %>% pluck("randomDraw", "pop_Size") 
+   # pop_trend_data$randomDraw <- pop_trend_data %>% pluck("randomDraw", "pop_Trend") 
+   # pop_data <- bind_rows(pop_size_data, pop_trend_data)
    
    if (nrow(threat_data)>0){ #only do if there is threat_data
      # Pivot Scope and Severity info wider
@@ -83,7 +84,9 @@ calc_Impact <- function(DataDate,
                                        calc_total_impact)
     
     # Bind pop and threat data back together
-    data <- bind_rows(threat_data, pop_data)
+    data <- bind_rows(threat_data, pop_data) %>% 
+      select(name, cntry, value, dist_info_id, expert_impact, pooled_dist) %>% 
+      separate(dist_info_id, into = c("Q_group", "Q_sub"), sep = "_")
     
     # Make plots of impact
     

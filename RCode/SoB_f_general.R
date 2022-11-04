@@ -244,19 +244,19 @@ make_dist <- function(thisRow, dat_type, scope_sev){
   
   expert_names <- colnames(mmm)
 
-  print(paste("Probs:"))
-  print(probs)
-  print(paste("MMM:"))
-  print(mmm)
-  print(paste("Lower:"))
-  print(lower)
-  print(paste("Upper:"))
-  print(upper)
-  print(paste("Dist:"))
-  print(dist)
-  print(paste("Expert Names:"))
-  print(expert_names)
-  
+  # print(paste("Probs:"))
+  # print(probs)
+  # print(paste("MMM:"))
+  # print(mmm)
+  # print(paste("Lower:"))
+  # print(lower)
+  # print(paste("Upper:"))
+  # print(upper)
+  # print(paste("Dist:"))
+  # print(dist)
+  # print(paste("Expert Names:"))
+  # print(expert_names)
+  # 
   
   tryCatch(
     expr = {
@@ -324,21 +324,6 @@ find_quantiles <- function(thisRow) {
 
 
 
-
-
-
-
-
-combine_dist <- function(dist) {
-  if (class(dist) != 'elicitation')
-    return('Not a valid elicitation')
-  
-  cDist <- tryCatch({
-    SHELF::linearPoolDensity(dist)
-  },
-  error = function(e)
-    e)
-}
 
 
 
