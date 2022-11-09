@@ -48,7 +48,7 @@ rangeGraphs <- graphRangeQ(d)
 # Analyze Stuff -----------------------------------------------------------
 source(paste0(here::here(), '/RCode/SoB_3_analyzeQ.R'))
 source(paste0(here::here(), '/RCode/SoB_4_GroupANDcalcTotalImpact.R'))
-source(paste0(here::here(), '/RCode/SoB_calcImpactFunctions.R'))
+source(paste0(here::here(), '/RCode/SoB_f_calcImpact.R'))
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate)
 all_species <- unique(d$sppcode)
@@ -65,22 +65,22 @@ for (spp in all_species){
 # Loop through species and calculate impact and pool data for all experts
 for (spp in all_species){
   print(paste("Calculating impact for", spp))
-  calc_Impact(thisDataDate, 
-              speciestoAnalyze = thisSpp,
-              DataFolder = OutputFolder,
+  calc_Impact(dataDate = thisDataDate, 
+              speciestoAnalyze = spp,
+              dataFolder = OutputFolder,
               countrytoAnalyze = thisCountry)
 }
 
-
-# Make Population Graphs --------------------------------------------------
-
-source(paste0(here::here(), '/RCode/SoB_5_popGraphs.R'))
-make_PopGraphs(thisDataDate, Dir = paste0(here::here()))
-dataCols <- read.csv(paste0(here::here(), '/Data/dataColumns.csv'), stringsAsFactors = F)[,1]
-data <- read.csv(paste0(here::here(), '/Data/', thisCountry, '_results_', thisDataDate, '.csv'), stringsAsFactors = F) %>% 
-  select(sppCode, spp, cntry) %>% 
-  distinct()
-
+# Make threat impact plots --------------------------------------------------
+source(paste0(here::here(), '/RCode/SoB_generateImpactPlots.R'))
+source(paste0(here::here(), '/RCode/SoB_f_makeImpactPlot.R'))
+for (spp in all_species){
+  print(paste("Creating impact plots for", spp))
+  generate_impact_plots(dataDate = thisDataDate,
+                        speciestoAnalyze = spp,
+                        dataFolder = OutputFolder,
+                        cntrytoAnalyze = thisCountry)
+}
 
 # Make Species Reports ------------------------------------------------------
 

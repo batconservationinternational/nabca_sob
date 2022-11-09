@@ -36,15 +36,15 @@ analyze_SoB <- function(mydata,
     unnest_longer(dist_info, values_to = "dist_info")
   
   # Get quantiles
-  # quants <- list()
-  # for (i in seq(1:nrow(mydata))){
-  #   out <- find_quantiles(mydata[i,])
-  #   print("Generating quantiles:")
-  #   print(paste0(i, "/", nrow(mydata)))
-  #   print(out)
-  #   quants <- append(quants, list(out))
-  # }
-  # mydata$popQuantiles <- quants
+  quants <- list()
+  for (i in seq(1:nrow(mydata))){
+    out <- find_quantiles(mydata[i,])
+    print("Generating quantiles:")
+    print(paste0(i, "/", nrow(mydata)))
+    print(out)
+    quants <- append(quants, list(out))
+  }
+  mydata$popQuantiles <- quants
   
   # Pull out distribution type info for easier access to use in functions below
   dist_types <- list()
@@ -62,15 +62,15 @@ analyze_SoB <- function(mydata,
   }
   mydata$dist_type <- dist_types
 
-  #Set up progress bar for map functions
+  # Set up progress bar for map functions
   ticks <- nrow(mydata)
-  # pb <- progress::progress_bar$new(total = ticks)
+  pb <- progress::progress_bar$new(total = ticks)
   
-  # Density plots
-  # message("Make density plots")
-  # mydata$plots <- mydata %>%
-  #   select(value, q_type, dist_info, popQuantiles, dist_type) %>%
-  #   pmap(generate_Densityplot, pb=pb)
+  # Make density plots
+  message("Make density plots")
+  mydata$plots <- mydata %>%
+    select(value, q_type, dist_info, popQuantiles, dist_type) %>%
+    pmap(generate_Densityplot, pb=pb)
   
   # Random draw
   pb <- progress::progress_bar$new(total = ticks)

@@ -1,11 +1,10 @@
-calc_expert_impact <- function(dist_info_id, impact){
+calc_expert_impact <- function(dist_info_id, impact, pb){
   thisNames <- impact %>% names()
-  Impact <- vector(mode = 'list', length = 4)
+  Impact <- vector(mode = 'list', length = 3)
   names(Impact) <-
     c('ImpactDist',
       'Quantiles',
-      'Impact_randomDraw',
-      'ImpactPlot')
+      'Impact_randomDraw')
   # calc beta dist parameters for threats
   if (dist_info_id != "pop_Size" & dist_info_id != "pop_Trend"){
     for (e in thisNames) {
@@ -60,6 +59,7 @@ calc_expert_impact <- function(dist_info_id, impact){
         }
       }
     }
+  
     pb$tick()
     return(Impact)
 }
@@ -71,7 +71,7 @@ calc_expert_impact <- function(dist_info_id, impact){
   
   
   
-calc_total_impact <- function(dist_info_id, expert_impact){
+calc_total_impact <- function(dist_info_id, expert_impact, pb){
   allImpact_Dist <- NULL
   allImpact_Quantiles <- NULL
   allImpact_Draw <- NULL
@@ -121,17 +121,16 @@ calc_total_impact <- function(dist_info_id, expert_impact){
             sd = allImpact_Dist$parameters['sd'])
         }
       }
-  pooled_impact <- vector(mode = 'list', length = 4)
+  pooled_impact <- vector(mode = 'list', length = 3)
   names(pooled_impact) <-
     c('pooled_Dist',
       'pooled_Quantiles',
-      'pooled_randomDraw',
-      'pooled_Plot')
+      'pooled_randomDraw')
   pooled_impact$pooled_Dist <- allImpact_Dist
   pooled_impact$pooled_Quantiles <- allImpact_Quantiles
   pooled_impact$pooled_randomDraw <- allImpact_Draw 
-    pb$tick()
-    return(pooled_impact)
+  pb$tick()
+  return(pooled_impact)
   }
   
   
