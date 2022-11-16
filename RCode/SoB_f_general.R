@@ -214,7 +214,7 @@ generateDist <- function(thisRow, dat_type, scope_sev){
     distributions <- append(distributions, to_add)
   }
   names(distributions) <- list_names
-  print(distributions)
+  # print(distributions)
   return(distributions)
 }
 

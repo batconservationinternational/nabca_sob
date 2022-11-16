@@ -1,4 +1,4 @@
-thisDataDate='20221115'
+thisDataDate='20220914'
 thisCountry = 'MX'
 
 #export data with completed answers only, answer and Q codes
@@ -41,52 +41,61 @@ OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDat
 all_species <- unique(d$sppcode)
 
 # Loop through species and analyze data for each expert
+count = 1
 for (spp in all_species){
-  print(paste("Analyzing expert data for", spp))
+  print(paste0("Analyzing expert data for ", 
+               spp, " (species ", count, "/", length(all_species), ")"))
+  count = count+1
   tryCatch({
-    expr = analyze_SoB(nestedData[spp],
+    analyze_SoB(nestedData[spp],
                 OutputFolder = OutputFolder,
                 cntrytoAnalyze = thisCountry,
                 SpptoAnalyze = spp)
+    message("Success.")
   },
   error = function(e){
     message(paste("Error for", spp, ":"))
     print(e)
-    return(NA)
   }
   )
 }
 
 # Loop through species and calculate impact and pool data for all experts
+count=1
 for (spp in all_species){
-  print(paste("Calculating impact for", spp))
-  tryCatch(
-    {expr = calc_Impact(dataDate = thisDataDate, 
+  print(paste0("Calculating Impact for ", 
+               spp, " (species ", count, "/", length(all_species), ")"))
+  count = count+1
+  tryCatch({
+    calc_Impact(dataDate = thisDataDate, 
                 speciestoAnalyze = spp,
                 dataFolder = OutputFolder,
                 countrytoAnalyze = thisCountry)
+    message("Success.")
     },
     error = function(e){
       message(paste("Error for", spp, ":"))
       print(e)
-      return(NA)
     }
   )
 }
 
 # Make threat impact plots --------------------------------------------------
+count=1
 for (spp in all_species){
-  print(paste("Creating impact plots for", spp))
+  print(paste0("Creating impact plots for ", 
+               spp, " (species ", count, "/", length(all_species), ")"))
+  count = count+1
   tryCatch(
-    {expr = generate_impact_plots(dataDate = thisDataDate,
+    {generate_impact_plots(dataDate = thisDataDate,
                           speciestoAnalyze = spp,
                           dataFolder = OutputFolder,
                           cntrytoAnalyze = thisCountry)
+    message("Success.")
     },
     error = function(e){
       message(paste("Error for", spp, ":"))
       print(e)
-      return(NA)
     }
   )
 }
@@ -118,12 +127,9 @@ generateSpeciesReports <- function(thisRow,
       envir = new.env(),
       output_format = fileType
     ),
-    error = function(e)
-      e
+    error = function(e){e}
   )
   
 }
-
-
 
 pbapply::pbapply(data[,], 1, generateSpeciesReports, thisDate=thisDataDate, fileType="pdf_document")
