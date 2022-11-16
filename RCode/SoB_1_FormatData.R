@@ -2,23 +2,7 @@ formatData <- function(thisDataDate,
                        thisCountry,
                        saveData=T) {
   
-  options(scipen = 999)
-  
-  source(paste0(here::here(), '/RCode/SoB_f_general.R'))
-  
-  # thisDataDate='20220914'
-  # thisCountry = 'US_CAN_RD2_'
-  
   # prep ------------------------------------------------------------------------------
-  
-  thisSheet <- "US_CAN"
-  thisSurvey <- "718871"
-  
-  if (thisCountry == "MX") {
-    thisSheet <- "MX"
-    thisSurvey <- "687664"
-  }
-  
   clean_q_names <- function(list_of_qs){
     list_of_qs <- stringr::str_replace(list_of_qs, "\\.$", "")
     list_of_qs <- stringr::str_replace(list_of_qs, "\\.", "_")
@@ -27,10 +11,8 @@ formatData <- function(thisDataDate,
   }
   
   # get questions and group number from xml export of survey
-  surveyQ <- readxl::read_excel(paste0(here::here(),
-                                       "/Data/surveyQuestions.xlsx")) %>%
-    select(group = id2,
-           contains('varName')) %>%
+  surveyQ <- readxl::read_excel(paste0(here::here(), "/Data/surveyQuestions.xlsx")) %>%
+    select(group = id2, contains('varName')) %>%
     tidyr::unite(varName, varName8, col = question_sub, na.rm = T) %>%
     unique() %>%
     filter(!is.na(question_sub), question_sub != '')
@@ -41,11 +23,9 @@ formatData <- function(thisDataDate,
   write_csv(surveyQ, here::here("Data", "cleanedSurveyQuestions.csv"))
   
   # get what column headings are actual data. Other columns are often instructions
-  dataCols <-
-    read.csv(paste0(here::here(), '/Data/dataColumns.csv'),
-             stringsAsFactors = F)[, 1]
+  dataCols <- read.csv(paste0(here::here(), '/Data/dataColumns.csv'), stringsAsFactors = F)[, 1]
   
-  # Read Data -----------------------------------------------------------------------------------
+  # Read and clean data --------------------------------------------------------
   
   thisDataFile <- paste0('Data/',thisCountry, '_results_', thisDataDate, '.csv')
   
@@ -53,8 +33,7 @@ formatData <- function(thisDataDate,
   
   #fill in blank countries in MX data and merge spp columns
   if (thisCountry == "MX") {
-     data <- data %>% 
-      unite("spp", NorthSpp, TropSpp, MXspp, sep="", remove=T, na.rm=T) %>% 
+     data <- data %>% unite("spp", NorthSpp, TropSpp, MXspp, sep="", remove=T, na.rm=T) %>% 
       mutate(cntry = case_when(
         cntry=="" ~ "Mexico", 
         T ~ cntry
@@ -159,7 +138,6 @@ formatData <- function(thisDataDate,
   }
   
   # add negligible answers back to data
- 
   listSPPdata <- function(thislist) {
     return(list(rawdata=thislist))
   }
@@ -190,7 +168,7 @@ formatData <- function(thisDataDate,
     filter(!(is.na(answer) & is.na(answer_C)))%>%
     select(-question, -answer) %>%
     pivot_wider(names_from = Q_val, values_from = answer_C) %>%
-    #if any are NA remove whole row
+    #if any fields are NA remove whole row
     rowwise() %>%
     mutate(N_na = sum(is.na(min), is.na(mean), is.na(max), is.na(conf))) %>%
     ungroup() %>%

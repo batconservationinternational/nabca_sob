@@ -10,8 +10,8 @@ calc_Impact <- function(dataDate,
   # speciestoAnalyze=spp
   # countrytoAnalyze=thisCountry
 
-  files <- list.files(DataFolder, full.names = T)
-  files <- files[!grepl("_pooled.RDS", files)]
+  files <- list.files(dataFolder, full.names = T)
+  files <- files[!grepl("pooled", files)]
    
    #Table of threat labels
    Threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv')) %>% 

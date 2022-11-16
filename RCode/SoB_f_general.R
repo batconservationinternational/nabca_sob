@@ -400,10 +400,10 @@ generate_sample <- function(dist_info, dist_type, Nsamples = 10000, pb) {
 
 
 
-generate_Densityplot <- function(value, q_type, dist_info, popQuantiles, dist_type, pb) {
+generate_Densityplot <- function(value, q_type, dist_info, Quantiles, dist_type, pb) {
   
-  maxX <- popQuantiles[["Median"]][1] +
-    (2.5 * (popQuantiles[["Q3"]][1] - popQuantiles[["Q1"]][1]))
+  maxX <- Quantiles[["Median"]][1] +
+    (2.5 * (Quantiles[["Q3"]][1] - Quantiles[["Q1"]][1]))
 
   myplot <- SHELF:::plotfit(dist_info,
                                xl=dist_type[[1]][["thisL"]],
@@ -413,9 +413,48 @@ generate_Densityplot <- function(value, q_type, dist_info, popQuantiles, dist_ty
                                xlab=dist_type[[1]][["myXlab"]],
                                ylab=expression(f[X](x)),
                                lp = T,
-                               returnPlot = T)
+                               returnPlot = T) +
+    labs(title = element_blank())
+  
+  fx <- myplot$data$fx
+  fx[is.infinite(fx)] <- NA
+  maxY <- max(fx, na.rm = T)
+  
+  Quantiles$y = seq(
+    from = -maxY * (1 / 1.75),
+    to = -maxY * (1 / 10),
+    length = nrow(Quantiles)
+  )
+  Quantiles$size = 1
+  Quantiles[Quantiles$expert == 'linear pool', 'size'] = 2
+    
+  myplotLP <-   myplot +
+    # scale_size_manual(values = value$expertSZ, guide = 'none') +
+    geom_pointrange(data = Quantiles,
+      aes(
+        x = Median,
+        xmin = Q1,
+        xmax = Q3,
+        y = y,
+        color = expert
+      ),
+      size = Quantiles$size / 1.5
+    ) +
+    theme_classic() +
+    theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
+    coord_cartesian(expand = F, ylim = c(min(Quantiles$y) * 1.1, maxY * 1.1))
+    # scale_color_manual(values = c(value$colors), name = "Expert", labels = value$labels) +
+    # scale_linetype_manual(values = value$expertLT, guide = 'none') +
+    # scale_y_continuous(breaks = NULL)
+    
+  if (q_type == 'popSize') {
+      myplotLP <- myplotLP +
+        scale_x_log10() +
+        xlab('Population size \n (axis scaled to log base 10)')
+    }
+  
   pb$tick()
-  return(myplot)
+  return(myplotLP)
 }
   
   
@@ -538,6 +577,20 @@ generate_Densityplot <- function(value, q_type, dist_info, popQuantiles, dist_ty
 # }
 
 
+
+
+
+
+
+
+graphRangeQ <- function(data) {
+  range <- data %>%
+    dplyr::select('cntry', 'spp', 'token', matches('range_[A-Z]')) %>%
+    group_by(cntry, spp) %>%
+    tidyr::nest() %>% 
+    mutate(longD=map(data, make_rangeGraphs, spp, cntry))
+  return(range)
+}
 
 
 

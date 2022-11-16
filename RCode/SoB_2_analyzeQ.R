@@ -39,12 +39,12 @@ analyze_SoB <- function(mydata,
   quants <- list()
   for (i in seq(1:nrow(mydata))){
     out <- find_quantiles(mydata[i,])
-    print("Generating quantiles:")
-    print(paste0(i, "/", nrow(mydata)))
-    print(out)
+    # print("Generating quantiles:")
+    # print(paste0(i, "/", nrow(mydata)))
+    # print(out)
     quants <- append(quants, list(out))
   }
-  mydata$popQuantiles <- quants
+  mydata$Quantiles <- quants
   
   # Pull out distribution type info for easier access to use in functions below
   dist_types <- list()
@@ -69,7 +69,7 @@ analyze_SoB <- function(mydata,
   # Make density plots
   message("Make density plots")
   mydata$plots <- mydata %>%
-    select(value, q_type, dist_info, popQuantiles, dist_type) %>%
+    select(value, q_type, dist_info, Quantiles, dist_type) %>%
     pmap(generate_Densityplot, pb=pb)
   
   # Random draw
