@@ -24,10 +24,6 @@ calc_Impact <- function(dataDate,
    } else {return(message("Country or species not provided to calc_Impact function"))}
    
    print(paste0('reading: ', f))
-   
-   # cl <- makeCluster(detectCores()-1, outfile=paste0(here::here(), "/outlog_", lubridate::today() ,".txt"))
-   
-   # registerDoParallel(cl)
 
    #load in data
    sppData <- readRDS(f)
@@ -92,5 +88,4 @@ calc_Impact <- function(dataDate,
     out_file <- paste0(tools:::file_path_sans_ext(f), '_pooled.RDS')
     print(paste('Saving pooled data to:', out_file))
     saveRDS(all_data, file = out_file)
-    # stopCluster(cl)
 }
