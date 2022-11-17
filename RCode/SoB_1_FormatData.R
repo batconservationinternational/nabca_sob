@@ -62,8 +62,7 @@ formatData <- function(thisDataDate,
       sppCode = toupper(stringr::str_replace_all(spp, " |-", "_"))
       ) %>%
     filter(keep == T) %>% 
-    select(-id, -max_ID, -submitdate,-keep) %>% 
-    filter(cntry==thisCountry)
+    select(-id, -max_ID, -submitdate,-keep)
   
   colnames(data) <- clean_q_names(colnames(data))
   
@@ -187,12 +186,9 @@ formatData <- function(thisDataDate,
     group_by(token, spp, cntry, Q_group, Q_sub) %>% summarise(num_answers=n()) %>%
     filter(num_answers != 2) %>% select(-num_answers)
   
-  d <- read.csv(thisDataFile, stringsAsFactors = F)
-  
-  
-  
   # Filter out instances where people didn't answer either scope or severity for a q
-  data_l <- data_l %>% anti_join(missing_answers)
+  data_l <- data_l %>% anti_join(missing_answers) %>% 
+    filter(cntry==thisCountry)
   
   # test <- d %>% group_by(Q_group, Q_sub, Q_ss) %>% summarize(n=n()) %>%
   #   pivot_wider(names_from=Q_ss, values_from = n)
