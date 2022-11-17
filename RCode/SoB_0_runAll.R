@@ -1,5 +1,8 @@
-thisDataDate='20220914'
-thisCountry = 'MX'
+thisDataDate='20221116'
+# United States, Canada, or Mexico
+thisCountry = 'United States'
+# US_CAN or MX
+countryAbbr = 'US_CAN'
 
 #export data with completed answers only, answer and Q codes
 #Save as MX/US_results_YYYYMMDD.csv
@@ -27,11 +30,12 @@ source(paste0(here::here(), '/RCode/SoB_f_calcImpact.R'))
 source(paste0(here::here(), '/RCode/SoB_f_makeImpactPlot.R'))
 
 # Format Data Properly for Analysis ---------------------------------------
-formattedData <- formatData(thisDataDate, thisCountry)
+formattedData <- formatData(thisDataDate, thisCountry, countryAbbr)
 nestedData <- formattedData$data_l
 d <- formattedData$data
 weird_pop_size <- formattedData$weird_pop_size
 weird_percentage <- formattedData$weird_percentage
+missing_answers <- formattedData$missing_answers
 
 # Make Range Graphs ---------------------------------------------------------
 rangeGraphs <- graphRangeQ(d)
@@ -49,7 +53,7 @@ for (spp in all_species){
   tryCatch({
     analyze_SoB(nestedData[spp],
                 OutputFolder = OutputFolder,
-                cntrytoAnalyze = thisCountry,
+                cntrytoAnalyze = countryAbbr,
                 SpptoAnalyze = spp)
     message("Success.")
   },
@@ -68,9 +72,9 @@ for (spp in all_species){
   count = count+1
   tryCatch({
     calc_Impact(dataDate = thisDataDate, 
-                speciestoAnalyze = spp,
                 dataFolder = OutputFolder,
-                countrytoAnalyze = thisCountry)
+                speciestoAnalyze = spp,
+                countrytoAnalyze = countryAbbr)
     message("Success.")
     },
     error = function(e){

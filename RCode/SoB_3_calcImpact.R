@@ -1,14 +1,13 @@
 
 calc_Impact <- function(dataDate, 
                         dataFolder,
-                        speciestoAnalyze=NULL,
-                        countrytoAnalyze=NULL,
-                        doPar=T) {
+                        speciestoAnalyze,
+                        countrytoAnalyze) {
   
-  # DataFolder=OutputFolder
+  # dataFolder=OutputFolder
   # spp = "ANTROZOUS_PALLIDUS"
   # speciestoAnalyze=spp
-  # countrytoAnalyze=thisCountry
+  # countrytoAnalyze=countryAbbr
 
   files <- list.files(dataFolder, full.names = T)
   files <- files[!grepl("pooled", files)]
@@ -18,10 +17,7 @@ calc_Impact <- function(dataDate,
      unite("threat_abbr", Q_group, Q_sub, sep = "_", remove = F)
    
    # get path to data file for specified species and country
-   if (!is.null(speciestoAnalyze) & !is.null(countrytoAnalyze)) {
-     f <- files[str_detect(files, speciestoAnalyze) & 
-                              str_detect(files, countrytoAnalyze)]
-   } else {return(message("Country or species not provided to calc_Impact function"))}
+   f <- files[str_detect(files, speciestoAnalyze) & str_detect(files, countrytoAnalyze)]
    
    print(paste0('reading: ', f))
 
@@ -42,24 +38,28 @@ calc_Impact <- function(dataDate,
    pop_data <- sppData %>% filter(q_type == "popSize" | q_type == "popTrend") 
    
    if (nrow(threat_data)>0){ #only do if there is threat_data
+     # get list of responses for scope and severity
+     threat_data$responses <- purrr::map(threat_data$randomDraw, names)
      # Pivot Scope and Severity info wider
-     threat_data <- threat_data %>% select(name, cntry, value, q_type, dist_info_id, randomDraw) %>% 
+     threat_data <- threat_data %>% select(name, cntry, value, q_type, dist_info_id, randomDraw, responses) %>% 
          pivot_wider(names_from = "q_type", values_from = "randomDraw") 
      
      # Multiply across the random draws of scope and severity to get impact
-     threat_data$impact <- map2(threat_data$Scope, threat_data$Severity, ~ .x * .y)
+      threat_data$impact <- purrr::map2(threat_data$Scope, threat_data$Severity, `*`)
    }
      
      # For each row, and expert, calculate distribution and quantiles and do a random draw
      ticks <- nrow(threat_data)
      pb <- progress::progress_bar$new(total = ticks)
      if (nrow(threat_data)>0){ #only do if there is threat_data
+       print("Calculating threat impact:")
        threat_data$expert_impact <- purrr::map2(threat_data$dist_info_id, 
                                                threat_data$impact,
                                                calc_expert_impact,
                                                pb=pb)
      }
      pb <- progress::progress_bar$new(total = ticks)
+     print("Calculating pop impact:")
      pop_data$expert_impact <- purrr::map2(pop_data$dist_info_id,
                                           pop_data$randomDraw, 
                                           calc_expert_impact,
@@ -68,12 +68,14 @@ calc_Impact <- function(dataDate,
     # Calc pooled distributions
     pb <- progress::progress_bar$new(total = ticks)
     if (nrow(threat_data)>0){
+      print("Calculating pooled distribution for threats:")
       threat_data$pooled_dist <- purrr::map2(threat_data$dist_info_id,
                                             threat_data$expert_impact, 
                                             calc_total_impact,
                                             pb = pb)
     }
     pb <- progress::progress_bar$new(total = ticks)
+    print("Calculating pooled distribution for pop impact:")
     pop_data$pooled_dist <- purrr::map2(pop_data$dist_info_id,
                                        pop_data$expert_impact, 
                                        calc_total_impact,

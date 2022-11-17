@@ -1,5 +1,6 @@
 formatData <- function(thisDataDate,
                        thisCountry,
+                       countryAbbr,
                        saveData=T) {
   
   # prep ------------------------------------------------------------------------------
@@ -27,7 +28,8 @@ formatData <- function(thisDataDate,
   
   # Read and clean data --------------------------------------------------------
   
-  thisDataFile <- paste0('Data/',thisCountry, '_results_', thisDataDate, '.csv')
+  thisDataFile <- paste0('Data/',countryAbbr, '_results_', thisDataDate, '.csv')
+  print(thisDataFile)
   
   data <- read.csv(thisDataFile, stringsAsFactors = F)
   
@@ -60,15 +62,15 @@ formatData <- function(thisDataDate,
       sppCode = toupper(stringr::str_replace_all(spp, " |-", "_"))
       ) %>%
     filter(keep == T) %>% 
-    select(-id, -max_ID,-submitdate,-keep)
+    select(-id, -max_ID, -submitdate,-keep) %>% 
+    filter(cntry==thisCountry)
   
   colnames(data) <- clean_q_names(colnames(data))
   
-  weird_pop_size <- data %>% 
-    filter(popsize_sz_min<=0 | popsize_sz_mean<=0 | popsize_sz_max<=0) #filter out negative pop size estimates
+  #filter out negative pop size estimates
+  weird_pop_size <- data %>% filter(popsize_sz_min<=0 | popsize_sz_mean<=0 | popsize_sz_max<=0) 
   
-  data <- data %>% 
-    anti_join(weird_pop_size)
+  data <- data %>% anti_join(weird_pop_size)
 
   # Format Data ---------------------------------------------------------------------------------
   
@@ -175,8 +177,25 @@ formatData <- function(thisDataDate,
     filter(N_na == 0) %>%
     select(-N_na) %>% 
     filter(min < mean, mean < max, min < max, conf >= 0.5) %>% 
-    mutate(across(c(min, mean, max), ~if_else(.==0, 0.0001, .))) # replace 0s in min/mean/max with 0.0001
+    mutate(across(c(min, mean, max), ~if_else(.==0, 0.0001, .))) %>%  # replace 0s in min/mean/max with 0.0001
+    mutate(across(c(min, mean, max), ~if_else(.==1, 0.9999, .)))  # replace 1s in min/mean/max with 0.9999
     # 0s were causing issues with fitting log distributions later on. 
+
+  
+  # Identify instances where people answered Scope but not Sev q's or vice versa
+  missing_answers <- data_l %>% filter(Q_ss %in% c('Scope','Severity')) %>%
+    group_by(token, spp, cntry, Q_group, Q_sub) %>% summarise(num_answers=n()) %>%
+    filter(num_answers != 2) %>% select(-num_answers)
+  
+  d <- read.csv(thisDataFile, stringsAsFactors = F)
+  
+  
+  
+  # Filter out instances where people didn't answer either scope or severity for a q
+  data_l <- data_l %>% anti_join(missing_answers)
+  
+  # test <- d %>% group_by(Q_group, Q_sub, Q_ss) %>% summarize(n=n()) %>%
+  #   pivot_wider(names_from=Q_ss, values_from = n)
   
   data_l <- data_l %>% 
     # make into a list
@@ -193,7 +212,7 @@ formatData <- function(thisDataDate,
       file = paste0(
         here::here(),
         '/Data/',
-        thisCountry,
+        countryAbbr,
         '_nestedQ_',
         thisDataDate,
         '.RDS'
@@ -204,5 +223,6 @@ formatData <- function(thisDataDate,
   return(list(data = data, 
               data_l = data_l, 
               weird_pop_size = weird_pop_size,
-              weird_percentage = weird_percentage))
+              weird_percentage = weird_percentage,
+              missing_answers = missing_answers))
 }

@@ -9,14 +9,13 @@ analyze_SoB <- function(mydata,
   
   mydata <- enframe(mydata)
  
- for (i in seq(nrow(mydata))){
-   mydata$value[[i]][["popSizeData"]] <- mydata$value[[i]][["popSizeData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
-   mydata$value[[i]][["popTrendData"]] <- mydata$value[[i]][["popTrendData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
-   mydata$value[[i]][["threatData"]] <- mydata$value[[i]][["threatData"]] %>% mutate(dist = map(Q_group, choose_threats_dist))
- }
+  mydata$value[[1]][["popSizeData"]] <- mydata$value[[1]][["popSizeData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
+  mydata$value[[1]][["popTrendData"]] <- mydata$value[[1]][["popTrendData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
+  mydata$value[[1]][["threatData"]] <- mydata$value[[1]][["threatData"]] %>% mutate(dist = map(Q_group, choose_threats_dist))
+
   
   # Pluck country to be its own column.
-  mydata$cntry <- mydata %>% pluck("value", 1, "country")
+  mydata$cntry <- mydata %>% pluck("value", 1, "country", 1)
 
   # Fit distributions
   message("Fit pop distributions to answers")
