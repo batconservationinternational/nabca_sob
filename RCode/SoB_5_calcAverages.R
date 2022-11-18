@@ -1,4 +1,4 @@
-calc_group_impact <- function(dataDate,
+calc_total_impact <- function(dataDate,
                               dataFolder,
                               speciestoAnalyze,
                               countrytoAnalyze){

@@ -70,7 +70,8 @@ formatData <- function(thisDataDate,
   
   data <- data %>% anti_join(weird_pop_size)
   
-  data <- data %>% mutate(sppcode = gsub("SPECIES_", "", sppcode))
+  data <- data %>% mutate(sppcode = gsub("SPECIES_", "", sppcode)) %>% 
+    mutate(spp = gsub('Species ', '', spp))
 
   # Format Data ----------------------------------------------------------------
   
@@ -194,11 +195,23 @@ formatData <- function(thisDataDate,
   missing_answers <- missing_answers %>% left_join(tot_answers, by = c("spp", "cntry","Q_group","Q_sub"))
   
   # Filter out instances where people didn't answer either scope or severity for a q
+  # Filter down to relevant country
   data_l <- data_l %>% anti_join(missing_answers) %>% 
     filter(cntry==thisCountry)
   
-  # test <- d %>% group_by(Q_group, Q_sub, Q_ss) %>% summarize(n=n()) %>%
-  #   pivot_wider(names_from=Q_ss, values_from = n)
+  # Code to drop identified outliers for the MX dataset
+  # if (thisCountry=="Mexico"){
+  #   outliers <- read_excel(here::here('Data','mx_identified_outliers.xlsx')) %>% 
+  #     select(1,2,4) %>% mutate(Q_group = "pop") %>% 
+  #     mutate(Q_sub = case_when(
+  #       Question=="PS" ~ "Size",
+  #       Question=="PT" ~ "Trend"
+  #     )) %>% select(-Question) %>% 
+  #     rename("token"=Id, "spp"=Species)
+  #   
+  #   outliers_full <- outliers %>% left_join(data_l) %>% select(-Q_ss)
+  #   data_l <- data_l %>% anti_join(outliers)
+  # }
   
   data_l <- data_l %>% 
     # make into a list

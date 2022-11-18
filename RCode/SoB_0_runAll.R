@@ -4,19 +4,10 @@ thisCountry = 'Mexico'
 # US_CAN or MX
 countryAbbr = 'MX'
 
+OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate)
+
 #export data with completed answers only, answer and Q codes
 #Save as MX/US_results_YYYYMMDD.csv
-
-# library(openxlsx)
-# 
-# #define sheet names for each data frame
-# dataset_names <- list('Missing Answers' = missing_answers_all, 
-#                       'Weird Pop Size' = weird_pop_size_all, 
-#                       'Weird Percentage' = weird_percentage_all)
-# 
-# #export each data frame to separate sheets in same Excel file
-# openxlsx::write.xlsx(dataset_names, here::here('weird_answers.xlsx'))
-
 
 # Load necessary Components ----------------------------------------------
 library(tidyverse)
@@ -30,6 +21,8 @@ library(overlapping)
 library(doParallel)
 library(foreach)
 library(EnvStats)
+library(readxl)
+library(openxlsx)
 options(scipen = 999)
 
 source(paste0(here::here(), '/RCode/SoB_1_FormatData.R'))
@@ -52,12 +45,12 @@ missing_answers <- formattedData$missing_answers
 rangeGraphs <- graphRangeQ(d)
 
 # Analyze Stuff -----------------------------------------------------------
-OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate)
 all_species <- unique(d$sppcode)
 print(all_species)
 
 # Loop through species and analyze data for each expert
 count = 1
+failed_analyze = list()
 for (spp in all_species){
   print(paste0("Analyzing expert data for ", 
                spp, " (species ", count, "/", length(all_species), ")"))
@@ -71,6 +64,7 @@ for (spp in all_species){
   },
   error = function(e){
     message(paste("Error for", spp, ":"))
+    failed_analyze <- append(failed_analyze, spp)
     print(e)
   }
   )
@@ -78,26 +72,55 @@ for (spp in all_species){
 
 # Loop through species and calculate impact and pool data for all experts
 count=1
+failed_calc_impact = list()
+pop_df = data.frame()
+threat_df = data.frame()
 for (spp in all_species){
   print(paste0("Calculating Impact for ", 
                spp, " (species ", count, "/", length(all_species), ")"))
   count = count+1
   tryCatch({
-    calc_Impact(dataDate = thisDataDate, 
+    df <- calc_Impact(dataDate = thisDataDate, 
                 dataFolder = OutputFolder,
                 speciestoAnalyze = spp,
                 countrytoAnalyze = countryAbbr)
+    pop_df <- pop_df %>% bind_rows(df$pop_info)
+    threat_df <- threat_df %>% bind_rows(df$threat_info)
     message("Success.")
     },
     error = function(e){
       message(paste("Error for", spp, ":"))
       print(e)
+      failed_calc_impact <- append(failed_calc_impact, spp)
     }
+  )
+}
+
+# Calc total impact percentage for each threat for each species and expert-----
+count=1
+failed_total_impact = list()
+for (spp in all_species){
+  print(paste0("Calculating Total Impact Percent for ", 
+               spp, " (species ", count, "/", length(all_species), ")"))
+  count = count+1
+  tryCatch({
+    calc_total_impact(dataDate = thisDataDate, 
+                dataFolder = OutputFolder,
+                speciestoAnalyze = spp,
+                countrytoAnalyze = countryAbbr)
+    message("Success.")
+  },
+  error = function(e){
+    message(paste("Error for", spp, ":"))
+    print(e)
+    failed_total_impact <- append(failed_total_impact, spp)
+  }
   )
 }
 
 # Make threat impact plots --------------------------------------------------
 count=1
+failed_impact_plots = list()
 for (spp in all_species){
   print(paste0("Creating impact plots for ", 
                spp, " (species ", count, "/", length(all_species), ")"))
@@ -112,11 +135,10 @@ for (spp in all_species){
     error = function(e){
       message(paste("Error for", spp, ":"))
       print(e)
+      failed_impact_plots = append(failed_impact_plots, spp)
     }
   )
 }
-
-threat_plots <- readRDS('/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_20220914/MX_ANTROZOUS_PALLIDUS_20220914_pooled_threat_plots.RDS')
 
 # Make Species Reports ------------------------------------------------------
 # dataCols <- read.csv(paste0(here::here(), '/Data/dataColumns.csv'), stringsAsFactors = F)[,1]

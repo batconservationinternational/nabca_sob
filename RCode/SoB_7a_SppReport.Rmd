@@ -376,12 +376,10 @@ for (gN in names(TData)) {
 
 
 if(params$save==T) {
-  ThisDir <-
-    paste0(params$rootDir, "/Data/RelevantData_", params$date)
+  ThisDir <- paste0(params$rootDir, "/Data/RelevantData_", params$date)
   
   if (!dir.exists(ThisDir))
     dir.create(ThisDir)
-  
   
   saveRDS(
     allThreats_stuff,

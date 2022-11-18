@@ -81,6 +81,21 @@ calc_Impact <- function(dataDate,
                                        calc_total_impact,
                                        pb = pb)
     
+    # Make table of pooled quanitles for pop
+    pop <- purrr::map(pop_data$pooled_dist, 2)
+    pop <- purrr::map(pop, .f = ~list(Q1=.x[1], Median=.x[2], Q3=.x[3]))
+    pop_info <- do.call(rbind.data.frame, pop)
+    pop_info <- pop_info %>%  mutate(question = pop_data$q_type, .before=1) %>% 
+      mutate(species = speciestoAnalyze, .before=1)
+    
+    # Make table of mean of pooled quantiles for threats
+    t <- purrr::map(threat_data$pooled_dist, 2)
+    t <- purrr::map(t, .f = ~list(Median=.x[2]))
+    threat_info <- do.call(rbind.data.frame, t) %>% 
+      mutate(question = threat_data$dist_info_id, .before=1) %>% 
+      mutate(species = speciestoAnalyze, .before=1) %>% 
+      pivot_wider(names_from = 'question', values_from = 'Median')
+    
     # Bind pop and threat data back together
     all_data <- bind_rows(threat_data, pop_data) %>% 
       select(name, cntry, value, dist_info_id, expert_impact, pooled_dist) %>% 
@@ -90,4 +105,6 @@ calc_Impact <- function(dataDate,
     out_file <- paste0(tools:::file_path_sans_ext(f), '_pooled.RDS')
     print(paste('Saving pooled data to:', out_file))
     saveRDS(all_data, file = out_file)
+    
+    return(list(pop_info = pop_info, threat_info = threat_info))
 }
