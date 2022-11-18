@@ -96,6 +96,15 @@ for (spp in all_species){
   )
 }
 
+# Write pop and threat aggregations
+pop_df_path <- paste0('Data/derived/AnalysisExport_', thisDataDate, '/', 
+                      countryAbbr, "_pop_quantiles_agg.csv")
+write_csv(pop_df, here::here(pop_df_path))
+threat_df_path <- paste0('Data/derived/AnalysisExport_', thisDataDate, '/', 
+                         countryAbbr, "_threat_median_agg.csv")
+write_csv(threat_df, here::here(threat_df_path))
+
+
 # Calc total impact percentage for each threat for each species and expert-----
 count=1
 failed_total_impact = list()
