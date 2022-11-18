@@ -176,7 +176,8 @@ formatData <- function(thisDataDate,
     ungroup() %>%
     filter(N_na == 0) %>%
     select(-N_na) %>% 
-    filter(min < mean, mean < max, min < max, conf >= 0.5) %>% 
+    filter(min < mean, mean < max, min < max, conf >= 50) %>% 
+    mutate(conf = if_else(conf==100, 99.99, conf)) %>% 
     mutate(across(c(min, mean, max), ~if_else(.==0, 0.0001, .))) %>%  # replace 0s in min/mean/max with 0.0001
     mutate(across(c(min, mean, max), ~if_else(.==1, 0.9999, .)))  # replace 1s in min/mean/max with 0.9999
     # 0s were causing issues with fitting log distributions later on. 
