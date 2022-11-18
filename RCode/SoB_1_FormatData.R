@@ -29,7 +29,6 @@ formatData <- function(thisDataDate,
   # Read and clean data --------------------------------------------------------
   
   thisDataFile <- paste0('Data/',countryAbbr, '_results_', thisDataDate, '.csv')
-  print(thisDataFile)
   
   data <- read.csv(thisDataFile, stringsAsFactors = F)
   
@@ -70,8 +69,10 @@ formatData <- function(thisDataDate,
   weird_pop_size <- data %>% filter(popsize_sz_min<=0 | popsize_sz_mean<=0 | popsize_sz_max<=0) 
   
   data <- data %>% anti_join(weird_pop_size)
+  
+  data <- data %>% mutate(sppcode = gsub("SPECIES_", "", sppcode))
 
-  # Format Data ---------------------------------------------------------------------------------
+  # Format Data ----------------------------------------------------------------
   
   d2 <- data %>%
     dplyr::select(
@@ -182,9 +183,14 @@ formatData <- function(thisDataDate,
 
   
   # Identify instances where people answered Scope but not Sev q's or vice versa
+  tot_answers <- data_l %>% filter(Q_ss %in% c('Scope','Severity')) %>%
+    group_by(spp, cntry, Q_group, Q_sub, Q_ss) %>% summarise(total_answers=n())
+  
   missing_answers <- data_l %>% filter(Q_ss %in% c('Scope','Severity')) %>%
     group_by(token, spp, cntry, Q_group, Q_sub) %>% summarise(num_answers=n()) %>%
     filter(num_answers != 2) %>% select(-num_answers)
+  
+  missing_answers <- missing_answers %>% left_join(tot_answers, by = c("spp", "cntry","Q_group","Q_sub"))
   
   # Filter out instances where people didn't answer either scope or severity for a q
   data_l <- data_l %>% anti_join(missing_answers) %>% 

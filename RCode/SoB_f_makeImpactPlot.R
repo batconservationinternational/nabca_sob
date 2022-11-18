@@ -4,24 +4,22 @@ make_impact_plots <- function(values, expert_impact, pooled_dist, pb){
   #bind linear pool and expert random draw values for plotting
   expert_rd <- expert_impact$Impact_randomDraw %>% as_tibble() %>% pivot_longer(1:length(.))
   names(expert_rd) <- c('expert','fx')
-  pooled_dist$pooled_randomDraw <- pooled_dist$pooled_randomDraw %>% 
-    bind_rows(expert_rd) %>% 
-    mutate(case_when(
-      expert=='linear pool'~1,
-      T~0.5)
-    )
+  graphing_data <- pooled_dist$pooled_randomDraw %>% 
+    bind_rows(expert_rd) 
+    # mutate(sizes = case_when(
+    #   expert=='linear pool'~ 1,
+    #   T ~ 0.5)
+    # )
   
   #Make expert list into factor
-  # pooled_dist$pooled_randomDraw$expert <- factor(pooled_dist$pooled_randomDraw$expert)
-  # # Put "linear pool" at top of factor list so it shows first in legend for graphing
-  # pooled_dist$pooled_randomDraw$expert <- relevel(pooled_dist$pooled_randomDraw$expert,
-  #                                                 "linear pool")
+  graphing_data$expert <- factor(graphing_data$expert)
   
-  num_experts <- length(unique(pooled_dist$pooled_randomDraw$expert))-1
-  sizes <- c(1, replicate(num_experts, 0.5, simplify=T))
-  
-  pooled_plot <- ggplot(pooled_dist$pooled_randomDraw) +
-    geom_density(aes(x = fx, color = expert)) +
+  pooled_plot <- ggplot(graphing_data) +
+    geom_density(aes(x = fx, 
+                     group = expert,
+                     color = expert,
+                     size = expert)) +
+    scale_size_manual("expert", values = values$expertSZ, guide = 'none') +
     scale_x_continuous(limits=c(0,1))+
     xlab('Total Population Impact (%)') +
     ylab(expression(f[X](x))) +

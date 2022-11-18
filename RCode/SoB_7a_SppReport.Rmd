@@ -64,8 +64,7 @@ Threats <- read.csv(paste0(params$rootDir, '/Data/ThreatNum.csv'))
 ```
 
 ```{r}
-sppData <- readRDS(DataFile) %>%
-  select(-one_of('perPlots', 'overlap')) %>% suppressWarnings()
+sppData <- readRDS(DataFile) %>% select(-one_of('perPlots', 'overlap')) %>% suppressWarnings()
 ```
 \captionsetup[table]{labelformat=empty}
 # Range Size

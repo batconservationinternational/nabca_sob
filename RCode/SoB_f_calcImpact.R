@@ -1,6 +1,6 @@
 calc_expert_impact <- function(dist_info_id, impact, pb){
-  print(dist_info_id)
-  print(impact)
+  # print(dist_info_id)
+  # print(impact)
   thisNames <- impact %>% names()
   Impact <- vector(mode = 'list', length = 3)
   names(Impact) <-
