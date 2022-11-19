@@ -23,6 +23,7 @@ library(foreach)
 library(EnvStats)
 library(readxl)
 library(openxlsx)
+library(scales)
 options(scipen = 999)
 
 source(paste0(here::here(), '/RCode/SoB_1_FormatData.R'))
@@ -35,11 +36,13 @@ source(paste0(here::here(), '/RCode/SoB_f_makeImpactPlot.R'))
 
 # Format Data Properly for Analysis ---------------------------------------
 formattedData <- formatData(thisDataDate, thisCountry, countryAbbr)
-nestedData <- formattedData$data_l
-d <- formattedData$data
+nestedData <- formattedData$data_nested
+d <- formattedData$data_l
 weird_pop_size <- formattedData$weird_pop_size
 weird_percentage <- formattedData$weird_percentage
 missing_answers <- formattedData$missing_answers
+write_csv(d, paste0(OutputFolder, '/cleaned_responses_', countryAbbr,
+                    '_', thisDataDate, '.csv'))
 
 # Make Range Graphs ---------------------------------------------------------
 rangeGraphs <- graphRangeQ(d)
@@ -106,26 +109,26 @@ write_csv(threat_df, here::here(threat_df_path))
 
 
 # Calc total impact percentage for each threat for each species and expert-----
-count=1
-failed_total_impact = list()
-for (spp in all_species){
-  print(paste0("Calculating Total Impact Percent for ", 
-               spp, " (species ", count, "/", length(all_species), ")"))
-  count = count+1
-  tryCatch({
-    calc_total_impact(dataDate = thisDataDate, 
-                dataFolder = OutputFolder,
-                speciestoAnalyze = spp,
-                countrytoAnalyze = countryAbbr)
-    message("Success.")
-  },
-  error = function(e){
-    message(paste("Error for", spp, ":"))
-    print(e)
-    failed_total_impact <- append(failed_total_impact, spp)
-  }
-  )
-}
+# count=1
+# failed_total_impact = list()
+# for (spp in all_species){
+#   print(paste0("Calculating Total Impact Percent for ", 
+#                spp, " (species ", count, "/", length(all_species), ")"))
+#   count = count+1
+#   tryCatch({
+#     calc_total_impact(dataDate = thisDataDate, 
+#                 dataFolder = OutputFolder,
+#                 speciestoAnalyze = spp,
+#                 countrytoAnalyze = countryAbbr)
+#     message("Success.")
+#   },
+#   error = function(e){
+#     message(paste("Error for", spp, ":"))
+#     print(e)
+#     failed_total_impact <- append(failed_total_impact, spp)
+#   }
+#   )
+# }
 
 # Make threat impact plots --------------------------------------------------
 count=1
@@ -150,39 +153,33 @@ for (spp in all_species){
 }
 
 # Make Species Reports ------------------------------------------------------
-# dataCols <- read.csv(paste0(here::here(), '/Data/dataColumns.csv'), stringsAsFactors = F)[,1]
-# 
-# data <- read.csv(paste0(here::here(), '/Data/results-survey718871_', DataDate, '.csv'), stringsAsFactors = F) %>% 
-#   select(sppCode, spp, cntry) %>% 
-#   filter(cntry=='Canada') %>%
-#   distinct()
-generateSpeciesReports <- function(thisRow,
-                                   thisDate,
-                                   fileType = "pdf_document") {
+fileType == 'pdf_document'
+outDir <- paste0(here::here(), '/species_reports/', thisDate)
+if (!dir.exists(outDir)) {dir.create(outDir)}
+count=1
+failed_markdown = list()
+for (spp in all_species){
+  out_fn = paste0(outDir, '/', countryAbbr, '_', spp, '.', ext)
   if (fileType == 'html_document') {ext = 'html'}
   if (fileType == 'pdf_document') {ext = 'pdf'}
   
-  outDir <- paste0(here::here(), '/species_reports/', thisDate)
-  if (!dir.exists(outDir)) {dir.create(outDir)}
-  
-  out_fn = paste0(outDir, '/', thisRow['cntry'], '_', thisRow['name'], '.', ext)
-  
-  tryCatch(
+  tryCatch({
     rmarkdown::render(
       paste0(here::here(), "/RCode/SoB_7a_SppReport.Rmd"),
       output_file = out_fn,
       params = list(
-        spp = thisRow['name'],
-        sppCode = thisRow['sppCode'],
-        cntry = thisRow['cntry'],
-        date = thisDate
+        spp = spp,
+        cntry = countryAbbr,
+        date = thisDataDate,
+        rootDir = here::here()
       ),
       envir = new.env(),
       output_format = fileType
-    ),
-    error = function(e){e}
+    )},
+    error = function(e){
+      message(paste("Error for", spp, ":"))
+      print(e)
+      failed_markdown = append(failed_markdown, spp)
+    }
   )
-  
 }
-
-pbapply::pbapply(data[,], 1, generateSpeciesReports, thisDate=thisDataDate, fileType="pdf_document")

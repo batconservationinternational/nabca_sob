@@ -438,13 +438,10 @@ generate_Densityplot <- function(value, q_type, dist_info, Quantiles, dist_type,
     theme_classic() +
     theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
     coord_cartesian(expand = F, ylim = c(min(Quantiles$y) * 1.1, maxY * 1.1))
-    # scale_color_manual(values = c(value$colors), name = "Expert", labels = value$labels) +
-    # scale_linetype_manual(values = value$expertLT, guide = 'none') +
-    # scale_y_continuous(breaks = NULL)
     
   if (q_type == 'popSize') {
       myplotLP <- myplotLP +
-        scale_x_log10() +
+        scale_x_log10(label=comma) +
         xlab('Population size \n (axis scaled to log base 10)')
     }
   
@@ -492,8 +489,8 @@ make_rangeGraphs <- function(d, spp, thiscntry) {
       )
     ) %>%
     group_by(species, spp_abbrev, cntry) %>%
+    filter(area>0) %>%
     summarize(area = sum(area)) %>% # do we really want to be summing these?
-    # filter(area>0) %>%
     filter(species == spp, cntry == thiscntry) %>%
     mutate(
       area = measurements::conv_unit(area, from = 'm2', to = 'km2'),

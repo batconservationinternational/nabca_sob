@@ -213,30 +213,21 @@ formatData <- function(thisDataDate,
   #   data_l <- data_l %>% anti_join(outliers)
   # }
   
-  data_l <- data_l %>% 
+  data_nested <- data_l %>% 
     # make into a list
     split(., .$sppcode) %>% 
-    # make data into a list element 'rawdata')
+    # make data into a list element 'rawdata'
     lapply(., listSPPdata) %>% 
     #extract unique Expert names from each spp and create graphing parameters
     lapply(., formatSPPdata)
   
   
   if(saveData){
-    saveRDS(
-      data_l,
-      file = paste0(
-        here::here(),
-        '/Data/',
-        countryAbbr,
-        '_nestedQ_',
-        thisDataDate,
-        '.RDS'
-      )
-    )
+    saveRDS(data_l, file = paste0(here::here(), '/Data/', countryAbbr, '_nestedQ_',
+        thisDataDate, '.RDS'))
   }
   
-  return(list(data = data, 
+  return(list(data_nested = data_nested, 
               data_l = data_l, 
               weird_pop_size = weird_pop_size,
               weird_percentage = weird_percentage,

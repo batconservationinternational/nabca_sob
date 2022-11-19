@@ -14,14 +14,15 @@ generate_impact_plots <- function(dataDate,
   ticks <- nrow(data)
   pb <- progress::progress_bar$new(total = ticks)
   # Map impact plot creation for all threats
-  data$pooled_plots <- data %>% select(value, expert_impact, pooled_dist) %>% 
+  data$plots <- data %>% select(value, expert_impact, pooled_dist) %>% 
     pmap(make_impact_plots, pb=pb)
   
   # Drop excess data that is already saved and just save plots and their Q groups
-  data <- data %>% select(Q_group, Q_sub, pooled_plots)
+  data <- data %>% select(value, Q_group, Q_sub, plots)
   
   # Save data
-  out_file <- paste0(tools:::file_path_sans_ext(f), '_threat_plots.RDS')
+  out_file <- paste0(dataFolder, '/', cntrytoAnalyze, '_', speciestoAnalyze, 
+                     '_', 'threat_impact_plots.RDS')
   print(paste('Saving threat plots to:', out_file))
   saveRDS(data, file = out_file)
 }

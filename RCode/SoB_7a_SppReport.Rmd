@@ -10,14 +10,27 @@ header-includes:
   - \usepackage{booktabs}
   - \usepackage{caption}
 params:
-  spp: Artibeus jamaicensis
-  sppCode: ARJAM
-  cntry: MX
-  date: 20211109
-  rootDir: C:/Box/- Missions & Programs/Research & Development/NABat/NABCA/NABCA SoB Report/SoB_Analysis
+  spp: NA
+  sppCode: NA
+  cntry: NA
+  cntryAbbr: NA
+  date: NA
+  rootDir: NA
   save: FALSE
 fontsize: 14pt
 ---
+
+```{r}
+cntryAbbr="MX"
+cntry="Mexico"
+sppCode = "ANTROZOUS_PALLIDUS"
+spp = "Antrozous pallidus"
+date = "20221116"
+threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv'))
+DataFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', date)
+thisRangeFN <- paste0(here::here(), '/RangeGraphs/range_', spp,  "_", cntry, '.png')
+```
+
 
 ```{r setup, include=FALSE, echo=F}
 library(dplyr)
@@ -45,132 +58,138 @@ title: `r title`
 ```{r dataimport}
 DataFolder = paste0(params$rootDir, '/Data/derived/AnalysisExport_', params$date)
 DataFiles <- list.files(DataFolder, full.names = T)
-DataFile <-
-  DataFiles[grepl(
-    paste0(
-      "SurveyAnswers_",
-      params$date,
-      "_",
-      params$cntry,
-      '_',
-      params$sppCode,
-      "_nestedQ_analyzed.RDS"
-    ),
-    DataFiles
-  )]
+
+#load in raw responses
+responses_path <- DataFiles[str_detect(DataFiles, 'cleaned_responses')]
+responses <- read_csv(responses_path) %>% filter(sppcode==sppCode)
+
+#load in plots of threat impact
+impact_plots_path <- DataFiles[str_detect(DataFiles, cntryAbbr) & str_detect(DataFiles, sppCode) & 
+                            str_detect(DataFiles, '_threat_impact_plots.RDS')]
+impact_plots <- readRDS(impact_plots_path) %>% filter(name==sppCode)
+
+#load in pooled data
+pooled_data_path <- DataFiles[str_detect(DataFiles, cntryAbbr) & str_detect(DataFiles, sppCode) & 
+                            str_detect(DataFiles, '_pooled.RDS')]
+pooled_data <- readRDS(pooled_data_path) %>% filter(name==sppCode)
+
+#load in plots of scope, sev, and pop data
+scope_sev_path <- DataFiles[str_detect(DataFiles, cntryAbbr) & str_detect(DataFiles, sppCode) & 
+                            str_detect(DataFiles, '^*[0-9].RDS$')]
+scope_sev <- readRDS(scope_sev_path) %>% filter(name==sppCode)
 
 #Table of threat lables
-Threats <- read.csv(paste0(params$rootDir, '/Data/ThreatNum.csv'))
+threats <- read.csv(paste0(params$rootDir, '/Data/ThreatNum.csv'))
 ```
 
-```{r}
-sppData <- readRDS(DataFile) %>% select(-one_of('perPlots', 'overlap')) %>% suppressWarnings()
-```
 \captionsetup[table]{labelformat=empty}
 # Range Size
 ```{r out.width = "90%", fig.align='center'}
-thisRangeFN <- paste0(params$rootDir, '/RangeGraphs/range_', params$sppCode, "_", params$cntry, '.png')
+thisRangeFN <- paste0(params$rootDir, '/RangeGraphs/range_', params$spp, "_", params$cntry, '.png')
 knitr::include_graphics(thisRangeFN)
 ```
 \newpage
-# Population Size
 
-```{r popSize_index}
-i_popSz <- which(sppData$Q_group=='pop' & sppData$Q_sub=='Size')
-```
+# Population Size
 
 ## Expert Elicited Values
 ```{r popSize_data, results='asis'}
-sppData[i_popSz, 'data'][[1]][[1]] %>% 
+responses %>% filter(Q_group=='pop' & Q_sub == 'Size') %>% 
   select(min, mean, max, conf, token) %>% 
-  # left_join(as_tibble(sppData[i_popSz, 'experts'][[1]][[1]]$labels, rownames=c('token'))) %>% 
-  mutate(conf=paste0(conf*100, "%")) %>% 
+  mutate(conf=paste0(conf, "%")) %>% 
   rename(central=mean,
          confidence=conf, 
          expert=token) %>% 
   select(expert, everything()) %>% 
   mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>% 
   knitr::kable()
-  # stargazer::stargazer()
 ```
 
 ## Distribution
 ```{r popSize_graph}
-sppData[i_popSz, 'D_plot'][[1]][[1]]+
-  scale_color_manual(values=
-                       ggplot_build(sppData[i_popSz, 'D_plot'][[1]][[1]])
-                                  [["plot"]][["scales"]][["scales"]][[2]][["palette.cache"]])+
-  theme(legend.position = 'bottom', legend.title = element_blank())+
-  guides(color=guide_legend(ncol=4))
-  
+expert_colors <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Size') %>% 
+  .$value %>% flatten() %>% .$colors
 
+expert_sizes <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Size') %>% 
+  .$value %>% flatten() %>% .$expertSZ
+
+my_plot <- scope_sev %>% filter(q_type=='popSize') %>% .$plots %>% .[[1]]
+
+my_plot + 
+    scale_color_manual(values=expert_colors) +
+    scale_size_manual(values = expert_sizes) +
+  theme(legend.position = 'bottom', legend.title = element_blank()) +
+  guides(color=guide_legend(ncol=4)) +
+  scale_x_log10(label = comma)
 ```
 
 ```{r popSize_quantiles, results='asis'}
-sppData[i_popSz, 'Quantiles'][[1]][[1]] %>% 
-  select(-P99) %>% 
-  # left_join(as_tibble(sppData[i_popSz, 'experts'][[1]][[1]]$labels, rownames=c('expert'))) %>% 
-  # mutate(expert=value) %>% 
-  select(expert, Q1, Median, Q3) %>% 
+pooled_quantiles <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Size') %>% 
+  .$pooled_dist %>% flatten() %>% .$pooled_Quantiles
+
+expert_quantiles <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Size') %>% 
+  .$expert_impact %>% flatten() %>% .$Quantiles %>% as_tibble()
+
+expert_quantiles %>% bind_cols('linear pool'=pooled_quantiles) %>% 
+  mutate(measure = c('Q1','Median','Q3')) %>% 
+  pivot_longer(cols = !'measure') %>% 
+  pivot_wider(names_from = measure, values_from = value) %>% 
   mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>% 
   knitr::kable()
-  # stargazer::stargazer()
 ```
 \newpage
 
 # Population Trend
 
-```{r popTrend_index}
-i_popT <- which(sppData$Q_group=='pop' & sppData$Q_sub=='Trend')
-```
-
 ## Expert Elicited Values
 ```{r popTrend_data}
-sppData[i_popT, 'data'][[1]][[1]] %>% 
-  select(min, mean, max, conf, token) %>% 
-  # left_join(as_tibble(sppData[i_popSz, 'experts'][[1]][[1]]$labels, rownames=c('token'))) %>% 
-  mutate(conf=paste0(conf*100, "%"),
+responses %>% filter(Q_group=='pop' & Q_sub == 'Trend') %>%
+  select(min, mean, max, conf, token) %>%
+  mutate(conf=paste0(conf, "%"),
          min=paste0(min*100, "%"),
          max=paste0(max*100, "%"),
-         mean=paste0(mean*100, "%")
-        ) %>% 
+         mean=paste0(mean*100, "%")) %>%
   rename(central=mean,
-         confidence=conf, 
-         expert=token) %>% 
-  select(expert, everything()) %>% 
-  mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ',')))%>% 
+         confidence=conf,
+         expert=token) %>%
+  select(expert, everything()) %>%
+  mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>%
   knitr::kable()
-  # stargazer::stargazer()
 ```
 
 ## Distribution
 ```{r popTrend_graph}
-# sppData[i_popT, 'D_plot'][[1]][[1]] -> gg
+expert_colors <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Trend') %>% 
+  .$value %>% flatten() %>% .$colors
 
- g <- ggplot_build(sppData[i_popT, 'D_plot'][[1]][[1]])
+expert_sizes <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Trend') %>% 
+  .$value %>% flatten() %>% .$expertSZ
 
-sppData[i_popT, 'D_plot'][[1]][[1]]+
-  scale_color_manual(values=
-                       ggplot_build(sppData[i_popT, 'D_plot'][[1]][[1]])
-                                  [["plot"]][["scales"]][["scales"]][[2]][["palette.cache"]])+
-  theme(legend.position = 'bottom', legend.title = element_blank())+
-  guides(color=guide_legend(ncol=4))
+my_plot <- scope_sev %>% filter(q_type=='popTrend') %>% .$plots %>% .[[1]]
 
+my_plot + scale_color_manual(values = expert_colors) +
+  scale_size_manual(values = expert_sizes) +
+  theme(legend.position = 'bottom', legend.title = element_blank()) +
+  guides(color = guide_legend(ncol=4))
 ```
 
 ```{r popTrend_quantiles}
-sppData[i_popT, 'Quantiles'][[1]][[1]] %>% 
-  select(-P99) %>% 
-  # left_join(as_tibble(sppData[i_popSz, 'experts'][[1]][[1]]$labels, rownames=c('expert'))) %>% 
-  # mutate(expert=value) %>% 
-  select(expert, Q1, Median, Q3) %>% 
+pooled_quantiles <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Trend') %>% 
+  .$pooled_dist %>% flatten() %>% .$pooled_Quantiles
+
+expert_quantiles <- pooled_data %>% filter(Q_group=='pop'& Q_sub=='Trend') %>% 
+  .$expert_impact %>% flatten() %>% .$Quantiles %>% as_tibble()
+
+expert_quantiles %>% bind_cols('linear pool'=pooled_quantiles) %>% 
+  mutate(measure = c('Q1','Median','Q3')) %>% 
+  pivot_longer(cols = !'measure') %>% 
+  pivot_wider(names_from = measure, values_from = value) %>% 
   mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>% 
   mutate(Median=paste0(round(as.numeric(Median)*100, digits = 0), "%"),
-       Q1=paste0(round(as.numeric(Q1)*100, digits = 0), "%"),
-       Q3=paste0(round(as.numeric(Q3)*100, digits = 0), "%")
-  )%>% 
+         Q1=paste0(round(as.numeric(Q1)*100, digits = 0), "%"),
+         Q3=paste0(round(as.numeric(Q3)*100, digits = 0), "%")
+  ) %>% 
   knitr::kable()
-  # stargazer::stargazer()
 ```
 
 \newpage
@@ -181,230 +200,171 @@ Scope, Severity, and resulting population impact for IUCN level 2 threats.
 
 If a plot is missing, data was missing from the original survey (e.g., one or more of the questions was left blank ("-").
 
-The expert rated the threat as 'neglibile' if min =0, central=0.5, max=1, and conf=99.99%"
+The expert rated the threat as 'negligible' if min = 0, central = 0.5, max = 1, and conf = 99.99%"
 
 ```{r functions}
-
-show_DataTable <- function(t, e){
-  t %>% 
+get_responses <- function(responses, Q_group, Q_sub){
+  out <- responses %>% filter(Q_group==Q_group & Q_sub==Q_sub) %>% 
   select(min, mean, max, conf, token) %>% 
-  # left_join(as_tibble(e, rownames=c('token'))) %>% 
-  mutate(conf=paste0(conf*100, "%")) %>% 
+  mutate(conf=paste0(conf, "%"),
+         min=paste0(min*100, "%"),
+         max=paste0(max*100, "%"),
+         mean=paste0(mean*100, "%")) %>% 
   rename(central=mean,
          confidence=conf, 
          expert=token) %>% 
-  select(expert, everything()) %>%
-  mutate(across(where(is.numeric), ~round(.x,3)*100))
-
+  select(expert, everything()) %>% 
+  mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ',')))
+  return(out)
 }
 
-show_QuantileTable <- function(t, e){
-  t %>% 
-  select(-P99) %>% 
-  # left_join(as_tibble(e, rownames=c('expert'))) %>% 
-  # mutate(expert=value) %>% 
-  select(expert, Q1, Median, Q3) %>% 
-  mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>% 
-  mutate(Median=paste0(round(as.numeric(Median)*100, digits = 0), "%"),
-       Q1=paste0(round(as.numeric(Q1)*100, digits = 0), "%"),
-       Q3=paste0(round(as.numeric(Q3)*100, digits = 0), "%")
+
+
+get_scope_sev_QuantileTable <- function(data, Q_group, Q_sub){
+  df <- data[['Quantiles']][[1]]
+  #remove rownames
+  rownames(df) <- NULL
+  df <- df %>% as_tibble()
+  q_table <- df %>% select(-P99) %>% 
+    mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>% 
+    mutate(Median=paste0(round(as.numeric(Median)*100, digits = 0), "%"),
+           Q1=paste0(round(as.numeric(Q1)*100, digits = 0), "%"),
+           Q3=paste0(round(as.numeric(Q3)*100, digits = 0), "%")
   )
+  return(q_table)
+}
+
+
+
+
+get_impact_QuantileTable <- function(pooled_data, Q_group, Q_sub){
+  pooled_quantiles <- pooled_data %>% 
+    filter(Q_group==Q_group & Q_sub==Q_sub) %>% 
+    .$pooled_dist %>% flatten() %>% .$pooled_Quantiles
+  
+  expert_quantiles <- pooled_data %>%
+    filter(Q_group==Q_group & Q_sub==Q_sub) %>% 
+    .$expert_impact %>% flatten() %>% .$Quantiles %>% as_tibble()
+  
+  q_table <- expert_quantiles %>% bind_cols('linear pool' = pooled_quantiles) %>% 
+    mutate(measure = c('Q1','Median','Q3')) %>% 
+    pivot_longer(cols = !'measure') %>% 
+    pivot_wider(names_from = measure, values_from = value) %>% 
+    mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>% 
+    mutate(Median=paste0(round(as.numeric(Median)*100, digits = 0), "%"),
+           Q1=paste0(round(as.numeric(Q1)*100, digits = 0), "%"),
+           Q3=paste0(round(as.numeric(Q3)*100, digits = 0), "%")
+  )
+  return(q_table)
+}
+
+
+
+get_Plot <- function(scope_sev, Q_group, Q_sub){
+  expert_colors <- scope_sev %>% 
+    filter(Q_group==Q_group & Q_sub==Q_sub) %>% .$value %>% flatten() %>% .$colors
+
+  expert_sizes <- scope_sev %>% 
+    filter(Q_group==Q_group & Q_sub==Q_sub) %>% .$value %>% flatten() %>% .$expertSZ
+
+  my_plot <- scope_sev %>% 
+    filter(Q_group==Q_group & Q_sub==Q_sub) %>% .$plots %>% .[[1]] + 
+    scale_color_manual(values = expert_colors) +
+    scale_size_manual(values = expert_sizes) +
+    theme(legend.position = 'bottom', legend.title = element_blank()) +
+    guides(color = guide_legend(ncol=4))
+  return(my_plot)
 }
 ```
 
 
 
 ```{r ThreatsStuff}
+#prep threat data for looping
+TData <- scope_sev %>%
+  separate(dist_info_id, into=c('Q_group','Q_sub'), sep = "_") %>% 
+  filter(Q_group != 'pop')
 
-TData <- sppData %>% 
-  filter( stringr::str_detect(Q_sub, 'sub'))
+threat_responses <- responses %>% filter(Q_group!='pop')
 
+#make somewhere to store all threat objects as they are created
 allThreats_stuff <- TData %>% 
-  select(Threat, subT) %>% 
+  select(Q_group, Q_sub) %>% 
   distinct() %>% 
-  plyr::dlply(., 'Threat', .fun=function(df){
-   plyr::dlply(df, 'subT', .fun=function(df){
+  plyr::dlply(., 'Q_group', .fun=function(df){
+   plyr::dlply(df, 'Q_sub', .fun=function(df){
      list()
      }) 
   })
 
-TData <- split(TData, TData$LimeGroup)
-
-
-file.exists(paste0(params$rootDir, '/Data/derived/AnalysisExport_', params$date, '/',
-    'SurveyAnswers_',
-    params$date,
-    '__',
-    params$cntry,
-    '_',
-    params$sppCode,
-    '_nestedQ_analyzed_T2.RDS'
-  ))
-
-
-ThreatAnalysis <- readRDS(list.files(
-  paste0(params$rootDir, '/Data/derived/AnalysisExport_', params$date),
-  pattern = paste0(
-    'SurveyAnswers_',
-    params$date,
-    '__',
-    params$cntry,
-    '_',
-    params$sppCode,
-    '_nestedQ_analyzed_T2.RDS'
-  ),
-  full.names = T
-))
-
-ThreatAnalysis <- split(ThreatAnalysis, ThreatAnalysis$LimeGroup)
-
+TData <- split(TData, TData$Q_group)
+TAnalysis <- split(pooled_data, pooled_data$Q_group)
 
 for (gN in names(TData)) {
+  #list of subthreats for the threat to iterate through
+  subTs <- threats %>% filter(Q_group==gN) %>% .$Q_sub %>% unique()
   
-  gT1 <- unique(Threats[Threats$LimeGroup == gN, 'Threat'])
-  
+  #filter data down to threat group
+  gT1 <- unique(threats[threats$Q_group == gN, 'Threat'])
   thisT1 <- TData[[gN]]
-  
-  thisT2 <- ThreatAnalysis[[gN]]
-  
-  for (sT in unique(Threats[Threats$LimeGroup == gN, 'subT'])) {
+  thisT2 <- TAnalysis[[gN]]
+  t_responses <- threat_responses %>% filter(Q_group==gN)
+  t_impact_plots <- impact_plots %>% filter(Q_group==gN)
 
-    ThisThreat <- thisT1 %>%
-      filter(subT == sT)
-    
-    ThisTImpact <- ThreatAnalysis[[gN]] %>%
-      filter(subT == sT) %>%
-      select(Impact)
-    
+  for (sT in subTs) {
+
+    #filter data down to subthreat group
+    ThisThreat <- thisT1 %>% filter(Q_sub == sT)
+    ThisTImpact <- thisT2 %>% filter(Q_sub == sT)
+    this_t_response <- t_responses %>% filter(Q_sub==sT)
+    this_t_impact_plot <- t_impact_plots %>% filter(Q_sub==sT)
     
     #Table of raw data for scope
-    D_scope <- tryCatch(
-      show_DataTable(t=ThisThreat[ThisThreat$Q_ss == 'Scope', 'data'][[1]][[1]], 
-                     e=ThisThreat[1, 'experts'][[1]][[1]]$labels),
-      error = function(e) data.frame('Expert'= NA, 'min' = NA, 'central' = NA, 'max' = NA, 'confidence' = NA)
-    )
+    t_response_scope <- this_t_response %>% filter(Q_ss == 'Scope')
+    D_scope <- get_responses(t_response_scope, gN, sT)
     
     #Table of raw data for severity
-    D_severity <- tryCatch(
-      show_DataTable(ThisThreat[ThisThreat$Q_ss == 'Severity', 'data'][[1]][[1]], ThisThreat[1, 'experts'][[1]][[1]]$labels),
-      error = function(e) data.frame('Expert'= NA, 'min' = NA, 'central' = NA, 'max' = NA, 'confidence' = NA)
-      )
+    t_response_sev <- this_t_response %>% filter(Q_ss == 'Severity')
+    D_severity <- get_responses(t_response_sev, gN, sT)
     
-    #plot of distributions
-    thisPlotT2 <- tryCatch({
-      gScope <-
-        ThisThreat[ThisThreat$Q_ss == 'Scope', 'D_plot'][[1]][[1]] + labs(title = 'Scope')
-      
-      gSeverity <-
-        ThisThreat[ThisThreat$Q_ss == 'Severity', 'D_plot'][[1]][[1]] + labs(title = 'Severity')
-      
-      gScope <- gScope +
-        scale_color_manual(values =
-                             ggplot_build(gScope)[["plot"]][["scales"]][["scales"]][[2]][["palette.cache"]]) +
-        guides(color=guide_legend(ncol=4))+
-        theme(legend.position = 'bottom', legend.title = element_blank())
-      
-      gSeverity <- gSeverity +
-        scale_color_manual(values =
-                             ggplot_build(gSeverity)[["plot"]][["scales"]][["scales"]][[2]][["palette.cache"]]) +
-        guides(color=guide_legend(ncol=4))+
-        theme(legend.position = 'bottom', legend.title = element_blank())
-      
-      ggarrange(gScope,
-                gSeverity,
-                common.legend = T)
-    },
-    error = function(e)
-      NA)
+    #Plot of scope and severity distributions
+    scope_plot_data <- ThisThreat %>% filter(q_type=='Scope')
+    scope_plot <- get_Plot(scope_plot_data, gN, sT)
     
+    sev_plot_data <- ThisThreat %>% filter(q_type=='Severity')
+    sev_plot <- get_Plot(sev_plot_data, gN, sT)
+    
+    scope_sev_plots <- ggarrange(scope_plot, sev_plot, common.legend=T)
     
     #table of quantiles of scope
-    Q_scope <- tryCatch(
-      show_QuantileTable(t=ThisThreat[ThisThreat$Q_ss == 'Scope', 'Quantiles'][[1]][[1]], 
-                         e=ThisThreat[1, 'experts'][[1]][[1]]$labels),
-      error = function(e) data.frame('Expert'= NA, 'Q1' = NA, 'Median' = NA, 'Q3' = NA)
-    )
-    
+    q_scope_data <- ThisThreat %>% filter(q_type=='Scope')
+    Q_scope <- get_scope_sev_QuantileTable(q_scope_data, gN, sT)
+
     #table of quantiles of severity
-    Q_severity <- tryCatch(
-      show_QuantileTable(ThisThreat[ThisThreat$Q_ss == 'Severity', 'Quantiles'][[1]][[1]], 
-                         ThisThreat[1, 'experts'][[1]][[1]]$labels),
-      error = function(e) data.frame('Expert'= NA, 'Q1' = NA, 'Median' = NA, 'Q3' = NA)
-    )
-    
-    
+    q_sev_data <- ThisThreat %>% filter(q_type=='Severity')
+    Q_sev <- get_scope_sev_QuantileTable(q_sev_data, gN, sT)
+
+
     #plot of Impact
-    tryCatch( {
-      p_Impact <- ThisTImpact$Impact[[1]]$ImpactPlot+
-        scale_color_manual(values =
-                             ggplot_build(ThisTImpact$Impact[[1]]$ImpactPlot)[["plot"]][["scales"]][["scales"]][[2]][["palette.cache"]]) +
-        guides(color=guide_legend(ncol=4))+
-        theme(legend.position = 'bottom', legend.title = element_blank())
-      
-      },
-      error = function(e) NA
-    )
-    
-    
+    p_Impact <- get_Plot(this_t_impact_plot, gN, sT)
+
     #table of quantiles of impact
-   Q_Impact <- tryCatch({
-      Q_Impact1 <- t(bind_rows(ThisTImpact$Impact[[1]]$Quantiles))
-      colnames(Q_Impact1) <- c('Q1', 'Median', 'Q3')
-      
-       Q_Impact1 %>% as_tibble(rownames = 'Expert') %>%
-          mutate(
-            Median = paste0(round(as.numeric(Median) * 100, digits = 0), "%"),
-            Q1 = paste0(round(as.numeric(Q1) * 100, digits = 0), "%"),
-            Q3 = paste0(round(as.numeric(Q3) * 100, digits = 0), "%")
-          ) %>% return()
-      
-    }
-      , error = function(e) data.frame('Expert'= NA, 'Q1' = NA, 'Median' = NA, 'Q3' = NA)
-      )
-  
-    allThreats_stuff[[gT1]][[sT]]=list(rawScope=D_scope,
+    Q_Impact <- get_impact_QuantileTable(ThisTImpact, gN, sT)
+    
+    allThreats_stuff[[gN]][[sT]]=list(rawScope=D_scope,
                                        rawSeverity=D_severity,
-                                       DistPlot=thisPlotT2,
+                                       DistPlot=scope_sev_plots,
                                        quantileScope=Q_scope,
-                                       quantileSeverity=Q_severity,
+                                       quantileSeverity=Q_sev,
                                        ImpactPlot=p_Impact,
                                        quantileImpact=Q_Impact)
   }
-  
-
-}
-
-
-if(params$save==T) {
-  ThisDir <- paste0(params$rootDir, "/Data/RelevantData_", params$date)
-  
-  if (!dir.exists(ThisDir))
-    dir.create(ThisDir)
-  
-  saveRDS(
-    allThreats_stuff,
-    file = paste0(
-      ThisDir,
-      "/",
-      params$sppCode,
-      "_",
-      params$cntry,
-      "_",
-      params$date,
-      '.RDS'
-    )
-  )
 }
 ```
 
 
 ```{r displayResults, results='asis'}
-# names(allThreats_stuff) %>% 
-
-# threatsOrdered <- unique(Threats$Threat)
-
-for(T1 in unique(Threats$Threat)) {
-  
+for(T1 in unique(threats$Q_group)) {
   
   #T1 Heading
   cat('  \n## ', T1, '  \n')
@@ -413,25 +373,7 @@ for(T1 in unique(Threats$Threat)) {
     #T2 Heading
     cat('  \n### ', T2, '  \n')
     
-    
     cat('  \n#### ', 'Expert Elicited Values', '  \n')
-
-        # cat("\\",
-        #   c(
-        #      "\\begin{table}[!htb]
-        #         \\begin{minipage}{.5\\linewidth}
-        #             \\caption{Scope}
-        #             \\centering",
-        #             knitr::kable(allThreats_stuff[[T1]][[T2]]$rawScope, format='latex', booktabs=T),
-        #        "\\end{minipage}%
-        #         \\begin{minipage}{.5\\linewidth}
-        #           \\centering
-        #           \\caption{Severity}",
-        #           knitr::kable(allThreats_stuff[[T1]][[T2]]$rawSeverity, format='latex', booktabs=T) ,
-        #        "\\end{minipage}
-        #      \\end{table}"
-        #   )
-        # )
     
     cat("\n\n")
     
@@ -458,23 +400,7 @@ for(T1 in unique(Threats$Threat)) {
         print(allThreats_stuff[[T1]][[T2]]$DistPlot)
 
         cat("  \n\n") 
-        
-        # cat("\\",
-        #   c(
-        #      "\\begin{table}[!htb]
-        #         \\begin{minipage}{.5\\linewidth}
-        #             \\caption{Scope}
-        #             \\centering",
-        #             knitr::kable(allThreats_stuff[[T1]][[T2]]$quantileScope, format='latex', booktabs=T),
-        #        "\\end{minipage}%
-        #         \\begin{minipage}{.5\\linewidth}
-        #           \\centering
-        #           \\caption{Severity}",
-        #           knitr::kable(allThreats_stuff[[T1]][[T2]]$quantileSeverity, format='latex', booktabs=T) ,
-        #        "\\end{minipage}
-        #      \\end{table}"
-        #   )
-        # )
+
         cat("\n\n")
         
                     cat("\\",
