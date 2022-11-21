@@ -1,7 +1,8 @@
+# Date of data export (YYYYMMDD)
 thisDataDate='20221116'
-# United States, Canada, or Mexico
+# "United States", "Canada", or "Mexico"
 thisCountry = 'Mexico'
-# US_CAN or MX
+# "US_CAN" or "MX"
 countryAbbr = 'MX'
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate)
@@ -26,7 +27,7 @@ library(openxlsx)
 library(scales)
 options(scipen = 999)
 
-source(paste0(here::here(), '/RCode/SoB_1_FormatData.R'))
+source(paste0(here::here(), '/RCode/SoB_1_formatData.R'))
 source(paste0(here::here(), '/RCode/SoB_2_analyzeQ.R'))
 source(paste0(here::here(), '/RCode/SoB_3_calcImpact.R'))
 source(paste0(here::here(), '/RCode/SoB_4_generateImpactPlots.R'))
@@ -44,14 +45,13 @@ missing_answers <- formattedData$missing_answers
 write_csv(d, paste0(OutputFolder, '/cleaned_responses_', countryAbbr,
                     '_', thisDataDate, '.csv'))
 
-# Make Range Graphs ---------------------------------------------------------
+# Make Range Graphs -----------------------------------------------------------
 rangeGraphs <- graphRangeQ(d)
 
-# Analyze Stuff -----------------------------------------------------------
+# Loop through species and analyze data for each expert------------------------
 all_species <- unique(d$sppcode)
 print(all_species)
 
-# Loop through species and analyze data for each expert
 count = 1
 failed_analyze = list()
 for (spp in all_species){
@@ -73,7 +73,7 @@ for (spp in all_species){
   )
 }
 
-# Loop through species and calculate impact and pool data for all experts
+# Loop through species and calculate impact and pool data for all experts------
 count=1
 failed_calc_impact = list()
 pop_df = data.frame()
@@ -99,36 +99,13 @@ for (spp in all_species){
   )
 }
 
-# Write pop and threat aggregations
+# Write pop and threat aggregations-------------------------------------------
 pop_df_path <- paste0('Data/derived/AnalysisExport_', thisDataDate, '/', 
                       countryAbbr, "_pop_quantiles_agg.csv")
 write_csv(pop_df, here::here(pop_df_path))
 threat_df_path <- paste0('Data/derived/AnalysisExport_', thisDataDate, '/', 
                          countryAbbr, "_threat_median_agg.csv")
 write_csv(threat_df, here::here(threat_df_path))
-
-
-# Calc total impact percentage for each threat for each species and expert-----
-# count=1
-# failed_total_impact = list()
-# for (spp in all_species){
-#   print(paste0("Calculating Total Impact Percent for ", 
-#                spp, " (species ", count, "/", length(all_species), ")"))
-#   count = count+1
-#   tryCatch({
-#     calc_total_impact(dataDate = thisDataDate, 
-#                 dataFolder = OutputFolder,
-#                 speciestoAnalyze = spp,
-#                 countrytoAnalyze = countryAbbr)
-#     message("Success.")
-#   },
-#   error = function(e){
-#     message(paste("Error for", spp, ":"))
-#     print(e)
-#     failed_total_impact <- append(failed_total_impact, spp)
-#   }
-#   )
-# }
 
 # Make threat impact plots --------------------------------------------------
 count=1
@@ -154,7 +131,7 @@ for (spp in all_species){
 
 # Make Species Reports ------------------------------------------------------
 fileType == 'pdf_document'
-outDir <- paste0(here::here(), '/species_reports/', thisDate)
+outDir <- paste0(here::here(), '/species_reports/', thisDataDate)
 if (!dir.exists(outDir)) {dir.create(outDir)}
 count=1
 failed_markdown = list()
@@ -165,7 +142,7 @@ for (spp in all_species){
   
   tryCatch({
     rmarkdown::render(
-      paste0(here::here(), "/RCode/SoB_7a_SppReport.Rmd"),
+      paste0(here::here(), "/RCode/SoB_5_sppReport.Rmd"),
       output_file = out_fn,
       params = list(
         spp = spp,

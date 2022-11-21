@@ -23,7 +23,6 @@ make_impact_plots <- function(values, expert_impact, pooled_dist, pb){
     scale_x_continuous(limits=c(0,1))+
     xlab('Total Population Impact (%)') +
     ylab(expression(f[X](x))) +
-    theme_classic() +
     theme(axis.text.y = element_blank())
   
   maxY <- max(ggplot_build(pooled_plot)$layout$panel_scales_y[[1]]$range$range)

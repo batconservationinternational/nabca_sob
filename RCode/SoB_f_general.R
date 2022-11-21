@@ -435,7 +435,6 @@ generate_Densityplot <- function(value, q_type, dist_info, Quantiles, dist_type,
       ),
       size = Quantiles$size / 1.5
     ) +
-    theme_classic() +
     theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
     coord_cartesian(expand = F, ylim = c(min(Quantiles$y) * 1.1, maxY * 1.1))
     

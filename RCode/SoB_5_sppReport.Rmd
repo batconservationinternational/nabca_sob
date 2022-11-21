@@ -66,17 +66,17 @@ responses <- read_csv(responses_path) %>% filter(sppcode==sppCode)
 #load in plots of threat impact
 impact_plots_path <- DataFiles[str_detect(DataFiles, cntryAbbr) & str_detect(DataFiles, sppCode) & 
                             str_detect(DataFiles, '_threat_impact_plots.RDS')]
-impact_plots <- readRDS(impact_plots_path) %>% filter(name==sppCode)
+impact_plots <- readRDS(impact_plots_path) 
 
 #load in pooled data
 pooled_data_path <- DataFiles[str_detect(DataFiles, cntryAbbr) & str_detect(DataFiles, sppCode) & 
                             str_detect(DataFiles, '_pooled.RDS')]
-pooled_data <- readRDS(pooled_data_path) %>% filter(name==sppCode)
+pooled_data <- readRDS(pooled_data_path) 
 
 #load in plots of scope, sev, and pop data
 scope_sev_path <- DataFiles[str_detect(DataFiles, cntryAbbr) & str_detect(DataFiles, sppCode) & 
                             str_detect(DataFiles, '^*[0-9].RDS$')]
-scope_sev <- readRDS(scope_sev_path) %>% filter(name==sppCode)
+scope_sev <- readRDS(scope_sev_path) 
 
 #Table of threat lables
 threats <- read.csv(paste0(params$rootDir, '/Data/ThreatNum.csv'))
@@ -120,7 +120,7 @@ my_plot +
     scale_size_manual(values = expert_sizes) +
   theme(legend.position = 'bottom', legend.title = element_blank()) +
   guides(color=guide_legend(ncol=4)) +
-  scale_x_log10(label = comma)
+  scale_x_log10(label = comma) 
 ```
 
 ```{r popSize_quantiles, results='asis'}
@@ -170,7 +170,7 @@ my_plot <- scope_sev %>% filter(q_type=='popTrend') %>% .$plots %>% .[[1]]
 my_plot + scale_color_manual(values = expert_colors) +
   scale_size_manual(values = expert_sizes) +
   theme(legend.position = 'bottom', legend.title = element_blank()) +
-  guides(color = guide_legend(ncol=4))
+  guides(color = guide_legend(ncol=4)) 
 ```
 
 ```{r popTrend_quantiles}
@@ -202,7 +202,33 @@ If a plot is missing, data was missing from the original survey (e.g., one or mo
 
 The expert rated the threat as 'negligible' if min = 0, central = 0.5, max = 1, and conf = 99.99%"
 
+## Total Threat Estimate for Each Expert
+
+```{r overall_expert_threat_estimate}
+threats_df <- scope_sev %>% filter(!q_type %in% c("popSize","popTrend"))
+df <- data.frame()
+for (i in seq(1:nrow(threats_df))){
+  id <-  threats_df[i,]$dist_info_id
+  ss <- threats_df[i,]$q_type
+  rows_to_bind <-  threats_df[i,]$Quantiles[[1]]
+  rows_to_bind <- rows_to_bind %>% mutate(threat = id, Q_ss = ss) %>% 
+    select(expert, threat, Q_ss, Median)
+  df <- df %>% bind_rows(rows_to_bind)
+}
+
+df %>% pivot_wider(names_from = Q_ss, values_from = Median) %>% 
+  mutate(impact_estimate =Scope * Severity) %>% 
+  select(-Scope, -Severity) %>% 
+  pivot_wider(names_from = threat, values_from = impact_estimate) %>% 
+  mutate(total_impact = rowSums(across(where(is.numeric)))) %>% 
+  select(expert, total_impact) %>%
+  knitr::kable(digits = 5, col.names = c("expert", "Total Impact Estimate"),
+               caption = paste0("Sum of median threat estimates for each expert for ", spp, "."))
+```
+
+
 ```{r functions}
+#function to get raw responses of each expert for each threat and format table
 get_responses <- function(responses, Q_group, Q_sub){
   out <- responses %>% filter(Q_group==Q_group & Q_sub==Q_sub) %>% 
   select(min, mean, max, conf, token) %>% 
@@ -219,7 +245,8 @@ get_responses <- function(responses, Q_group, Q_sub){
 }
 
 
-
+#function to get and format table of quantiles for each expert and for 
+#linear pool for scope and sev
 get_scope_sev_QuantileTable <- function(data, Q_group, Q_sub){
   df <- data[['Quantiles']][[1]]
   #remove rownames
@@ -236,7 +263,8 @@ get_scope_sev_QuantileTable <- function(data, Q_group, Q_sub){
 
 
 
-
+# function to get and format table of quantiles for each expert and for 
+#linear pool for impact
 get_impact_QuantileTable <- function(pooled_data, Q_group, Q_sub){
   pooled_quantiles <- pooled_data %>% 
     filter(Q_group==Q_group & Q_sub==Q_sub) %>% 
@@ -259,7 +287,7 @@ get_impact_QuantileTable <- function(pooled_data, Q_group, Q_sub){
 }
 
 
-
+#function to get and format plot of distributions for scope, sev, and impact
 get_Plot <- function(scope_sev, Q_group, Q_sub){
   expert_colors <- scope_sev %>% 
     filter(Q_group==Q_group & Q_sub==Q_sub) %>% .$value %>% flatten() %>% .$colors
