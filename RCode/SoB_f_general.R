@@ -458,11 +458,11 @@ generate_Densityplot <- function(value, q_type, dist_info, Quantiles, dist_type,
 
 
 graphRangeQ <- function(data) {
-  range <- data %>%
-    dplyr::select('cntry', 'spp', 'token', matches('range_[A-Z]')) %>%
+  range <- data %>% 
+    dplyr::select(cntry, spp, token, matches('range_[A-Z]')) %>%
     group_by(cntry, spp) %>%
     tidyr::nest() %>% 
-    mutate(longD=map(data, make_rangeGraphs, spp, cntry))
+    mutate(longD = map(data, make_rangeGraphs, spp, cntry))
   return(range)
 }
 
@@ -474,7 +474,7 @@ graphRangeQ <- function(data) {
 
 
 
-make_rangeGraphs <- function(d, spp, thiscntry) {
+make_rangeGraphs <- function(data, spp, thiscntry) {
   
   sciName = stringr::str_remove(spp, " \\(.*\\)")
   
@@ -508,8 +508,7 @@ make_rangeGraphs <- function(d, spp, thiscntry) {
   
   sppRangeVal <- sppRangeData$rangeClass
   
-  D <- d %>%
-    tidyr::pivot_longer(cols = !token,
+  D <- data %>% tidyr::pivot_longer(cols = !token,
                         names_to = 'range_size',
                         values_to = 'selected') %>%
     mutate(
@@ -555,11 +554,11 @@ make_rangeGraphs <- function(d, spp, thiscntry) {
     labs(title = paste(spp, "in", thiscntry),
          y = "Number of Experts who Selected\n(experts could select more than one)",
          x = "Range Size\n(square km)") +
-    ##add asteric for default value
+    ## add asterisk for default value
     annotate(
       geom = "text",
       x = sppRangeVal,
-      y = max(D$total)/2, #was 4.5 previously but changed to make dynamic
+      y = max(D$total)/2, 
       label = "*",
       color = 'red',
       size = 25

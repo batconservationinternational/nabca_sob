@@ -1,11 +1,13 @@
 # Date of data export (YYYYMMDD)
 thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
-thisCountry = 'Mexico'
+thisCountry = 'United States'
 # "US_CAN" or "MX"
-countryAbbr = 'MX'
+countryAbbr = 'US_CAN'
 
-OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate)
+OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate,
+                      "_", countryAbbr)
+if (!dir.exists(OutputFolder)) {dir.create(OutputFolder)}
 
 #export data with completed answers only, answer and Q codes
 #Save as MX/US_results_YYYYMMDD.csv
@@ -39,6 +41,7 @@ source(paste0(here::here(), '/RCode/SoB_f_makeImpactPlot.R'))
 formattedData <- formatData(thisDataDate, thisCountry, countryAbbr)
 nestedData <- formattedData$data_nested
 d <- formattedData$data_l
+data <- formattedData$data
 weird_pop_size <- formattedData$weird_pop_size
 weird_percentage <- formattedData$weird_percentage
 missing_answers <- formattedData$missing_answers
@@ -46,7 +49,7 @@ write_csv(d, paste0(OutputFolder, '/cleaned_responses_', countryAbbr,
                     '_', thisDataDate, '.csv'))
 
 # Make Range Graphs -----------------------------------------------------------
-rangeGraphs <- graphRangeQ(d)
+rangeGraphs <- graphRangeQ(data)
 
 # Loop through species and analyze data for each expert------------------------
 all_species <- unique(d$sppcode)

@@ -121,7 +121,8 @@ formatData <- function(thisDataDate,
     filter(Q_sub != "Size") %>% 
     filter(answer < -100 | answer > 100)
   
-  d2 <- d2 %>% anti_join(weird_percentage) #filter out instances where %'s are outside of -100 to 100
+  # filter out instances where %'s are outside of -100 to 100
+  d2 <- d2 %>% anti_join(weird_percentage) 
   
   # Get negligible answers and code min, mean, max values
   negAns <- d2 %>%
@@ -179,8 +180,12 @@ formatData <- function(thisDataDate,
     select(-N_na) %>% 
     filter(min < mean, mean < max, min < max, conf >= 50) %>% 
     mutate(conf = if_else(conf==100, 99.99, conf)) %>% 
-    mutate(across(c(min, mean, max), ~if_else(.==0, 0.0001, .))) %>%  # replace 0s in min/mean/max with 0.0001
-    mutate(across(c(min, mean, max), ~if_else(.==1, 0.9999, .)))  # replace 1s in min/mean/max with 0.9999
+    # replace 0s in min/mean/max with 0.0001
+    mutate(across(c(min, mean, max), ~if_else(.==0, 0.0001, .))) %>%
+    # replace 1s in min/mean/max with 0.9999
+    mutate(across(c(min, mean, max), ~if_else(.==1, 0.9999, .))) %>% 
+    # replace -1s in min/mean/max with -0.9999
+    mutate(across(c(min, mean, max), ~if_else(.== -1, -0.9999, .)))
     # 0s were causing issues with fitting log distributions later on. 
 
   
@@ -229,6 +234,7 @@ formatData <- function(thisDataDate,
   
   return(list(data_nested = data_nested, 
               data_l = data_l, 
+              data = data,
               weird_pop_size = weird_pop_size,
               weird_percentage = weird_percentage,
               missing_answers = missing_answers))
