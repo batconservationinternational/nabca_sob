@@ -70,7 +70,7 @@ for (spp in all_species){
   },
   error = function(e){
     message(paste("Error for", spp, ":"))
-    failed_analyze <<- append(failed_analyze, spp)
+    failed_analyze <<- append(failed_analyze, list(spp, e))
     print(e)
   }
   )
@@ -97,7 +97,7 @@ for (spp in all_species){
     error = function(e){
       message(paste("Error for", spp, ":"))
       print(e)
-      failed_calc_impact <<- append(failed_calc_impact, spp)
+      failed_calc_impact <<- append(failed_calc_impact, list(spp, e))
     }
   )
 }
@@ -132,7 +132,7 @@ for (spp in all_species){
   )
 }
 
-# Make Species Reports ------------------------------------------------------
+# Make species reports ------------------------------------------------------
 fileType == 'pdf_document'
 outDir <- paste0(here::here(), '/species_reports/', thisDataDate)
 if (!dir.exists(outDir)) {dir.create(outDir)}

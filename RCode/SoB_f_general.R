@@ -358,11 +358,6 @@ generate_sample <- function(dist_info, dist_type, Nsamples = 10000, pb) {
   samples <- vector('list', length(tokens))
   names(samples) <- tokens
   
-  # if only one sample, we don't need to worry about calculating overlap
-  if (length(tokens)==1 | is.null(tokens)){
-    return('single elicitation: no overlap')
-  }
-  
   for (i in 1:length(tokens)) {
     #generate random sample
     samples[[i]] <- SHELF::sampleFit(thisDist, expert = i, n = Nsamples) %>% 
