@@ -292,31 +292,49 @@ find_quantiles <- function(thisRow) {
     dist_type <- "beta"
   }
   
-  Q50 <- SHELF:::qlinearpool(thisDist,
-                             q = c(0.25, 0.5, 0.75, 0.999),
-                             d = dist_type)
-  lp_data <-
-    data.frame(
-      'Q1' = Q50[1],
-      'Median' = Q50[2],
-      'Q3' = Q50[3],
-      'P99' = Q50[4],
-      expert = 'linear pool'
-    )
+  # If more than one expert, then calc pooled quantiles
+  if (nrow(thisDist$ssq) > 1) {
+    Q50 <- SHELF:::qlinearpool(thisDist,
+                               q = c(0.25, 0.5, 0.75, 0.999),
+                               d = dist_type)
+    lp_data <-
+      data.frame(
+        'Q1' = Q50[1],
+        'Median' = Q50[2],
+        'Q3' = Q50[3],
+        'P99' = Q50[4],
+        expert = 'linear pool'
+      )
+    
+    data_Q50 <- SHELF::feedback(
+      thisDist,
+      quantiles = c(0.25, 0.5, 0.75, 0.999),
+      dist = dist_type
+    )$expert.quantiles
   
-  data_Q50 <- feedback(
-    thisDist,
-    quantiles = c(0.25, 0.5, 0.75, 0.999),
-    dist = dist_type
-  )$expert.quantiles
+    data_Q50 <- as.data.frame(t(data_Q50))
+    colnames(data_Q50) <- c('Q1', 'Median', 'Q3', 'P99')
+    data_Q50$expert <- rownames(thisDist$best.fitting)
   
-  data_Q50 <- as.data.frame(t(data_Q50))
-  colnames(data_Q50) <- c('Q1', 'Median', 'Q3', 'P99')
-  data_Q50$expert <- rownames(thisDist$best.fitting)
+    data_Q50 <- rbind(lp_data, data_Q50)
+    row.names(data_Q50) <- data_Q50$expert
+    return(data_Q50)
+  }
   
-  data_Q50 <- rbind(lp_data, data_Q50)
-  row.names(data_Q50) <- data_Q50$expert
-  return(data_Q50)
+  # if only one expert, calc quantiles but no need to pool
+  if (nrow(thisDist$ssq) == 1){
+    Q50 <- SHELF::feedback(thisDist, 
+                    quantiles = c(0.25, 0.5, 0.75, 0.999))$fitted.quantiles[dist_type]
+    
+    lp_data <-data.frame(
+        'Q1' = Q50[1,1],
+        'Median' = Q50[2,1],
+        'Q3' = Q50[3,1],
+        'P99' = Q50[4,1],
+        'expert' = rownames(thisDist$best.fitting)
+      )
+    return(lp_data)
+  }
 }
 
 

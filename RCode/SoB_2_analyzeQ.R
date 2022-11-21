@@ -38,9 +38,6 @@ analyze_SoB <- function(mydata,
   quants <- list()
   for (i in seq(1:nrow(mydata))){
     out <- find_quantiles(mydata[i,])
-    # print("Generating quantiles:")
-    # print(paste0(i, "/", nrow(mydata)))
-    # print(out)
     quants <- append(quants, list(out))
   }
   mydata$Quantiles <- quants
@@ -78,8 +75,8 @@ analyze_SoB <- function(mydata,
     pmap(generate_sample, Nsamples = 1000, pb=pb)
   
   # Calculate overlap
-  message("Calculate Overlap")
-  mydata$overlap <- map(mydata$randomDraw, overlapping::ovmult) %>% map(1, "OV")
+  # message("Calculate Overlap")
+  # mydata$overlap <- map(mydata$randomDraw, overlapping::ovmult) %>% map(1, "OV")
   
   message("Save Data")
   if (!dir.exists(OutputFolder)){dir.create(OutputFolder, recursive = T)}

@@ -66,11 +66,11 @@ for (spp in all_species){
                 OutputFolder = OutputFolder,
                 cntrytoAnalyze = countryAbbr,
                 SpptoAnalyze = spp)
-    message("Success.")
+      message("Success.")
   },
   error = function(e){
     message(paste("Error for", spp, ":"))
-    failed_analyze <- append(failed_analyze, spp)
+    failed_analyze <<- append(failed_analyze, spp)
     print(e)
   }
   )
@@ -97,7 +97,7 @@ for (spp in all_species){
     error = function(e){
       message(paste("Error for", spp, ":"))
       print(e)
-      failed_calc_impact <- append(failed_calc_impact, spp)
+      failed_calc_impact <<- append(failed_calc_impact, spp)
     }
   )
 }
@@ -127,7 +127,7 @@ for (spp in all_species){
     error = function(e){
       message(paste("Error for", spp, ":"))
       print(e)
-      failed_impact_plots = append(failed_impact_plots, spp)
+      failed_impact_plots <<- append(failed_impact_plots, spp)
     }
   )
 }
@@ -159,7 +159,7 @@ for (spp in all_species){
     error = function(e){
       message(paste("Error for", spp, ":"))
       print(e)
-      failed_markdown = append(failed_markdown, spp)
+      failed_markdown <<- append(failed_markdown, spp)
     }
   )
 }

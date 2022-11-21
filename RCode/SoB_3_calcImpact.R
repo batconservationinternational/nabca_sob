@@ -12,19 +12,19 @@ calc_Impact <- function(dataDate,
   files <- list.files(dataFolder, full.names = T)
   files <- files[!grepl("pooled", files)]
    
-   #Table of threat labels
+   # Table of threat labels
    Threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv')) %>% 
      unite("threat_abbr", Q_group, Q_sub, sep = "_", remove = F)
    
-   # get path to data file for specified species and country
+   # Get path to data file for specified species and country
    f <- files[str_detect(files, speciestoAnalyze) & str_detect(files, countrytoAnalyze)]
    
    print(paste0('reading: ', f))
 
-   #load in data
+   # Load in data
    sppData <- readRDS(f)
      
-   #make sure there is only one species and one country in the dataset
+   # Make sure there is only one species and one country in the dataset
    thisSpecies = unique(sppData$name)
    thisCountry = unique(sppData$cntry)
    if(length(thisSpecies) > 1 | length(thisCountry) > 1) {
@@ -38,7 +38,7 @@ calc_Impact <- function(dataDate,
    pop_data <- sppData %>% filter(q_type == "popSize" | q_type == "popTrend") 
    
    if (nrow(threat_data)>0){ #only do if there is threat_data
-     # get list of responses for scope and severity
+     # Get list of responses for scope and severity
      threat_data$responses <- purrr::map(threat_data$randomDraw, names)
      # Pivot Scope and Severity info wider
      threat_data <- threat_data %>% select(name, cntry, value, q_type, dist_info_id, randomDraw, responses) %>% 
@@ -52,14 +52,12 @@ calc_Impact <- function(dataDate,
      ticks <- nrow(threat_data)
      pb <- progress::progress_bar$new(total = ticks)
      if (nrow(threat_data)>0){ #only do if there is threat_data
-       print("Calculating threat impact:")
        threat_data$expert_impact <- purrr::map2(threat_data$dist_info_id, 
                                                threat_data$impact,
                                                calc_expert_impact,
                                                pb=pb)
      }
      pb <- progress::progress_bar$new(total = ticks)
-     print("Calculating pop impact:")
      pop_data$expert_impact <- purrr::map2(pop_data$dist_info_id,
                                           pop_data$randomDraw, 
                                           calc_expert_impact,
@@ -68,14 +66,12 @@ calc_Impact <- function(dataDate,
     # Calc pooled distributions
     pb <- progress::progress_bar$new(total = ticks)
     if (nrow(threat_data)>0){
-      print("Calculating pooled distribution for threats:")
       threat_data$pooled_dist <- purrr::map2(threat_data$dist_info_id,
                                             threat_data$expert_impact, 
                                             calc_total_impact,
                                             pb = pb)
     }
     pb <- progress::progress_bar$new(total = ticks)
-    print("Calculating pooled distribution for pop impact:")
     pop_data$pooled_dist <- purrr::map2(pop_data$dist_info_id,
                                        pop_data$expert_impact, 
                                        calc_total_impact,
@@ -101,7 +97,7 @@ calc_Impact <- function(dataDate,
       select(name, cntry, value, dist_info_id, expert_impact, pooled_dist) %>% 
       separate(dist_info_id, into = c("Q_group", "Q_sub"), sep = "_")
     
-    #Save data
+    # Save data
     out_file <- paste0(tools:::file_path_sans_ext(f), '_pooled.RDS')
     print(paste('Saving pooled data to:', out_file))
     saveRDS(all_data, file = out_file)
