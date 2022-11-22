@@ -1,0 +1,89 @@
+---
+title: "Species Reports for the North American State of the Bats Assessment"
+output: html_document
+date: "`r Sys.Date()`"
+params:
+  dataDate: NA
+---
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message= F, warning= F)
+```
+
+## United States Species Reports
+
+```{r}
+responses_dir <- paste0(here::here(), "Data/derived/AnalysisExport_",
+                         params$dataDate, "_United States")
+files <- list.files(responses_dir, full.names = T)
+responses_path <- files[str_detect(files, '.cleaned_responses')]
+responses <- read_csv(responses_path)
+
+spp_df <- responses %>% select(spp, sppCode) %>% distinct() %>% dplyr::arrange(spp)
+
+report_directory <- paste0(here::here(), "species_reports/", params$dataDate, 
+                           "_United States")
+report_paths <- list.files(report_directory, full.names = T)
+relevant_report_paths <- report_paths[str_detect(report_paths, '.pdf')]
+
+for (i in spp_df$sppCode){
+  spp <- sp_df$spp[i]
+  sppCode <- sp_df$sppCode[i]
+  path <- relevant_report_paths[str_detect(relevant_report_paths, sppCode)]
+  cat(sprintf('[%s](%s)', spp, path))
+}
+```
+
+## Canada Species Reports
+
+```{r}
+responses_dir <- paste0(here::here(), "Data/derived/AnalysisExport_",
+                         params$dataDate, "_Canada")
+files <- list.files(responses_dir, full.names = T)
+responses_path <- files[str_detect(files, '.cleaned_responses')]
+responses <- read_csv(responses_path)
+
+spp_df <- responses %>% select(spp, sppCode) %>% distinct() %>% dplyr::arrange(spp)
+
+report_directory <- paste0(here::here(), "species_reports/", params$dataDate, 
+                           "_Canada")
+report_paths <- list.files(report_directory, full.names = T)
+relevant_report_paths <- report_paths[str_detect(report_paths, '.pdf')]
+
+for (i in spp_df$sppCode){
+  spp <- sp_df$spp[i]
+  sppCode <- sp_df$sppCode[i]
+  path <- relevant_report_paths[str_detect(relevant_report_paths, sppCode)]
+  cat(sprintf('[%s](%s)', spp, path))
+}
+```
+
+## Mexico Species Reports
+
+```{r}
+responses_dir <- paste0(here::here(), "Data/derived/AnalysisExport_",
+                         params$dataDate, "_Mexico")
+files <- list.files(responses_dir, full.names = T)
+responses_path <- files[str_detect(files, '.cleaned_responses')]
+responses <- read_csv(responses_path)
+
+spp_df <- responses %>% select(spp, sppCode) %>% distinct() %>% dplyr::arrange(spp)
+
+report_directory <- paste0(here::here(), "species_reports/", params$dataDate, 
+                           "_Mexico")
+report_paths <- list.files(report_directory, full.names = T)
+relevant_report_paths <- report_paths[str_detect(report_paths, '.pdf')]
+
+for (i in spp_df$sppCode){
+  spp <- sp_df$spp[i]
+  sppCode <- sp_df$sppCode[i]
+  path <- relevant_report_paths[str_detect(relevant_report_paths, sppCode)]
+  cat(sprintf('[%s](%s)', spp, path))
+}
+```
+
