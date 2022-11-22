@@ -1,5 +1,5 @@
 ---
-date: Sys.Date()
+date: "`r Sys.Date()`"
 output:
   pdf_document:
     toc: yes
@@ -13,22 +13,20 @@ params:
   spp: NA
   sppCode: NA
   cntry: NA
-  cntryAbbr: NA
   date: NA
   rootDir: NA
   save: FALSE
 fontsize: 14pt
 ---
 
-```{r}
-cntryAbbr="MX"
-cntry="Mexico"
-sppCode = "ANTROZOUS_PALLIDUS"
-spp = "Antrozous pallidus"
-date = "20221116"
-threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv'))
-DataFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', date)
-thisRangeFN <- paste0(here::here(), '/RangeGraphs/range_', spp,  "_", cntry, '.png')
+```{r include=F, echo=F}
+# cntry="Mexico"
+# sppCode = "MYOTIS_PENINSULARIS"
+# spp = "Myotis peninsularis"
+# date = "20221116"
+# threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv'))
+# DataFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', date)
+# thisRangeFN <- paste0(here::here(), '/RangeGraphs/range_', spp,  "_", cntry, '.png')
 ```
 
 
@@ -56,30 +54,31 @@ title: `r title`
 ---
 
 ```{r dataimport}
-DataFolder = paste0(params$rootDir, '/Data/derived/AnalysisExport_', params$date)
+DataFolder = paste0(params$rootDir, '/Data/derived/AnalysisExport_', params$date,
+                    "_", params$cntry)
 DataFiles <- list.files(DataFolder, full.names = T)
-
-#load in raw responses
-responses_path <- DataFiles[str_detect(DataFiles, 'cleaned_responses')]
-responses <- read_csv(responses_path) %>% filter(sppcode==sppCode)
-
-#load in plots of threat impact
-impact_plots_path <- DataFiles[str_detect(DataFiles, cntryAbbr) & str_detect(DataFiles, sppCode) & 
-                            str_detect(DataFiles, '_threat_impact_plots.RDS')]
-impact_plots <- readRDS(impact_plots_path) 
-
-#load in pooled data
-pooled_data_path <- DataFiles[str_detect(DataFiles, cntryAbbr) & str_detect(DataFiles, sppCode) & 
-                            str_detect(DataFiles, '_pooled.RDS')]
-pooled_data <- readRDS(pooled_data_path) 
-
-#load in plots of scope, sev, and pop data
-scope_sev_path <- DataFiles[str_detect(DataFiles, cntryAbbr) & str_detect(DataFiles, sppCode) & 
-                            str_detect(DataFiles, '^*[0-9].RDS$')]
-scope_sev <- readRDS(scope_sev_path) 
 
 #Table of threat lables
 threats <- read.csv(paste0(params$rootDir, '/Data/ThreatNum.csv'))
+
+# Load in raw responses
+responses_path <- DataFiles[str_detect(DataFiles, 'cleaned_responses')]
+responses <- read_csv(responses_path) %>% filter(sppcode == params$sppCode) 
+
+# Load in plots of threat impact
+impact_plots_path <- DataFiles[str_detect(DataFiles, params$cntry) & str_detect(DataFiles, params$sppCode) & 
+                            str_detect(DataFiles, '_threat_impact_plots.RDS')]
+impact_plots <- readRDS(impact_plots_path) 
+
+# Load in pooled data
+pooled_data_path <- DataFiles[str_detect(DataFiles, params$cntry) & str_detect(DataFiles, params$sppCode) & 
+                            str_detect(DataFiles, '_pooled.RDS')]
+pooled_data <- readRDS(pooled_data_path) 
+
+# Load in plots of scope, sev, and pop data
+scope_sev_path <- DataFiles[str_detect(DataFiles, params$cntry) & str_detect(DataFiles, params$sppCode) & 
+                            str_detect(DataFiles, '^*[0-9].RDS$')]
+scope_sev <- readRDS(scope_sev_path) 
 ```
 
 \captionsetup[table]{labelformat=empty}
@@ -102,11 +101,12 @@ responses %>% filter(Q_group=='pop' & Q_sub == 'Size') %>%
          expert=token) %>% 
   select(expert, everything()) %>% 
   mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>% 
-  knitr::kable()
+  knitr::kable(digits = 0)
 ```
 
 ## Distribution
-```{r popSize_graph}
+
+```{r popSize_graph, results='hide'}
 expert_colors <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Size') %>% 
   .$value %>% flatten() %>% .$colors
 
@@ -116,11 +116,12 @@ expert_sizes <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Size') %>%
 my_plot <- scope_sev %>% filter(q_type=='popSize') %>% .$plots %>% .[[1]]
 
 my_plot + 
-    scale_color_manual(values=expert_colors) +
-    scale_size_manual(values = expert_sizes) +
-  theme(legend.position = 'bottom', legend.title = element_blank()) +
-  guides(color=guide_legend(ncol=4)) +
-  scale_x_log10(label = comma) 
+  # scale_color_manual(values = expert_colors) +
+  # scale_size_manual(values = expert_sizes) +
+  scale_x_log10(label = comma) +
+  xlab('Population size \n (axis scaled to log base 10)') +
+  theme(legend.position = 'bottom', legend.title = element_blank()) 
+  guides(color=guide_legend(ncol=4))
 ```
 
 ```{r popSize_quantiles, results='asis'}
@@ -135,7 +136,8 @@ expert_quantiles %>% bind_cols('linear pool'=pooled_quantiles) %>%
   pivot_longer(cols = !'measure') %>% 
   pivot_wider(names_from = measure, values_from = value) %>% 
   mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>% 
-  knitr::kable()
+  knitr::kable(caption = "Calculated quartiles of each expert's probability distribution function.",
+               digits = 0)
 ```
 \newpage
 
@@ -185,7 +187,7 @@ expert_quantiles %>% bind_cols('linear pool'=pooled_quantiles) %>%
   pivot_longer(cols = !'measure') %>% 
   pivot_wider(names_from = measure, values_from = value) %>% 
   mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>% 
-  mutate(Median=paste0(round(as.numeric(Median)*100, digits = 0), "%"),
+  mutate(Median=paste0(round(as.numeric(Median)*100), "%"),
          Q1=paste0(round(as.numeric(Q1)*100, digits = 0), "%"),
          Q3=paste0(round(as.numeric(Q3)*100, digits = 0), "%")
   ) %>% 
@@ -226,6 +228,7 @@ df %>% pivot_wider(names_from = Q_ss, values_from = Median) %>%
                caption = paste0("Sum of median threat estimates for each expert for ", spp, "."))
 ```
 
+\newpage
 
 ```{r functions}
 #function to get raw responses of each expert for each threat and format table
@@ -299,13 +302,12 @@ get_Plot <- function(scope_sev, Q_group, Q_sub){
     filter(Q_group==Q_group & Q_sub==Q_sub) %>% .$plots %>% .[[1]] + 
     scale_color_manual(values = expert_colors) +
     scale_size_manual(values = expert_sizes) +
-    theme(legend.position = 'bottom', legend.title = element_blank()) +
-    guides(color = guide_legend(ncol=4))
+    theme(legend.position = "bottom", legend.title = element_blank()) +
+    guides(color = guide_legend(ncol=3))
+  
   return(my_plot)
 }
 ```
-
-
 
 ```{r ThreatsStuff}
 #prep threat data for looping
@@ -357,12 +359,15 @@ for (gN in names(TData)) {
     
     #Plot of scope and severity distributions
     scope_plot_data <- ThisThreat %>% filter(q_type=='Scope')
-    scope_plot <- get_Plot(scope_plot_data, gN, sT)
+    scope_plot <- get_Plot(scope_plot_data, gN, sT) +
+      labs(x="Scope (%)")
     
     sev_plot_data <- ThisThreat %>% filter(q_type=='Severity')
-    sev_plot <- get_Plot(sev_plot_data, gN, sT)
+    sev_plot <- get_Plot(sev_plot_data, gN, sT) +
+      labs(x="Severity (%)")
     
-    scope_sev_plots <- ggarrange(scope_plot, sev_plot, common.legend=T)
+    scope_sev_plots <- ggarrange(scope_plot, sev_plot, 
+                                 common.legend = T, legend="bottom")
     
     #table of quantiles of scope
     q_scope_data <- ThisThreat %>% filter(q_type=='Scope')
@@ -395,11 +400,15 @@ for (gN in names(TData)) {
 for(T1 in unique(threats$Q_group)) {
   
   #T1 Heading
-  cat('  \n## ', T1, '  \n')
+  T1_heading <- threats %>% filter(Q_group==T1) %>% 
+    distinct(Threat) %>% pull(Threat)
+  cat('  \n## ', T1_heading, '  \n')
   
   for (T2 in names(allThreats_stuff[[T1]])) {
     #T2 Heading
-    cat('  \n### ', T2, '  \n')
+    T2_heading <- threats %>% filter(Q_group==T1 & Q_sub==T2) %>% 
+      distinct(Threat) %>% pull(Threat)
+    cat('  \n### ', T2_heading, '  \n')
     
     cat('  \n#### ', 'Expert Elicited Values', '  \n')
     
@@ -456,7 +465,6 @@ for(T1 in unique(threats$Q_group)) {
         
         cat("\n\n")
         cat("\n\n\\pagebreak\n")
-        # cat("  \n")#end Elicit heading
         
     cat('#### ', 'Impact', '  \n')
      cat("\n\n")
