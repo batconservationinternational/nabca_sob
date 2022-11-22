@@ -2,24 +2,19 @@ formatSPPdata <- function(sppList) {
   
   experts <- unique(sppList[['rawdata']]$token)
   cntry <- unique(sppList[['rawdata']]$cntry)
-  
-  # message('add labels')
+
   labels <- c(experts, 'Combined')
   names(labels) <- c(experts, 'linear pool')
   
-  # message('add colors')
-  # expertColors <- RColorBrewer::brewer.pal(n=length(experts), name="Dark2")
   expertColors <- ggsci::pal_igv()(length(experts))
   names(expertColors) <- experts
   expertColors['linear pool'] = 'black'
   expertColors <- expertColors[!is.na(names(expertColors))]
   
-  # message('add line style')
   expertLT <- rep('solid', times = length(experts))
   names(expertLT) <- experts
   expertLT['linear pool'] = 'solid'
   
-  # message('add line size')
   expertSZ <- rep(0.5, times = length(experts))
   names(expertSZ) <- experts
   expertSZ['linear pool'] = 1
@@ -44,7 +39,6 @@ formatSPPdata <- function(sppList) {
     ) %>% 
     select(-data)
   
-  
   threatData <-  sppList[['rawdata']]  %>% 
     filter(Q_group != 'pop') %>%
     group_by(Q_group, Q_sub, Q_ss) %>% 
@@ -63,8 +57,6 @@ formatSPPdata <- function(sppList) {
     ) %>% 
     nest()
   
-  
-  
   return(
     list(
       experts = c(experts, 'linear pool'),
@@ -81,16 +73,21 @@ formatSPPdata <- function(sppList) {
 }
 
 
-formatMMM <- function(thisData, type) {
 
+
+
+formatMMM <- function(thisData, type) {
   mmm <- t(thisData[, c('min', 'mean', 'max')])
   colnames(mmm) <- thisData$token
   return(mmm)
 }
 
 
+
+
+
+
 formatProbs <- function(thisData, type) {
-    
   conf = thisData$conf/100
   dif = conf/2
   lowerP = 0.5-dif
@@ -153,9 +150,11 @@ fn_convertC <- function(col) {
 
 
 
+
+
 choose_pop_dist <- function(myGroup_Q, mySubGroup) {
 
-  #Population Size
+  # Population Size
   if (myGroup_Q == 'pop' & mySubGroup == 'Size') {
     thisU = 1e9 #max pop size = 1 B which is 10 times the max TABR estimate (100M)
     thisL = 0
@@ -164,7 +163,6 @@ choose_pop_dist <- function(myGroup_Q, mySubGroup) {
   }
   
   #Population Trend
-  ##normal distribution?
   if (myGroup_Q == 'pop' & mySubGroup == 'Trend') {
     thisU = 1.4 #median empirical population growth rate = 1.0025 - the median expert lambda = 1.015. Given distribution (slack pub posted by WF) 1.4 is about max
     thisL = -1
@@ -182,6 +180,11 @@ choose_pop_dist <- function(myGroup_Q, mySubGroup) {
 
 
 
+
+
+
+
+
 choose_threats_dist <- function(myGroup){
   thisU = 1
   thisL = 0
@@ -196,6 +199,10 @@ choose_threats_dist <- function(myGroup){
   ))
   
 }
+
+
+
+
 
 
 
@@ -222,6 +229,11 @@ generateDist <- function(thisRow, dat_type, scope_sev){
 
 
 
+
+
+
+
+
 make_dist <- function(thisRow, dat_type, scope_sev){
   
   lower <-  thisRow$dist %>% flatten() %>% .$thisL
@@ -242,20 +254,6 @@ make_dist <- function(thisRow, dat_type, scope_sev){
   }
   
   expert_names <- colnames(mmm)
-
-  # print(paste("Probs:"))
-  # print(probs)
-  # print(paste("MMM:"))
-  # print(mmm)
-  # print(paste("Lower:"))
-  # print(lower)
-  # print(paste("Upper:"))
-  # print(upper)
-  # print(paste("Dist:"))
-  # print(dist)
-  # print(paste("Expert Names:"))
-  # print(expert_names)
-
   
   tryCatch(
     expr = {
@@ -321,7 +319,7 @@ find_quantiles <- function(thisRow) {
     return(data_Q50)
   }
   
-  # if only one expert, calc quantiles but no need to pool
+  # If only one expert, calc quantiles but no need to pool
   if (nrow(thisDist$ssq) == 1){
     Q50 <- SHELF::feedback(thisDist, 
                     quantiles = c(0.25, 0.5, 0.75, 0.999))$fitted.quantiles[dist_type]
@@ -350,16 +348,17 @@ find_quantiles <- function(thisRow) {
 
 generate_sample <- function(dist_info, dist_type, Nsamples = 10000, pb) {
   
-  #get distribution that we care about to use to filter samples
+  # Get distribution that we care about to use to filter samples
   dist_of_interest <- dist_type[[1]]$thisD
-  #get elicitation object
+  
+  # Get elicitation object
   thisDist <- dist_info
   tokens <- dist_info$best.fitting %>% rownames()
   samples <- vector('list', length(tokens))
   names(samples) <- tokens
   
   for (i in 1:length(tokens)) {
-    #generate random sample
+    # Generate random sample
     samples[[i]] <- SHELF::sampleFit(thisDist, expert = i, n = Nsamples) %>% 
       as_tibble()
   }
@@ -378,41 +377,12 @@ generate_sample <- function(dist_info, dist_type, Nsamples = 10000, pb) {
 
 
 
-# calc_Overlap <- function(dist_type, randomDraw, pb) {
-# 
-#   samples <- randomDraw
-#   experts <- names(samples)
-#   thisD <- dist_type[[1]]$thisD
-#   thisL <- dist_type[[1]]$thisL
-#   thisU <- dist_type[[1]]$thisU
-# 
-#   lists_to_compare = list()
-# 
-#   for (i in 1:length(experts)){
-#     exp_name <- experts[i]
-#     sample <- samples[exp_name][[1]][,thisD]
-#     lists_to_compare <- append(lists_to_compare, list(sample))
-#   }
-# 
-#   names(lists_to_compare) <- experts
-# 
-#   over <- overlapping::ovmult(samples)$OV
-#                       # type = "1", # do we want type 1 or type 2???
-#   pb$tick()
-#   return(over)
-# }
-
-
-
-
-
-
-
 generate_Densityplot <- function(value, q_type, dist_info, Quantiles, dist_type, pb) {
   
   maxX <- Quantiles[["Median"]][1] +
     (2.5 * (Quantiles[["Q3"]][1] - Quantiles[["Q1"]][1]))
 
+  # Use SHELF package to make a plot of distributions for all experts and linear pool
   myplot <- SHELF:::plotfit(dist_info,
                                xl=dist_type[[1]][["thisL"]],
                                xu=maxX,
@@ -436,8 +406,8 @@ generate_Densityplot <- function(value, q_type, dist_info, Quantiles, dist_type,
   Quantiles$size = 1
   Quantiles[Quantiles$expert == 'linear pool', 'size'] = 2
     
+  # Add point range of quantiles of experts to the plot
   myplotLP <-   myplot +
-    # scale_size_manual(values = value$expertSZ, guide = 'none') +
     geom_pointrange(data = Quantiles,
       aes(
         x = Median,
@@ -451,12 +421,12 @@ generate_Densityplot <- function(value, q_type, dist_info, Quantiles, dist_type,
     theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
     coord_cartesian(expand = F, ylim = c(min(Quantiles$y) * 1.1, maxY * 1.1))
     
-  if (q_type == 'popSize') {
-      myplotLP <- myplotLP +
-        scale_x_log10(label=comma) +
-        xlab('Population size \n (axis scaled to log base 10)')
-    }
-  
+  # Make x-axis log scale for pop size graphs
+  # if (q_type == 'popSize') {
+  #     myplotLP <- myplotLP +
+  #       scale_x_log10(label=comma) +
+  #       xlab('Population size \n (axis scaled to log base 10)')
+  #   }
   pb$tick()
   return(myplotLP)
 }
