@@ -1,16 +1,16 @@
+# Export data with completed answers only, answer and Q codes
+# Save as MX/US_results_YYYYMMDD.csv
+
 # Date of data export (YYYYMMDD)
 thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
-thisCountry = 'United States'
+thisCountry = 'Mexico'
 # "US_CAN" or "MX"
-countryAbbr = 'US_CAN'
+countryAbbr = 'MX'
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate,
-                      "_", countryAbbr)
+                      "_", thisCountry)
 if (!dir.exists(OutputFolder)) {dir.create(OutputFolder)}
-
-#export data with completed answers only, answer and Q codes
-#Save as MX/US_results_YYYYMMDD.csv
 
 # Load necessary Components ----------------------------------------------
 library(tidyverse)
@@ -45,7 +45,7 @@ data <- formattedData$data
 weird_pop_size <- formattedData$weird_pop_size
 weird_percentage <- formattedData$weird_percentage
 missing_answers <- formattedData$missing_answers
-write_csv(d, paste0(OutputFolder, '/cleaned_responses_', countryAbbr,
+write_csv(d, paste0(OutputFolder, '/cleaned_responses_', thisCountry,
                     '_', thisDataDate, '.csv'))
 
 # Make Range Graphs -----------------------------------------------------------
@@ -64,8 +64,9 @@ for (spp in all_species){
   tryCatch({
     analyze_SoB(nestedData[spp],
                 OutputFolder = OutputFolder,
-                cntrytoAnalyze = countryAbbr,
-                SpptoAnalyze = spp)
+                cntrytoAnalyze = thisCountry,
+                SpptoAnalyze = spp,
+                dataDate = thisDataDate)
       message("Success.")
   },
   error = function(e){
@@ -89,7 +90,7 @@ for (spp in all_species){
     df <- calc_Impact(dataDate = thisDataDate, 
                 dataFolder = OutputFolder,
                 speciestoAnalyze = spp,
-                countrytoAnalyze = countryAbbr)
+                countrytoAnalyze = thisCountry)
     pop_df <- pop_df %>% bind_rows(df$pop_info)
     threat_df <- threat_df %>% bind_rows(df$threat_info)
     message("Success.")
@@ -103,11 +104,9 @@ for (spp in all_species){
 }
 
 # Write pop and threat aggregations-------------------------------------------
-pop_df_path <- paste0('Data/derived/AnalysisExport_', thisDataDate, '/', 
-                      countryAbbr, "_pop_quantiles_agg.csv")
+pop_df_path <- paste0(OutputFolder, "/pop_quantiles_agg.csv")
 write_csv(pop_df, here::here(pop_df_path))
-threat_df_path <- paste0('Data/derived/AnalysisExport_', thisDataDate, '/', 
-                         countryAbbr, "_threat_median_agg.csv")
+threat_df_path <- paste0(OutputFolder, "/threat_median_agg.csv")
 write_csv(threat_df, here::here(threat_df_path))
 
 # Make threat impact plots --------------------------------------------------
@@ -121,7 +120,7 @@ for (spp in all_species){
     generate_impact_plots(dataDate = thisDataDate,
                           speciestoAnalyze = spp,
                           dataFolder = OutputFolder,
-                          cntrytoAnalyze = countryAbbr)
+                          cntrytoAnalyze = thisCountry)
     message("Success.")
     },
     error = function(e){
@@ -133,15 +132,25 @@ for (spp in all_species){
 }
 
 # Make species reports ------------------------------------------------------
-fileType == 'pdf_document'
-outDir <- paste0(here::here(), '/species_reports/', thisDataDate)
-if (!dir.exists(outDir)) {dir.create(outDir)}
+species = unique(d$spp)
+species_code = unique(d$sppcode)
+
+fileType = 'pdf_document'
+outDir <- paste0(here::here(), '/species_reports/', 
+                 thisDataDate, "_", thisCountry)
+if (!dir.exists(outDir)) {dir.create(outDir, recursive=T)}
 count=1
 failed_markdown = list()
-for (spp in all_species){
-  out_fn = paste0(outDir, '/', countryAbbr, '_', spp, '.', ext)
+for (i in seq(1:length(species))){
+  spp <- species[i]
+  sppCode <- species_code[i]
+  
+  print(paste("Building report for", spp))
+  
   if (fileType == 'html_document') {ext = 'html'}
   if (fileType == 'pdf_document') {ext = 'pdf'}
+  
+  out_fn = paste0(outDir, '/', thisCountry, '_', sppCode, '.', ext)
   
   tryCatch({
     rmarkdown::render(
@@ -149,7 +158,8 @@ for (spp in all_species){
       output_file = out_fn,
       params = list(
         spp = spp,
-        cntry = countryAbbr,
+        sppCode = sppCode,
+        cntry = thisCountry,
         date = thisDataDate,
         rootDir = here::here()
       ),
