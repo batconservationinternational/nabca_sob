@@ -8,14 +8,12 @@ generate_impact_plots <- function(dataDate,
   f <- files[str_detect(files, speciestoAnalyze) & str_detect(files, cntrytoAnalyze)]
   data <- readRDS(f)
   
-  #filter out pop data so that it only uses make_threat_plots on threat data
+  # Filter out pop data so that it only uses make_threat_plots on threat data
   data <- data %>% filter(Q_group!="pop")
-  
-  ticks <- nrow(data)
-  pb <- progress::progress_bar$new(total = ticks)
+
   # Map impact plot creation for all threats
   data$plots <- data %>% select(value, expert_impact, pooled_dist) %>% 
-    pmap(make_impact_plots, pb=pb)
+    pmap(make_impact_plots)
   
   # Drop excess data that is already saved and just save plots and their Q groups
   data <- data %>% select(value, Q_group, Q_sub, plots)
