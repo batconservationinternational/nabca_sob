@@ -1,17 +1,12 @@
-# Make plots
-make_impact_plots <- function(values, expert_impact, pooled_dist, pb){
+make_impact_plots <- function(values, expert_impact, pooled_dist){
   
-  #bind linear pool and expert random draw values for plotting
+  # Bind linear pool and expert random draw values for plotting
   expert_rd <- expert_impact$Impact_randomDraw %>% as_tibble() %>% pivot_longer(1:length(.))
   names(expert_rd) <- c('expert','fx')
   graphing_data <- pooled_dist$pooled_randomDraw %>% 
     bind_rows(expert_rd) 
-    # mutate(sizes = case_when(
-    #   expert=='linear pool'~ 1,
-    #   T ~ 0.5)
-    # )
   
-  #Make expert list into factor
+  # Make expert list into factor
   graphing_data$expert <- factor(graphing_data$expert)
   
   pooled_plot <- ggplot(graphing_data) +
@@ -51,7 +46,7 @@ make_impact_plots <- function(values, expert_impact, pooled_dist, pb){
   Quantiles_df[Quantiles_df$expert == 'linear pool', 'size'] = 1
   
   pooled_plot <- pooled_plot +
-    scale_size_manual(values = values$expertSZ, guide = 'none') +
+    # scale_size_manual(values = values$expertSZ, guide = 'none') +
     geom_pointrange(
       data = Quantiles_df,
       aes(
@@ -79,7 +74,6 @@ make_impact_plots <- function(values, expert_impact, pooled_dist, pb){
     scale_y_continuous(breaks = NULL) +
     theme(legend.position = 'bottom')
   
-  pb$tick()
   return(pooled_plot)
 }
   
