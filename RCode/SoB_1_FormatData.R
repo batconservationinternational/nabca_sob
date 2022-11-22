@@ -205,18 +205,18 @@ formatData <- function(thisDataDate,
     filter(cntry==thisCountry)
   
   # Code to drop identified outliers for the MX dataset
-  # if (thisCountry=="Mexico"){
-  #   outliers <- read_excel(here::here('Data','mx_identified_outliers.xlsx')) %>% 
-  #     select(1,2,4) %>% mutate(Q_group = "pop") %>% 
-  #     mutate(Q_sub = case_when(
-  #       Question=="PS" ~ "Size",
-  #       Question=="PT" ~ "Trend"
-  #     )) %>% select(-Question) %>% 
-  #     rename("token"=Id, "spp"=Species)
-  #   
-  #   outliers_full <- outliers %>% left_join(data_l) %>% select(-Q_ss)
-  #   data_l <- data_l %>% anti_join(outliers)
-  # }
+  if (thisCountry=="Mexico"){
+    outliers <- read_excel(here::here('Data','mx_identified_outliers.xlsx')) %>%
+      select(1,2,4) %>% mutate(Q_group = "pop") %>%
+      mutate(Q_sub = case_when(
+        Question=="PS" ~ "Size",
+        Question=="PT" ~ "Trend"
+      )) %>% select(-Question) %>%
+      rename("token"=Id, "spp"=Species)
+
+    outliers_full <- outliers %>% left_join(data_l) %>% select(-Q_ss)
+    data_l <- data_l %>% anti_join(outliers)
+  }
   
   data_nested <- data_l %>% 
     # make into a list
@@ -228,7 +228,7 @@ formatData <- function(thisDataDate,
   
   
   if(saveData){
-    saveRDS(data_l, file = paste0(here::here(), '/Data/', countryAbbr, '_nestedQ_',
+    saveRDS(data_l, file = paste0(here::here(), '/Data/', thisCountry, '_nestedQ_',
         thisDataDate, '.RDS'))
   }
   
