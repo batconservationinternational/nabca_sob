@@ -1,20 +1,21 @@
 analyze_SoB <- function(mydata,
                         OutputFolder,
                         SpptoAnalyze,
+                        dataDate,
                         cntrytoAnalyze,
                         PersonalPlots=F
                         ) {
-
-# SpptoAnalyze <- c("ANTROZOUS_PALLIDUS")
   
+  # Put nested list into data frame structure
   mydata <- enframe(mydata)
  
+  # Set distribution type and limits to use for fitting distribution
   mydata$value[[1]][["popSizeData"]] <- mydata$value[[1]][["popSizeData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
   mydata$value[[1]][["popTrendData"]] <- mydata$value[[1]][["popTrendData"]] %>% mutate(dist = map2(Q_group, Q_sub, choose_pop_dist))
   mydata$value[[1]][["threatData"]] <- mydata$value[[1]][["threatData"]] %>% mutate(dist = map(Q_group, choose_threats_dist))
 
   
-  # Pluck country to be its own column.
+  # Pluck country to be its own column
   mydata$cntry <- mydata %>% pluck("value", 1, "country", 1)
 
   # Fit distributions
@@ -68,7 +69,7 @@ analyze_SoB <- function(mydata,
     select(value, q_type, dist_info, Quantiles, dist_type) %>%
     pmap(generate_Densityplot, pb=pb)
   
-  # Random draw
+  # Random draw from fitted distribution
   pb <- progress::progress_bar$new(total = ticks)
   message("Draw random values from dist")
   mydata$randomDraw <- mydata %>% select(dist_info, dist_type) %>% 
@@ -80,7 +81,6 @@ analyze_SoB <- function(mydata,
   
   message("Save Data")
   if (!dir.exists(OutputFolder)){dir.create(OutputFolder, recursive = T)}
-  dataDate <- stringr::str_sub(OutputFolder, -8)
   dataSetName <- paste0(cntrytoAnalyze, "_", SpptoAnalyze, "_", dataDate, ".RDS")
   saveRDS(mydata, here::here(OutputFolder, dataSetName))
 }
