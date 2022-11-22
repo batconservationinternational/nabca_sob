@@ -7,3 +7,6 @@
 RangeGraphs
 *.txt
 Derived
+*.pdf
+*.tex
+*.log
