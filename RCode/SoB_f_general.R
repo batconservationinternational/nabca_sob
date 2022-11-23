@@ -421,6 +421,12 @@ generate_Densityplot <- function(value, q_type, dist_info, Quantiles, dist_type,
     theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
     coord_cartesian(expand = F, ylim = c(min(Quantiles$y) * 1.1, maxY * 1.1))
     
+  # Make x-axis log scale for pop size graphs
+  # if (q_type == 'popSize') {
+  #     myplotLP <- myplotLP +
+  #       scale_x_log10(label=comma) +
+  #       xlab('Population size \n (axis scaled to log base 10)')
+  #   }
   pb$tick()
   return(myplotLP)
 }
@@ -466,7 +472,7 @@ make_rangeGraphs <- function(data, spp, thiscntry) {
     ) %>%
     group_by(species, spp_abbrev, cntry) %>%
     filter(area>0) %>%
-    summarize(area = sum(area)) %>% 
+    summarize(area = sum(area)) %>% # do we really want to be summing these?
     filter(species == spp, cntry == thiscntry) %>%
     mutate(
       area = measurements::conv_unit(area, from = 'm2', to = 'km2'),
