@@ -1,12 +1,12 @@
 # Export data with completed answers only, answer and Q codes
-# Save as MX/US_results_YYYYMMDD.csv
+# Save as MX_results_YYYYMMDD.csv or US_CAN_results_YYYYMMDD.csv
 
 # Date of data export (YYYYMMDD)
 thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
-thisCountry = 'Mexico'
+thisCountry = 'Canada'
 # "US_CAN" or "MX"
-countryAbbr = 'MX'
+countryAbbr = 'US_CAN'
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate,
                       "_", thisCountry)
@@ -15,19 +15,15 @@ if (!dir.exists(OutputFolder)) {dir.create(OutputFolder)}
 # Load necessary Components ----------------------------------------------
 library(tidyverse)
 library(pbapply)
-library(parallel)
 library(ggpubr)
 library(rlist)
 library(SHELF)
 library(progress)
 library(overlapping)
-library(doParallel)
-library(foreach)
 library(EnvStats)
 library(readxl)
 library(openxlsx)
 library(scales)
-options(scipen = 999)
 
 source(paste0(here::here(), '/RCode/SoB_1_formatData.R'))
 source(paste0(here::here(), '/RCode/SoB_2_analyzeQ.R'))
@@ -36,6 +32,8 @@ source(paste0(here::here(), '/RCode/SoB_4_generateImpactPlots.R'))
 source(paste0(here::here(), '/RCode/SoB_f_general.R'))
 source(paste0(here::here(), '/RCode/SoB_f_calcImpact.R'))
 source(paste0(here::here(), '/RCode/SoB_f_makeImpactPlot.R'))
+
+options(scipen = 999)
 
 # Format Data Properly for Analysis ---------------------------------------
 formattedData <- formatData(thisDataDate, thisCountry, countryAbbr)
@@ -104,9 +102,11 @@ for (spp in all_species){
 }
 
 # Write pop and threat aggregations-------------------------------------------
-pop_df_path <- paste0(OutputFolder, "/pop_quantiles_agg.csv")
+pop_df_path <- paste0(OutputFolder, "/pop_quantiles_agg_", thisCountry, "_", 
+                      thisDataDate, ".csv")
 write_csv(pop_df, here::here(pop_df_path))
-threat_df_path <- paste0(OutputFolder, "/threat_median_agg.csv")
+threat_df_path <- paste0(OutputFolder, "/threat_quantiles_agg_", thisCountry, "_", 
+                         thisDataDate, ".csv")
 write_csv(threat_df, here::here(threat_df_path))
 
 # Make threat impact plots --------------------------------------------------
@@ -145,7 +145,8 @@ for (i in seq(1:length(species))){
   spp <- species[i]
   sppCode <- species_code[i]
   
-  print(paste("Building report for", spp))
+  print(paste0("Building report for ", 
+               spp, " (species ", count, "/", length(species), ")"))
   
   if (fileType == 'html_document') {ext = 'html'}
   if (fileType == 'pdf_document') {ext = 'pdf'}
@@ -172,4 +173,18 @@ for (i in seq(1:length(species))){
       failed_markdown <<- append(failed_markdown, spp)
     }
   )
+  count <- count+1
 }
+
+# Make markdown with links to all species reports-----------------------------
+# Run once you have reports ready for all countries
+out_fn <- paste0(here::here(), "/Data/derived/allSpeciesReports_", 
+                 thisDataDate, ".html")
+rmarkdown::render(
+  paste0(here::here(), "/RCode/SoB_6_allSppReports.Rmd"),
+  output_file = out_fn,
+  params = list(
+    dataDate = thisDataDate
+  ),
+  envir = new.env()
+)
