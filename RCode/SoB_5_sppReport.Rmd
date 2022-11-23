@@ -20,13 +20,33 @@ fontsize: 14pt
 ---
 
 ```{r include=F, echo=F}
+# for code testing
+
 # cntry="Mexico"
 # sppCode = "MYOTIS_PENINSULARIS"
 # spp = "Myotis peninsularis"
 # date = "20221116"
 # threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv'))
-# DataFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', date)
+# DataFolder = "/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_20221116_Mexico"
 # thisRangeFN <- paste0(here::here(), '/RangeGraphs/range_', spp,  "_", cntry, '.png')
+# 
+# responses_path <- DataFiles[str_detect(DataFiles, 'cleaned_responses')]
+# responses <- read_csv(responses_path) %>% filter(sppcode == sppCode)
+# 
+# # Load in plots of threat impact
+# impact_plots_path <- DataFiles[str_detect(DataFiles, cntry) & str_detect(DataFiles, sppCode) &
+#                             str_detect(DataFiles, '_threat_impact_plots.RDS')]
+# impact_plots <- readRDS(impact_plots_path)
+# 
+# # Load in pooled data
+# pooled_data_path <- DataFiles[str_detect(DataFiles, cntry) & str_detect(DataFiles, sppCode) &
+#                             str_detect(DataFiles, '_pooled.RDS')]
+# pooled_data <- readRDS(pooled_data_path)
+# 
+# # Load in plots of scope, sev, and pop data
+# scope_sev_path <- DataFiles[str_detect(DataFiles, cntry) & str_detect(DataFiles, sppCode) &
+#                             str_detect(DataFiles, '^*[0-9].RDS$')]
+# scope_sev <- readRDS(scope_sev_path)
 ```
 
 
@@ -116,12 +136,13 @@ expert_sizes <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Size') %>%
 my_plot <- scope_sev %>% filter(q_type=='popSize') %>% .$plots %>% .[[1]]
 
 my_plot + 
-  # scale_color_manual(values = expert_colors) +
-  # scale_size_manual(values = expert_sizes) +
+  scale_color_manual(values = expert_colors) +
+  scale_size_manual(values = expert_sizes) +
   scale_x_log10(label = comma) +
   xlab('Population size \n (axis scaled to log base 10)') +
-  theme(legend.position = 'bottom', legend.title = element_blank()) 
-  guides(color=guide_legend(ncol=4))
+  theme(legend.position = 'bottom', legend.title = element_blank(),
+        legend.text=element_text(size=8)) +
+  guides(color=guide_legend(ncol=3), size=F, shape=F, linetype=F)
 ```
 
 ```{r popSize_quantiles, results='asis'}
@@ -135,9 +156,8 @@ expert_quantiles %>% bind_cols('linear pool'=pooled_quantiles) %>%
   mutate(measure = c('Q1','Median','Q3')) %>% 
   pivot_longer(cols = !'measure') %>% 
   pivot_wider(names_from = measure, values_from = value) %>% 
-  mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>% 
-  knitr::kable(caption = "Calculated quartiles of each expert's probability distribution function.",
-               digits = 0)
+  mutate(across(where(is.numeric), ~prettyNum(.x, big.mark = ',', format='f', digits=1))) %>% 
+  knitr::kable(caption = "Calculated quartiles of each expert's probability distribution function.")
 ```
 \newpage
 
@@ -155,7 +175,7 @@ responses %>% filter(Q_group=='pop' & Q_sub == 'Trend') %>%
          confidence=conf,
          expert=token) %>%
   select(expert, everything()) %>%
-  mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ','))) %>%
+  mutate(across(where(is.numeric), ~prettyNum(.x,big.mark = ',', format='f', digits=1))) %>%
   knitr::kable()
 ```
 
@@ -169,10 +189,12 @@ expert_sizes <- pooled_data %>% filter(Q_group=='pop' & Q_sub=='Trend') %>%
 
 my_plot <- scope_sev %>% filter(q_type=='popTrend') %>% .$plots %>% .[[1]]
 
-my_plot + scale_color_manual(values = expert_colors) +
+my_plot + 
+  scale_color_manual(values = expert_colors) +
   scale_size_manual(values = expert_sizes) +
-  theme(legend.position = 'bottom', legend.title = element_blank()) +
-  guides(color = guide_legend(ncol=4)) 
+  theme(legend.position = 'bottom', legend.title = element_blank(),
+        legend.text=element_text(size=8)) +
+  guides(color = guide_legend(ncol=3), size=F, shape=F, linetype=F)
 ```
 
 ```{r popTrend_quantiles}
@@ -302,8 +324,9 @@ get_Plot <- function(scope_sev, Q_group, Q_sub){
     filter(Q_group==Q_group & Q_sub==Q_sub) %>% .$plots %>% .[[1]] + 
     scale_color_manual(values = expert_colors) +
     scale_size_manual(values = expert_sizes) +
-    theme(legend.position = "bottom", legend.title = element_blank()) +
-    guides(color = guide_legend(ncol=3))
+    theme(legend.position = "bottom", legend.title = element_blank(),
+          legend.text=element_text(size=8)) +
+    guides(color=guide_legend(ncol=3), size=F, shape=F, linetype=F)
   
   return(my_plot)
 }
