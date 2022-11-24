@@ -156,7 +156,7 @@ choose_pop_dist <- function(myGroup_Q, mySubGroup) {
 
   # Population Size
   if (myGroup_Q == 'pop' & mySubGroup == 'Size') {
-    thisU = 1e9 #max pop size = 1 B which is 10 times the max TABR estimate (100M)
+    thisU = 1e9 # max pop size = 1 B which is 10 times the max TABR estimate (100M)
     thisL = 0
     thisD = 'gamma'
     myXlab = 'Population Size'
@@ -421,12 +421,6 @@ generate_Densityplot <- function(value, q_type, dist_info, Quantiles, dist_type,
     theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
     coord_cartesian(expand = F, ylim = c(min(Quantiles$y) * 1.1, maxY * 1.1))
     
-  # Make x-axis log scale for pop size graphs
-  # if (q_type == 'popSize') {
-  #     myplotLP <- myplotLP +
-  #       scale_x_log10(label=comma) +
-  #       xlab('Population size \n (axis scaled to log base 10)')
-  #   }
   pb$tick()
   return(myplotLP)
 }
