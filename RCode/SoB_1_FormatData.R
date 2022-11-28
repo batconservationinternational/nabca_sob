@@ -146,7 +146,7 @@ formatData <- function(thisDataDate,
     return(list(rawdata=thislist))
   }
   
-  data_l <- left_join(d3, negAns,
+  d4 <- left_join(d3, negAns,
                       by = c("token", "cntry", "spp", "sppcode", "Q_group",
                              "Q_sub")) %>%
     mutate(
@@ -166,14 +166,23 @@ formatData <- function(thisDataDate,
         Q_val == 'max' & neg == 1  ~ 0.01,
         T ~ answer_C
       ),
-    ) %>%
-    left_join(surveyQ, by = c('question' = "question_sub")) %>%
-    # remove bad answers
-    filter(!(is.na(answer) & is.na(answer_C)))%>%
+    ) %>% 
     select(-question, -answer) %>%
     pivot_wider(names_from = Q_val, values_from = answer_C) %>%
-    #if any fields are NA remove whole row
-    rowwise() %>%
+    # correct for instances where people failed to answer min b/c couldn't input 0.
+    # assume that they meant to put 0 if they answered for min, mean, and conf but
+    # left min blank
+    mutate(across(c('min','mean','max','conf'), as.numeric)) %>% 
+    mutate(min = case_when(
+      (is.na(min) & mean>0 & max>0 & conf>0) ~ 0.0001,
+      T ~ min
+    )) 
+  
+  # create a df where any answer is na
+  na_answers <- d4 %>% filter_at(vars(conf:max), any_vars(is.na(.)))
+  
+  data_l <- d4 %>% rowwise() %>%
+    # if any fields are NA remove whole row
     mutate(N_na = sum(is.na(min), is.na(mean), is.na(max), is.na(conf))) %>%
     ungroup() %>%
     filter(N_na == 0) %>%
@@ -237,5 +246,5 @@ formatData <- function(thisDataDate,
               data = data,
               weird_pop_size = weird_pop_size,
               weird_percentage = weird_percentage,
-              missing_answers = missing_answers))
+              na_answers = na_answers))
 }
