@@ -4,7 +4,7 @@
 # Date of data export (YYYYMMDD)
 thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
-thisCountry = 'Canada'
+thisCountry = 'United States'
 # "US_CAN" or "MX"
 countryAbbr = 'US_CAN'
 
@@ -40,9 +40,11 @@ formattedData <- formatData(thisDataDate, thisCountry, countryAbbr)
 nestedData <- formattedData$data_nested
 d <- formattedData$data_l
 data <- formattedData$data
+# spit out info on rows that were dropped for either weird numbers or missing values
 weird_pop_size <- formattedData$weird_pop_size
 weird_percentage <- formattedData$weird_percentage
-missing_answers <- formattedData$missing_answers
+na_answers <- formattedData$na_answers
+
 write_csv(d, paste0(OutputFolder, '/cleaned_responses_', thisCountry,
                     '_', thisDataDate, '.csv'))
 
@@ -175,16 +177,3 @@ for (i in seq(1:length(species))){
   )
   count <- count+1
 }
-
-# Make markdown with links to all species reports-----------------------------
-# Run once you have reports ready for all countries
-out_fn <- paste0(here::here(), "/Data/derived/allSpeciesReports_", 
-                 thisDataDate, ".html")
-rmarkdown::render(
-  paste0(here::here(), "/RCode/SoB_6_allSppReports.Rmd"),
-  output_file = out_fn,
-  params = list(
-    dataDate = thisDataDate
-  ),
-  envir = new.env()
-)
