@@ -1,0 +1,43 @@
+---
+title: "Species Reports for the North American State of the Bats Assessment"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r readPDF, include=FALSE}
+rUS <- list.files('C:\\Users\\mwhitby\\Documents\\SoB_SpeciesReports\\20210126', '^United States_[A-Z]{5}\\.pdf$')
+rUS <- stringr::str_replace(rUS, ' ', "%20")
+
+rCA <- list.files('C:\\Users\\mwhitby\\Documents\\SoB_SpeciesReports\\20210126', '^Canada_[A-Z]{5}\\.pdf$')
+rCA <- stringr::str_replace(rCA, ' ', "%20")
+```
+
+# United States Species Reports
+```{r makeUSlink, echo=FALSE, results='asis'}
+for(f in rUS) {
+  fC <- stringr::str_sub(f, 17,21)
+  cat( paste0('[',spp$spp[which(spp$sppCode==fC)], ']', '(https://stateofnabats.org/html/SpeciesReports/', f, ')'))
+  cat('<br>')
+}
+```
+
+
+
+# Canada Species Reports
+```{r makeCAlink, echo=FALSE, results='asis'}
+for(f in rCA) {
+  fC <- stringr::str_sub(f, 8,12)
+  cat( paste0('[',spp$spp[which(spp$sppCode==fC)], ']', '(https://stateofnabats.org/html/SpeciesReports/', f, ')'))
+  cat('<br>')
+}
+```
+
+# Species Reports for Mexico
+```{r makeUSlink, echo=FALSE, results='asis'}
+for(f in rMX) {
+  fC <- stringr::str_sub(f, 4,8)
+  cat( paste0('[',spp$Spp[which(spp$Code==fC)], ']', '(https://stateofnabats.org/html/SpeciesReports/', f, ')'))
+  cat('<br>')
+}
+```
