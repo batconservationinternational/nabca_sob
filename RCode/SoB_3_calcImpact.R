@@ -10,7 +10,7 @@ calc_Impact <- function(dataDate,
   # countrytoAnalyze=countryAbbr
 
   files <- list.files(dataFolder, full.names = T)
-  files <- files[!grepl("pooled", files)]
+  files <- files[!grepl("pooled", files) & !grepl("threat_impact_plots", files)]
    
    # Table of threat labels
    Threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv')) %>% 
