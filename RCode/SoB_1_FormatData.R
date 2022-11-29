@@ -174,9 +174,20 @@ formatData <- function(thisDataDate,
     # left min blank
     mutate(across(c('min','mean','max','conf'), as.numeric)) %>% 
     mutate(min = case_when(
+      # use min of 0 if other values were filled out but min was missed
       (is.na(min) & mean>0 & max>0 & conf>0) ~ 0.0001,
       T ~ min
-    )) 
+    )) %>% 
+    mutate(mean = case_when(
+      # impute mean if they filled out the other three values but left mean blank
+      (is.na(mean) & !is.na(min) & !is.na(max) & !is.na(conf)) ~ ((min+max)/2),
+      T ~ mean
+    )) %>% 
+    # set confidence for them if they put in min, mean, max but failed to put conf
+    mutate(conf = case_when(
+      (is.na(conf) & !is.na(min) & !is.na(mean) & !is.na(max)) ~ 100,
+       T ~ conf
+    ))
   
   # create a df where any answer is na
   na_answers <- d4 %>% filter_at(vars(conf:max), any_vars(is.na(.)))
@@ -188,6 +199,7 @@ formatData <- function(thisDataDate,
     filter(N_na == 0) %>%
     select(-N_na) %>% 
     filter(min < mean, mean < max, min < max, conf >= 50) %>% 
+    # replace conf of 100 with 99.99
     mutate(conf = if_else(conf==100, 99.99, conf)) %>% 
     # replace 0s in min/mean/max with 0.0001
     mutate(across(c(min, mean, max), ~if_else(.==0, 0.0001, .))) %>%
