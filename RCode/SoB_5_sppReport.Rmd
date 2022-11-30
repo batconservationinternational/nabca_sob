@@ -22,12 +22,12 @@ fontsize: 14pt
 ```{r include=F, echo=F}
 # for code testing
 
-# cntry="Canada"
-# sppCode = "CORYNORHINUS_TOWNSENDII"
-# spp = "Corynorhinus townsendii"
+# cntry="United States"
+# sppCode = "EPTESICUS_FUSCUS"
+# spp = "Eptesicus fuscus"
 # date = "20221116"
 # threats <- read.csv(paste0(here::here(), '/Data/ThreatNum.csv'))
-# DataFolder = "/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_20221116_Canada"
+# DataFolder = "/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_20221116_United States"
 # DataFiles <- list.files(DataFolder, full.names = T)
 # thisRangeFN <- paste0(here::here(), '/RangeGraphs/range_', spp,  "_", cntry, '.png')
 # 
