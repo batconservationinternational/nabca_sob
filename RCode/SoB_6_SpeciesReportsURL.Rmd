@@ -1,0 +1,89 @@
+---
+title: "Species Reports for the North American State of the Bats Assessment"
+output:
+  html_document:
+    df_print: paged
+---
+```{r include=FALSE}
+library(tidyverse)
+dataDate <- "20221116"
+```
+
+## United States Species Reports
+```{r USfiles, include=FALSE}
+responses_dir <- paste0(here::here(), "/Data/derived/AnalysisExport_",
+                         dataDate, "_United States/")
+files <- list.files(responses_dir, full.names = F)
+responses_file <- files[str_detect(files, 'cleaned_responses')]
+responses <- read_csv(paste0(responses_dir, responses_file))
+
+spp_df <- responses %>% select(spp, sppcode) %>% distinct() %>% dplyr::arrange(spp)
+
+report_directory <- paste0(here::here(), "/species_reports/", dataDate, 
+                           "_United States/")
+report_files <- list.files(report_directory, full.names = F)
+```
+
+```{r makeUSlink, echo=FALSE, results='asis'}
+for (i in seq(1:nrow(spp_df))){
+  spp <- spp_df$spp[i]
+  sppcode <- spp_df$sppcode[i]
+  f <-report_files[stringr::str_detect(report_files, sppcode)]
+  # to deal with the space between United and States in the file paths
+  f <- gsub(" ", "%20", f)
+  cat(sprintf('[*%s*](https://stateofnabats.org/html/SpeciesReports/%s)', spp, f))
+  cat("  \n")
+}
+```
+
+## Canada Species Reports
+```{r CAfiles, include=FALSE}
+responses_dir <- paste0(here::here(), "/Data/derived/AnalysisExport_",
+                         dataDate, "_Canada/")
+files <- list.files(responses_dir, full.names = F)
+responses_file <- files[str_detect(files, 'cleaned_responses')]
+responses <- read_csv(paste0(responses_dir, responses_file))
+
+spp_df <- responses %>% select(spp, sppcode) %>% distinct() %>% dplyr::arrange(spp)
+
+report_directory <- paste0(here::here(), "/species_reports/", dataDate, 
+                           "_Canada/")
+report_files <- list.files(report_directory, full.names = F)
+relevant_report_files <- report_files[str_detect(report_files, '.pdf')]
+```
+
+```{r makeCAlink, echo=FALSE, results='asis'}
+for (i in seq(1:nrow(spp_df))){
+  spp <- spp_df$spp[i]
+  sppcode <- spp_df$sppcode[i]
+  f <- relevant_report_files[str_detect(relevant_report_files, sppcode)]
+  cat(sprintf('[*%s*](https://stateofnabats.org/html/SpeciesReports/%s)', spp, f))
+  cat("  \n")
+}
+```
+
+## Mexico Species Reports
+```{r MXfiles, include=FALSE}
+responses_dir <- paste0(here::here(), "/Data/derived/AnalysisExport_",
+                         dataDate, "_Mexico/")
+files <- list.files(responses_dir, full.names = F)
+responses_file <- files[str_detect(files, 'cleaned_responses')]
+responses <- read_csv(paste0(responses_dir, responses_file))
+
+spp_df <- responses %>% select(spp, sppcode) %>% distinct() %>% dplyr::arrange(spp)
+
+report_directory <- paste0(here::here(), "/species_reports/", dataDate, 
+                           "_Mexico/")
+report_files <- list.files(report_directory, full.names = F)
+relevant_report_files <- report_files[str_detect(report_files, '.pdf')]
+```
+
+```{r makeMXlink, echo=FALSE, results='asis'}
+for (i in seq(1:nrow(spp_df))){
+  spp <- spp_df$spp[i]
+  sppcode <- spp_df$sppcode[i]
+  f <- relevant_report_files[str_detect(relevant_report_files, sppcode)]
+  cat(sprintf('[*%s*](https://stateofnabats.org/html/SpeciesReports/%s)', spp, f))
+  cat("  \n")
+}
+```
