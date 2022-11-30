@@ -12,7 +12,7 @@ OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDat
                       "_", thisCountry)
 if (!dir.exists(OutputFolder)) {dir.create(OutputFolder)}
 
-# Load necessary Components ----------------------------------------------
+# Load necessary Components -------------------------------------------------
 library(tidyverse)
 library(pbapply)
 library(ggpubr)
