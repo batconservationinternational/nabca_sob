@@ -156,7 +156,7 @@ choose_pop_dist <- function(myGroup_Q, mySubGroup) {
 
   # Population Size
   if (myGroup_Q == 'pop' & mySubGroup == 'Size') {
-    thisU = 1e9 # max pop size = 1 B which is 10 times the max TABR estimate (100M)
+    thisU = 1e9 # 10 times the max TABR estimate (100M)
     thisL = 0
     thisD = 'gamma'
     myXlab = 'Population Size'
@@ -257,12 +257,12 @@ make_dist <- function(thisRow, dat_type, scope_sev){
   
   tryCatch(
     expr = {
-    out <- SHELF::fitdist(
-      vals = mmm,
-      probs = probs,
-      lower = lower,
-      upper = upper,
-      expertnames = expert_names
+      out <- SHELF::fitdist(
+        vals = mmm,
+        probs = probs,
+        lower = lower,
+        upper = upper,
+        expertnames = expert_names
       )  
     }
   )
