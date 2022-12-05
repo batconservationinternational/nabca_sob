@@ -7,7 +7,7 @@ calc_Impact <- function(dataDate,
   # dataFolder=OutputFolder
   # spp = "ANTROZOUS_PALLIDUS"
   # speciestoAnalyze=spp
-  # countrytoAnalyze=countryAbbr
+  # countrytoAnalyze=thisCountry
 
   files <- list.files(dataFolder, full.names = T)
   files <- files[!grepl("pooled", files) & !grepl("threat_impact_plots", files)]
@@ -37,7 +37,7 @@ calc_Impact <- function(dataDate,
    threat_data <- sppData %>% filter(q_type == "Scope" | q_type == "Severity") 
    pop_data <- sppData %>% filter(q_type == "popSize" | q_type == "popTrend") 
    
-   if (nrow(threat_data)>0){ #only do if there is threat_data
+   if (nrow(threat_data)>0){ # only do if there is threat_data
      # Get list of responses for scope and severity
      threat_data$responses <- purrr::map(threat_data$randomDraw, names)
      # Pivot Scope and Severity info wider
@@ -51,7 +51,7 @@ calc_Impact <- function(dataDate,
      # For each row, and expert, calculate distribution and quantiles and do a random draw
      ticks <- nrow(threat_data)
      pb <- progress::progress_bar$new(total = ticks)
-     if (nrow(threat_data)>0){ #only do if there is threat_data
+     if (nrow(threat_data)>0){ # only do if there is threat_data
        threat_data$expert_impact <- purrr::map2(threat_data$dist_info_id, 
                                                threat_data$impact,
                                                calc_expert_impact,
@@ -84,13 +84,20 @@ calc_Impact <- function(dataDate,
     pop_info <- pop_info %>%  mutate(question = pop_data$q_type, .before=1) %>% 
       mutate(species = speciestoAnalyze, .before=1)
     
-    # Make table of mean of pooled quantiles for threats
+    # Make table of median of pooled quantiles for threat impact
     t <- purrr::map(threat_data$pooled_dist, 2)
     t <- purrr::map(t, .f = ~list(Median=.x[2]))
-    threat_info <- do.call(rbind.data.frame, t) %>% 
+    threat_impact_info <- do.call(rbind.data.frame, t) %>% 
       mutate(question = threat_data$dist_info_id, .before=1) %>% 
       mutate(species = speciestoAnalyze, .before=1) %>% 
       pivot_wider(names_from = 'question', values_from = 'Median')
+    
+    # Make table of median of pooled quantiles for threat impact
+    t <- purrr::map(threat_data$pooled_dist, 2)
+    t <- purrr::map(t, .f = ~list(Q1=.x[1], Median=.x[2], Q3=.x[3]))
+    threat_info <- do.call(rbind.data.frame, t) %>% 
+      mutate(question = threat_data$dist_info_id, .before=1) %>% 
+      mutate(species = speciestoAnalyze, .before=1)
     
     # Bind pop and threat data back together
     all_data <- bind_rows(threat_data, pop_data) %>% 
