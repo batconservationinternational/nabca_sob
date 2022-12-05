@@ -3,9 +3,9 @@ calc_Impact <- function(dataDate,
                         dataFolder,
                         speciestoAnalyze,
                         countrytoAnalyze) {
-  
+
   # dataFolder=OutputFolder
-  # spp = "ANTROZOUS_PALLIDUS"
+  # spp = "EUDERMA_MACULATUM"
   # speciestoAnalyze=spp
   # countrytoAnalyze=thisCountry
 
@@ -84,12 +84,31 @@ calc_Impact <- function(dataDate,
     pop_info <- pop_info %>%  mutate(question = pop_data$q_type, .before=1) %>% 
       mutate(species = speciestoAnalyze, .before=1)
     
-    # Make table of median of pooled quantiles for threat impact
+    # Make table of pooled quantiles for threat impact
     t <- purrr::map(threat_data$pooled_dist, 2)
     t <- purrr::map(t, .f = ~list(Q1=.x[1], Median=.x[2], Q3=.x[3]))
     threat_info <- do.call(rbind.data.frame, t) %>% 
       mutate(question = threat_data$dist_info_id, .before=1) %>% 
       mutate(species = speciestoAnalyze, .before=1)
+    
+    # Make table of quantiles for scope and sev
+    ss <- sppData %>% filter(q_type %in% c("Scope", "Severity"))
+    ss_quantiles <- purrr::pluck(ss$Quantiles)
+    ss_info <- do.call(rbind.data.frame, ss_quantiles)
+    # If more than one expert response, filter to linear pool, otherwise keep the
+    # one expert's response
+    if (length(unique(ss_info$expert))>1){
+      ss_summary <- ss_info %>% filter(expert == 'linear pool') %>% 
+        mutate(scope_sev = ss$q_type, .before=1) %>% 
+        mutate(threat = ss$dist_info_id, .before=1) %>% 
+        mutate(species = speciestoAnalyze, .before=1) %>% select(-expert)
+      rownames(ss_summary) <- NULL
+    } else if (length(unique(ss_info$expert))==1){
+      ss_summary <- ss_info %>% mutate(scope_sev = ss$q_type, .before=1) %>% 
+        mutate(threat = ss$dist_info_id, .before=1) %>% 
+        mutate(species = speciestoAnalyze, .before=1) %>% select(-expert)
+      rownames(ss_summary) <- NULL
+    }
     
     # Bind pop and threat data back together
     all_data <- bind_rows(threat_data, pop_data) %>% 
@@ -101,5 +120,7 @@ calc_Impact <- function(dataDate,
     print(paste('Saving pooled data to:', out_file))
     saveRDS(all_data, file = out_file)
     
-    return(list(pop_info = pop_info, threat_info = threat_info))
+    return(list(pop_info = pop_info, 
+                threat_info = threat_info,
+                ss_summary = ss_summary))
 }
