@@ -86,14 +86,6 @@ calc_Impact <- function(dataDate,
     
     # Make table of median of pooled quantiles for threat impact
     t <- purrr::map(threat_data$pooled_dist, 2)
-    t <- purrr::map(t, .f = ~list(Median=.x[2]))
-    threat_impact_info <- do.call(rbind.data.frame, t) %>% 
-      mutate(question = threat_data$dist_info_id, .before=1) %>% 
-      mutate(species = speciestoAnalyze, .before=1) %>% 
-      pivot_wider(names_from = 'question', values_from = 'Median')
-    
-    # Make table of median of pooled quantiles for threat impact
-    t <- purrr::map(threat_data$pooled_dist, 2)
     t <- purrr::map(t, .f = ~list(Q1=.x[1], Median=.x[2], Q3=.x[3]))
     threat_info <- do.call(rbind.data.frame, t) %>% 
       mutate(question = threat_data$dist_info_id, .before=1) %>% 
