@@ -4,9 +4,9 @@
 # Date of data export (YYYYMMDD)
 thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
-thisCountry = 'United States'
+thisCountry = 'Mexico'
 # "US_CAN" or "MX"
-countryAbbr = 'US_CAN'
+countryAbbr = 'MX'
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate,
                       "_", thisCountry)
@@ -82,6 +82,7 @@ count=1
 failed_calc_impact = list()
 pop_df = data.frame()
 threat_df = data.frame()
+ss_summary = data.frame()
 for (spp in all_species){
   print(paste0("Calculating Impact for ", 
                spp, " (species ", count, "/", length(all_species), ")"))
@@ -93,6 +94,7 @@ for (spp in all_species){
                 countrytoAnalyze = thisCountry)
     pop_df <- pop_df %>% bind_rows(df$pop_info)
     threat_df <- threat_df %>% bind_rows(df$threat_info)
+    ss_summary <- ss_summary %>% bind_rows(df$ss_summary)
     message("Success.")
     },
     error = function(e){
@@ -110,6 +112,9 @@ write_csv(pop_df, here::here(pop_df_path))
 threat_df_path <- paste0(OutputFolder, "/threat_quantiles_agg_", thisCountry, "_", 
                          thisDataDate, ".csv")
 write_csv(threat_df, here::here(threat_df_path))
+ss_df_path <- paste0(OutputFolder, "/scop_sev_quantiles_agg_", thisCountry, "_", 
+                         thisDataDate, ".csv")
+write_csv(ss_summary, here::here(ss_df_path))
 
 # Make threat impact plots --------------------------------------------------
 count=1
