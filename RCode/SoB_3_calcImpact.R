@@ -5,7 +5,7 @@ calc_Impact <- function(dataDate,
                         countrytoAnalyze) {
 
   # dataFolder=OutputFolder
-  # spp = "EUDERMA_MACULATUM"
+  # spp = "MYOTIS_YUMANENSIS"
   # speciestoAnalyze=spp
   # countrytoAnalyze=thisCountry
 
@@ -95,20 +95,22 @@ calc_Impact <- function(dataDate,
     ss <- sppData %>% filter(q_type %in% c("Scope", "Severity"))
     ss_quantiles <- purrr::pluck(ss$Quantiles)
     ss_info <- do.call(rbind.data.frame, ss_quantiles)
+    
     # If more than one expert response, filter to linear pool, otherwise keep the
     # one expert's response
-    if (length(unique(ss_info$expert))>1){
-      ss_summary <- ss_info %>% filter(expert == 'linear pool') %>% 
-        mutate(scope_sev = ss$q_type, .before=1) %>% 
-        mutate(threat = ss$dist_info_id, .before=1) %>% 
-        mutate(species = speciestoAnalyze, .before=1) %>% select(-expert)
-      rownames(ss_summary) <- NULL
-    } else if (length(unique(ss_info$expert))==1){
-      ss_summary <- ss_info %>% mutate(scope_sev = ss$q_type, .before=1) %>% 
-        mutate(threat = ss$dist_info_id, .before=1) %>% 
-        mutate(species = speciestoAnalyze, .before=1) %>% select(-expert)
-      rownames(ss_summary) <- NULL
+    lp_filter <- function(item){
+      rownames(item) <- NULL
+      if (nrow(item)>1){
+        out <- item %>% filter(expert=='linear pool')
+        return(out)
+      } else {return(item)}
     }
+    
+    ss_lp <- ss_quantiles %>% purrr::map(lp_filter)
+    ss_summary <- do.call(rbind.data.frame, ss_lp) %>% 
+      mutate(scope_sev = ss$q_type, .before=1) %>% 
+      mutate(threat = ss$dist_info_id, .before=1) %>% 
+      mutate(species = speciestoAnalyze, .before=1) %>% select(-expert)
     
     # Bind pop and threat data back together
     all_data <- bind_rows(threat_data, pop_data) %>% 
