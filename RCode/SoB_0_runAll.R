@@ -112,7 +112,7 @@ write_csv(pop_df, here::here(pop_df_path))
 threat_df_path <- paste0(OutputFolder, "/threat_quantiles_agg_", thisCountry, "_", 
                          thisDataDate, ".csv")
 write_csv(threat_df, here::here(threat_df_path))
-ss_df_path <- paste0(OutputFolder, "/scop_sev_quantiles_agg_", thisCountry, "_", 
+ss_df_path <- paste0(OutputFolder, "/scope_sev_quantiles_agg_", thisCountry, "_", 
                          thisDataDate, ".csv")
 write_csv(ss_summary, here::here(ss_df_path))
 
