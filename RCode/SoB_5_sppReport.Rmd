@@ -239,6 +239,7 @@ The expert rated the threat as 'negligible' if min = 0, central = 0.5, max = 1, 
 
 ```{r overall_expert_threat_estimate}
 threats_df <- scope_sev %>% filter(!q_type %in% c("popSize","popTrend"))
+
 df <- data.frame()
 for (i in seq(1:nrow(threats_df))){
   id <-  threats_df[i,]$dist_info_id
@@ -249,13 +250,19 @@ for (i in seq(1:nrow(threats_df))){
   df <- df %>% bind_rows(rows_to_bind)
 }
 
-df %>% pivot_wider(names_from = Q_ss, values_from = Median) %>% 
+df_out <- df %>% pivot_wider(names_from = Q_ss, values_from = Median) %>% 
   mutate(impact_estimate = Scope * Severity) %>% 
   select(-Scope, -Severity) %>%   
   pivot_wider(names_from = threat, values_from = impact_estimate) %>%
   replace(is.na(.), 0) %>% 
-  mutate(total_impact = rowSums(across(where(is.numeric)))) %>%
-  select(expert, total_impact) %>%
+  mutate(total_impact = rowSums(across(where(is.numeric)))) %>% 
+  mutate(species = params$spp) %>% select(expert, species, total_impact)
+
+df_path <- paste0(params$rootDir, "/threat_sums_", thisCountry, ".csv")
+write_csv(df_out, df_path, append = TRUE)
+
+df_out %>%
+  select(-species) %>%
   knitr::kable(digits = 5, col.names = c("expert", "Total Impact Estimate"),
                caption = paste0("Sum of median threat estimates for each expert for ", spp))
 ```
