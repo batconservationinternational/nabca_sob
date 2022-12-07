@@ -567,4 +567,58 @@ make_rangeGraphs <- function(data, spp, thiscntry) {
 
 
 
+# Function to bin scope values
+bin_scope <- function(val){
+  bin <- case_when(
+    val < 0.01 ~ "Negligible (<1%)",
+    val >= 0.01 & val <= 0.1 ~ "Small (1-10%)",
+    val >= 0.1 & val <= 0.3 ~ "Restricted (11-30%)",
+    val >= 0.3 & val <= 0.7 ~ "Large (71-100%)",
+    val > 0.7 ~ "Pervasive (71-100%)",
+    is.na(val) ~ "Unknown"
+  )
+  return(bin)
+}
 
+
+
+
+
+
+
+# Function to bin severity values
+bin_sev <- function(val){
+  bin <- case_when(
+    val < 0.01 ~ "Negligible or <1% pop. decline",
+    val >= 0.01 & val <= 0.1 ~ "Slight or 1-10% pop. decline",
+    val >= 0.1 & val <= 0.3 ~ "Moderate or 11-30% pop. decline",
+    val >= 0.3 & val <= 0.7 ~ "Serious or 31-70% pop. decline",
+    val > 0.7 ~ "Extreme or 71-100% pop. decline",
+    is.na(val) ~ "Unknown"
+  )
+  return(bin)
+}
+
+
+
+
+
+
+
+# Function to determine impact of threat
+bin_impact <- function(scope, sev){
+  bin <- case_when(
+    scope == "Small (1-10%)" | sev == "Slight or 1-10% pop. decline" ~ "Low",
+    scope == "Restricted (11-30%)" & sev == "Moderate or 11-30% pop. decline" ~ "Low",
+    scope == "Restricted (11-30%)" & 
+      sev %in% c("Serious or 31-70% pop. decline", "Extreme or 71-100% pop. decline") ~ "Medium",
+    scope %in% c("Large (71-100%)", "Pervasive (71-100%)") & sev == "Moderate or 11-30% pop. decline" ~ "Medium",
+    scope == "Large (71-100%)" & 
+      sev %in% c("Serious or 31-70% pop. decline", "Extreme or 71-100% pop. decline") ~ "High",
+    scope == "Pervasive (71-100%)" & sev == "Serious or 31-70% pop. decline" ~ "High",
+    scope == "Pervasive (71-100%)" & sev == "Extreme or 71-100% pop. decline" ~ "Very High",
+    scope == "Negligible (<1%)" & sev == "Negligible or <1% pop. decline" ~ "Negligible",
+    scope == "Unknown" | sev == "Unknown" ~ "Unknown"
+  )
+  return(bin)
+}
