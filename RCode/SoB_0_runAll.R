@@ -45,6 +45,9 @@ weird_pop_size <- formattedData$weird_pop_size
 weird_percentage <- formattedData$weird_percentage
 na_answers <- formattedData$na_answers
 
+all_species <- unique(d$sppcode)
+print(all_species)
+
 write_csv(d, paste0(OutputFolder, '/cleaned_responses_', thisCountry,
                     '_', thisDataDate, '.csv'))
 
@@ -52,9 +55,6 @@ write_csv(d, paste0(OutputFolder, '/cleaned_responses_', thisCountry,
 rangeGraphs <- graphRangeQ(data)
 
 # Loop through species and analyze data for each expert------------------------
-all_species <- unique(d$sppcode)
-print(all_species)
-
 count = 1
 failed_analyze = list()
 for (spp in all_species){
