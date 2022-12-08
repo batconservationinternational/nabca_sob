@@ -4,9 +4,9 @@
 # Date of data export (YYYYMMDD)
 thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
-thisCountry = 'Mexico'
+thisCountry = 'Canada'
 # "US_CAN" or "MX"
-countryAbbr = 'MX'
+countryAbbr = 'US_CAN'
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate,
                       "_", thisCountry)
@@ -182,3 +182,13 @@ for (i in seq(1:length(species))){
   )
   count <- count+1
 }
+
+# Bin threat impacts following NatureServe guidelines--------------------------
+impact_bins_out = get_impact_bins(dataFolder = OutputFolder, 
+                countrytoAnalyze = thisCountry, 
+                dataDate = thisDataDate)
+
+overall_impact <- impact_bins_out$overall_impact
+binned_threat_data <- impact_bins_out$binned_data
+level_one_threat_bins <- impact_bins_out$level_one_bins
+
