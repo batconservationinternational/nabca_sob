@@ -5,19 +5,58 @@ get_impact_bins <- function(dataFolder, countrytoAnalyze, dataDate){
   
   # Load in data
   files <- list.files(dataFolder, full.names = T)
-  files <- files[grepl("scop_sev_quantiles_agg_*", files)]
+  files <- files[str_detect(files, "scop_sev_quantiles_agg_")]
   f <- files[str_detect(files, countrytoAnalyze) & str_detect(files, )]
   print(paste0('reading: ', f))
   threat_data <- read_csv(f)
   
   # Bin median scope and severity values and pivot wider
+  # bin_scope, bin_sev, and bin_impact function in SoB_f_general.R
   binned_data <- threat_data %>% 
     mutate(scope_sev_bin = case_when(
       scope_sev == "Scope" ~ bin_scope(Median),
       scope_sev == "Severity" ~ bin_sev(Median)
     )) %>% select(species, threat, scope_sev, scope_sev_bin) %>% 
     pivot_wider(names_from = scope_sev, values_from = scope_sev_bin) %>% 
-    mutate(impact_bin = bin_impact(Scope, Severity))
+    mutate(impact_bin = bin_impact(Scope, Severity)) %>% 
+    separate(col = threat, into = c("level_1", "level_2"), sep = "_") %>% 
+    mutate(impact_bin = factor(impact_bin, 
+                               levels = c("Negligible","Low","Medium","High","Very High"),
+                               ordered = TRUE))
   
-  return(binned_data)
+  # Roll up level 2 threats and calculate level 1 threat
+  level_one_bins <- binned_data %>% group_by(species, level_1, impact_bin) %>%
+    # Take highest level sub threat and use that as overall threat - not sure if this is a good way to do this
+    summarise(count = n()) %>% filter(impact_bin == max(impact_bin)) %>% 
+    select(-count)
+  
+  # Assign overall impact value for each species
+  overall_impact <- level_one_bins %>% group_by(species, impact_bin) %>% 
+    summarise(count = n()) %>% 
+    pivot_wider(names_from = impact_bin, values_from = count, values_fill = 0)
+  
+  my_cols <- c("Negligible","Low","Medium","High","Very High")
+  
+  # Add column of 0s if any of the impact bins weren't present in the dataset 
+  # so it doesn't error when calculating overall impact bins
+  for (i in my_cols){
+    if (!i %in% names(overall_impact)){
+      col_i <- paste0(i)
+      overall_impact[col_i] <- 0
+    }
+  }
+  
+  # Bin overall impact based on level 1 threat bins
+  overall_impact <- overall_impact %>% 
+    mutate(overall_impact_val = case_when(
+      `Very High`>=1 | High>=2 | (High==1 & Medium>=2) ~ "Very High",
+      High==1 | Medium>=3 | (Medium==2 & Low==2) | (Medium==1 & Low>=3) ~ "High",
+      Medium==1 | Low>=4 ~ "Medium",
+      Low>=1 | Low<=3 ~ "Low"
+    )) %>% select(species, overall_impact_val)
+  
+  
+  return(list(overall_impact = overall_impact,
+              binned_data = binned_data,
+              level_one_bins = level_one_bins))
 }
