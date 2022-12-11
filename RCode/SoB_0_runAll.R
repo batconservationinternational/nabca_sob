@@ -4,9 +4,9 @@
 # Date of data export (YYYYMMDD)
 thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
-thisCountry = 'Canada'
+thisCountry = 'Mexico'
 # "US_CAN" or "MX"
-countryAbbr = 'US_CAN'
+countryAbbr = 'UMX'
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate,
                       "_", thisCountry)
