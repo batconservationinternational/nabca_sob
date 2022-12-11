@@ -6,7 +6,7 @@ get_impact_bins <- function(dataFolder, countrytoAnalyze, dataDate){
   # Load in data
   files <- list.files(dataFolder, full.names = T)
   files <- files[str_detect(files, "scop_sev_quantiles_agg_")]
-  f <- files[str_detect(files, countrytoAnalyze) & str_detect(files, )]
+  f <- files[str_detect(files, countrytoAnalyze) & str_detect(files, dataDate)]
   print(paste0('reading: ', f))
   threat_data <- read_csv(f)
   

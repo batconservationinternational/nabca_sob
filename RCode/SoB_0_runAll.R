@@ -29,6 +29,7 @@ source(paste0(here::here(), '/RCode/SoB_1_formatData.R'))
 source(paste0(here::here(), '/RCode/SoB_2_analyzeQ.R'))
 source(paste0(here::here(), '/RCode/SoB_3_calcImpact.R'))
 source(paste0(here::here(), '/RCode/SoB_4_generateImpactPlots.R'))
+source(paste0(here::here(), '/RCode/SoB_7_threatBuckets.R'))
 source(paste0(here::here(), '/RCode/SoB_f_general.R'))
 source(paste0(here::here(), '/RCode/SoB_f_calcImpact.R'))
 source(paste0(here::here(), '/RCode/SoB_f_makeImpactPlot.R'))
@@ -188,5 +189,5 @@ impact_bins_out = get_impact_bins(dataFolder = OutputFolder,
                 countrytoAnalyze = thisCountry, 
                 dataDate = thisDataDate)
 
-impact_bins_path <- paste0(OutputFolder, "/impact_bins_", thisCountry, "_", thisDataDate, ".csv")
+impact_bins_path <- paste0(OutputFolder, "/impact_bins_", thisCountry, "_", thisDataDate, ".xlsx")
 write.xlsx(impact_bins_out, impact_bins_path)
