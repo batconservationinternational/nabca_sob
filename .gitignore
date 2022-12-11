@@ -5,6 +5,7 @@
 .DS_Store
 *.RDS
 RangeGraphs
+*.png
 *.txt
 Derived
 *.pdf

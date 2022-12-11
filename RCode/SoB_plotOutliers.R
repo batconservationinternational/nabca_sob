@@ -3,8 +3,12 @@ library(readxl)
 library(plotly)
 library(htmlwidgets)
 
-t <- read_csv("/Users/ngoodby/Desktop/nabca_sob/threat_sums_Mexico.csv", 
-              col_names = c("expert","species", "sum_threats")) %>% 
+# Change country name to United States, Canada, or Mexico, then run
+cntry <- "United States"
+
+threat_sums_path <- sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/threat_sums/threat_sums_%s.csv", cntry)
+
+t <- read_csv(threat_sums_path, col_names = c("expert","species", "sum_threats")) %>% 
   filter(expert != "linear pool")
 
 
@@ -17,7 +21,7 @@ my_plot <- ggplot(t, aes(x=expert, y=sum_threats, color = species)) +
   geom_point() + 
   theme(axis.text.x = element_text(angle = 90), legend.position="none") + 
   geom_hline(yintercept=1, linetype='dotted', col = 'red') +
-  labs(title = "Total estimated threat impact for each expert for each MX species", 
+  labs(title = sprintf("Total estimated threat impact for each expert for each species in %s", cntry), 
        caption = "*Red numbers are count of species where the expert's estimated impact total was >1.") +
   ylab("Sum of estimated threat impacts") +
   xlab("") +
@@ -26,8 +30,7 @@ my_plot <- ggplot(t, aes(x=expert, y=sum_threats, color = species)) +
             color="red", 
             size=4,fontface="bold")
 
-
 my_plotly <- ggplotly(my_plot, tooltip = "colour")
 
-# ggsave("MX_threat_sums.png", plot = my_plot)
-htmlwidgets::saveWidget(my_plotly, "MX_threat_sums.html")
+htmlwidgets::saveWidget(my_plotly, 
+                        sprintf("%s/data_checks/%s_threat_sums.html", here::here(), cntry))

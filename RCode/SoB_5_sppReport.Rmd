@@ -258,7 +258,7 @@ df_out <- df %>% pivot_wider(names_from = Q_ss, values_from = Median) %>%
   mutate(total_impact = rowSums(across(where(is.numeric)))) %>% 
   mutate(species = params$spp) %>% select(expert, species, total_impact)
 
-df_path <- paste0(params$rootDir, "/threat_sums_", thisCountry, ".csv")
+df_path <- paste0(params$rootDir, "/Data/derived/threat_sums/threat_sums_", thisCountry, ".csv")
 write_csv(df_out, df_path, append = TRUE)
 
 df_out %>%

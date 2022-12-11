@@ -188,7 +188,5 @@ impact_bins_out = get_impact_bins(dataFolder = OutputFolder,
                 countrytoAnalyze = thisCountry, 
                 dataDate = thisDataDate)
 
-overall_impact <- impact_bins_out$overall_impact
-binned_threat_data <- impact_bins_out$binned_data
-level_one_threat_bins <- impact_bins_out$level_one_bins
-
+impact_bins_path <- paste0(OutputFolder, "/impact_bins_", thisCountry, "_", thisDataDate, ".csv")
+write.xlsx(impact_bins_out, impact_bins_path)
