@@ -6,7 +6,7 @@ thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
 thisCountry = 'Mexico'
 # "US_CAN" or "MX"
-countryAbbr = 'UMX'
+countryAbbr = 'MX'
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate,
                       "_", thisCountry)
@@ -29,10 +29,11 @@ source(paste0(here::here(), '/RCode/SoB_1_formatData.R'))
 source(paste0(here::here(), '/RCode/SoB_2_analyzeQ.R'))
 source(paste0(here::here(), '/RCode/SoB_3_calcImpact.R'))
 source(paste0(here::here(), '/RCode/SoB_4_generateImpactPlots.R'))
-source(paste0(here::here(), '/RCode/SoB_7_threatBuckets.R'))
 source(paste0(here::here(), '/RCode/SoB_f_general.R'))
 source(paste0(here::here(), '/RCode/SoB_f_calcImpact.R'))
 source(paste0(here::here(), '/RCode/SoB_f_makeImpactPlot.R'))
+source(paste0(here::here(), '/RCode/SoB_f_threatBuckets.R'))
+source(paste0(here::here(), '/RCode/SoB_f_popBuckets.R'))
 
 options(scipen = 999)
 
@@ -185,9 +186,15 @@ for (i in seq(1:length(species))){
 }
 
 # Bin threat impacts following NatureServe guidelines--------------------------
-impact_bins_out = get_impact_bins(dataFolder = OutputFolder, 
+impact_bins_out <-  get_impact_bins(dataFolder = OutputFolder, 
                 countrytoAnalyze = thisCountry, 
                 dataDate = thisDataDate)
-
 impact_bins_path <- paste0(OutputFolder, "/impact_bins_", thisCountry, "_", thisDataDate, ".xlsx")
 write.xlsx(impact_bins_out, impact_bins_path)
+
+# Bin population size----------------------------------------------------------
+pop_bins_out <- get_pop_bins(dataFolder = OutputFolder,
+                            countrytoAnalyze = thisCountry,
+                            dataDate = thisDataDate)
+pop_bins_path <- paste0(OutputFolder, "/pop_bins_", thisCountry, "_", thisDataDate, ".csv")
+write_csv(pop_bins_out, pop_bins_path)
