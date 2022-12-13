@@ -33,7 +33,7 @@ get_impact_bins <- function(dataFolder, countrytoAnalyze, dataDate){
       scope_sev == "Severity" ~ bin_sev(l2_mean)
     )) %>% select(species, level_1, scope_sev, scope_sev_bin) %>% 
     pivot_wider(names_from = scope_sev, values_from = scope_sev_bin) %>% 
-    mutate(impact_bin = bin_impact(Scope, Severity))
+    mutate(impact_bin = bin_impact(Scope, Severity)) %>% 
     mutate(impact_bin = factor(impact_bin, 
                                levels = c("Negligible","Low","Medium","High","Very High"),
                                ordered = TRUE))
