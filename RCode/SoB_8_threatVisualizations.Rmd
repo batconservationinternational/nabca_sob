@@ -1,0 +1,74 @@
+---
+title: "NABCA SoB Visualizations"
+output: html_document
+date: "`r sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+```
+
+```{r}
+cntry <- "United States"
+data_date <- "20221116"
+```
+
+```{r}
+# Load threat name key
+threats <- read_csv("/Users/ngoodby/Desktop/nabca_sob/Data/ThreatNum.csv")
+# Load and format overall threat impact data
+threats_df_path <- sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_%s/impact_bins_%s_%s.xlsx",
+                           data_date, cntry, cntry, data_date)
+threat_df <- read_excel(threats_df_path, sheet=1)
+
+threat_df$overall_impact_val <- factor(threat_df$overall_impact_val,
+                                       levels = c("Negligible", "Low","Medium",
+                                                  "High","Very High"))
+# Load and format pop size and trend data
+pop_df_path <- sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_%s/pop_quantiles_agg_%s_%s.csv",
+                           data_date, cntry, cntry, data_date)
+pop_df <- read_csv(pop_df_path)
+pop_df <- pop_df %>% select(-Q1, -Q3) %>% 
+  pivot_wider(names_from = question, values_from = Median)
+# Load and format level 1 threat data
+l1_threats <- read_excel(threats_df_path, sheet=3) %>% 
+  left_join(threats, by=c("level_1"="Q_group"))
+l1_threats$impact_bin <- factor(l1_threats$impact_bin,
+                                       levels = c("Negligible", "Low","Medium",
+                                                  "High","Very High"))
+```
+
+```{r}
+df <- pop_df %>% left_join(threat_df)
+
+ggplot(data = df, aes(x=popSize, y=popTrend, color = overall_impact_val)) +
+  geom_point() +
+  scale_x_log10(label = comma) +
+  scale_colour_brewer(palette = "Reds")
+```
+
+```{r}
+ggplot(data=l1_threats, aes(x=impact_bin)) +
+  geom_histogram(stat="count", fill='blue') +
+  facet_wrap(~threat_abbrev, labeller = labeller(threat_abbrev = label_wrap_gen(15))) +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r}
+sub_t_count <- threats %>% group_by(threat_abbrev) %>% 
+  summarize(num_sub_t=n())
+
+s <- l1_threats %>% left_join(sub_t_count)
+
+s <- s %>% group_by(threat_abbrev,impact_bin, num_sub_t) %>% 
+  summarize(count_instances = n()) %>% 
+  mutate(standardized = count_instances/num_sub_t)
+
+ggplot(data=s, aes(x=impact_bin, y=standardized)) +
+  geom_bar(stat='identity', fill='blue') +
+  facet_wrap(~threat_abbrev, labeller = labeller(threat_abbrev = label_wrap_gen(15))) +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
