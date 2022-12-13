@@ -20,4 +20,5 @@ get_pop_bins <- function(dataFolder, countrytoAnalyze, dataDate){
     ) %>% select(species, Median, pop_bin)
 
   return(binned_pop_df)
+}
     
