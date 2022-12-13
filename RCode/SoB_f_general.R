@@ -622,3 +622,4 @@ bin_impact <- function(scope, sev){
   )
   return(bin)
 }
+
