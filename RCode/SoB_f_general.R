@@ -521,7 +521,7 @@ make_rangeGraphs <- function(data, spp, thiscntry) {
       '20,000-200,000',
       '200,000-2,500,000',
       '>2,500,000'
-    )
+    ), ordered=T
   )
   
   h <- ggplot(data = D,
@@ -557,7 +557,7 @@ make_rangeGraphs <- function(data, spp, thiscntry) {
     plot = h
   )
   
-  return(h)
+  return(list(range_map=h, range_data=D))
 }
 
 
