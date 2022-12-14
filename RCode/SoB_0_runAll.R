@@ -4,9 +4,9 @@
 # Date of data export (YYYYMMDD)
 thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
-thisCountry = 'Mexico'
+thisCountry = 'Canada'
 # "US_CAN" or "MX"
-countryAbbr = 'MX'
+countryAbbr = 'US_CAN'
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate,
                       "_", thisCountry)
@@ -34,10 +34,13 @@ source(paste0(here::here(), '/RCode/SoB_f_calcImpact.R'))
 source(paste0(here::here(), '/RCode/SoB_f_makeImpactPlot.R'))
 source(paste0(here::here(), '/RCode/SoB_f_threatBuckets.R'))
 source(paste0(here::here(), '/RCode/SoB_f_popBuckets.R'))
+source(paste0(here::here(), '/RCode/SoB_f_calcGRank.R'))
 
 options(scipen = 999)
 
-# Format Data Properly for Analysis ---------------------------------------
+# Format Data Properly for Analysis -------------------------------------------
+# Note: you will need to run the below code to be able to run most of the code 
+# below because it uses the species list generated from the data
 formattedData <- formatData(thisDataDate, thisCountry, countryAbbr)
 nestedData <- formattedData$data_nested
 d <- formattedData$data_l
@@ -54,7 +57,21 @@ write_csv(d, paste0(OutputFolder, '/cleaned_responses_', thisCountry,
                     '_', thisDataDate, '.csv'))
 
 # Make Range Graphs -----------------------------------------------------------
-rangeGraphs <- graphRangeQ(data)
+rangeGraphs <- graphRangeQ(data) %>% filter(cntry==thisCountry)
+# Extract expert range estimate and save as .csv to use for g-rankings
+range_list <- purrr::pluck(rangeGraphs, "longD")
+species <- rangeGraphs$spp
+names(range_list) <- species
+range_list <- purrr::map(range_list, ~.$range_data)
+get_range <- function(df){
+  val <- df %>% filter(total==max(total)) %>% 
+    filter(rangeKM==max(rangeKM)) %>% pull(rangeKM)
+  return(val)
+}
+range_df <- purrr::map(range_list, get_range) %>% as_tibble() %>% 
+  pivot_longer(everything()) %>% rename(c("species"="name","range"="value"))
+range_path <- paste0(OutputFolder, "/range_", thisCountry, "_", thisDataDate, ".csv")
+write_csv(range_df, range_path)
 
 # Loop through species and analyze data for each expert------------------------
 count = 1
@@ -186,7 +203,7 @@ for (i in seq(1:length(species))){
 }
 
 # Bin threat impacts following NatureServe guidelines--------------------------
-impact_bins_out <-  get_impact_bins(dataFolder = OutputFolder, 
+impact_bins_out <- get_impact_bins(dataFolder = OutputFolder, 
                 countrytoAnalyze = thisCountry, 
                 dataDate = thisDataDate)
 impact_bins_path <- paste0(OutputFolder, "/impact_bins_", thisCountry, "_", thisDataDate, ".xlsx")
@@ -196,5 +213,12 @@ write.xlsx(impact_bins_out, impact_bins_path)
 pop_bins_out <- get_pop_bins(dataFolder = OutputFolder,
                             countrytoAnalyze = thisCountry,
                             dataDate = thisDataDate)
-pop_bins_path <- paste0(OutputFolder, "/pop_bins_", thisCountry, "_", thisDataDate, ".csv")
-write_csv(pop_bins_out, pop_bins_path)
+pop_bins_path <- paste0(OutputFolder, "/pop_bins_", thisCountry, "_", thisDataDate, ".xlsx")
+write.xlsx(pop_bins_out, pop_bins_path)
+
+# Calculate G Ranking-----------------------------------------------------------
+g_rank_out <- get_g_rank(dataFolder = OutputFolder,
+                         countrytoAnalyze = thisCountry,
+                         dataDate = thisDataDate)
+g_rank_path <- paste0(OutputFolder, "/g_rankings_", thisCountry, "_", thisDataDate, ".csv")
+write_csv(g_rank_out, g_rank_path)
