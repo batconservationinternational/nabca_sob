@@ -73,3 +73,26 @@ ggplot(data=s, aes(x=impact_bin, y=standardized)) +
   theme(axis.text.x = element_text(angle = 90))
 ```
 
+```{r G Rank data}
+# Load and format G Rankings
+g_rank_us <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_United States/g_rankings_United States_%s.csv", data_date, data_date))
+g_rank_ca <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_Canada/g_rankings_Canada_%s.csv", data_date, data_date))
+g_rank_mx <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_Mexico/g_rankings_Mexico_%s.csv", data_date, data_date))
+
+g_rank_df <- g_rank_us %>% bind_rows(g_rank_ca) %>% bind_rows(g_rank_mx)
+```
+
+```{r}
+g_rank_bar <- ggplot(data=g_rank_df, aes(x=g_rank, fill=species)) +
+  geom_histogram(stat="count") +
+  facet_wrap(~country) +
+  xlab(NULL) +
+  ylab("Count of Species") +
+  theme(legend.position="none")
+
+g_rank_plotly <- ggplotly(g_rank_bar, tooltip='fill')
+
+htmlwidgets::saveWidget(g_rank_plotly, 
+                        sprintf("%s/visualizations/%s_g_rank.html", here::here(), data_date))
+```
+
