@@ -1,0 +1,115 @@
+---
+title: "Untitled"
+output: html_document
+date: "2022-12-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse) 
+library(cluster)
+library(fpc)
+library(dbscan)
+library(factoextra)
+library(readxl)
+library(plotly)
+```
+
+```{r set country and data date}
+cntry <- "Mexico"
+data_date <- "20221116"
+```
+
+```{r load data}
+# load in scope sev continuous data
+scope_sev_path <- sprintf("%s/Data/derived/AnalysisExport_%s_%s/scope_sev_quantiles_agg_%s_%s.csv", 
+                               here::here(), data_date, cntry, cntry, data_date)
+scope_sev_df <- read_csv(scope_sev_path) %>% select(-Q1, -Q3, -P99) %>% 
+  mutate(scope_sev = str_to_lower(scope_sev)) %>% 
+  pivot_wider(names_from = scope_sev, values_from = Median) %>% 
+  mutate(impact = scope * severity) %>% 
+  pivot_wider(names_from = threat, values_from = c(scope, severity, impact))
+
+# load in scope sev bins
+bins_path <- sprintf("%s/Data/derived/AnalysisExport_%s_%s/impact_bins_%s_%s.xlsx", 
+                here::here(), data_date, cntry, cntry, data_date)
+
+bins_df <- read_excel(bins_path, sheet = 2) %>% select(-Scope, -Severity) %>% 
+  unite(col="question", c('level_1','level_2'), remove=T, sep="_")
+bins_df$impact_bin <- as.numeric(factor(bins_df$impact_bin, 
+                             levels = c("Negligible","Low","Medium","High","Very High")))
+bins_df <- bins_df %>% pivot_wider(names_from = question, values_from = impact_bin)
+
+# load in pop size and trend data
+pop_path <- sprintf("%s/Data/derived/AnalysisExport_%s_%s/pop_quantiles_agg_%s_%s.csv", 
+                    here::here(), data_date, cntry, cntry, data_date)
+pop_df <- read_csv(pop_path) %>% select(-Q1, -Q3) %>% 
+  pivot_wider(names_from = question, values_from = Median)
+```
+
+```{r join data}
+# join scope sev continuous data with pop data for analysis
+df <- scope_sev_df %>% left_join(pop_df) %>% 
+  #drop columns that have same value because don't explain any variation
+  select(where(~n_distinct(.) > 1))
+```
+
+```{r standardize data}
+# Standardize data to mean zero and standard deviation one
+values <- scale(df[2:length(df)]) 
+values[is.na(values)] = 0
+species <- df[1]
+rownames(values) <- df[[1]]
+```
+
+```{r PCA}
+#calculate principal components
+results <- prcomp(values, center=T, scale = T)
+summary(results)
+# eigenvectors in R point in the negative direction by default, so we’ll multiply by -1 to reverse the signs
+results$rotation <- -1*results$rotation
+
+#display principal components
+results$rotation
+
+fviz_contrib(results, choice = "var", axes = 1, top = 100)
+
+# library(ggbiplot)
+# ggbiplot(results)
+```
+
+```{r}
+var <- get_pca_var(results)
+head(var$contrib, 4)
+
+#calculate total variance explained by each principal component
+var_explained = results$sdev^2 / sum(results$sdev^2)
+
+#create scree plot
+qplot(c(1:nrow(df)), var_explained) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0, 1)
+```
+
+```{r DBSCAN}
+# plot the eps values
+eps_plot = kNNdistplot(values, k=3)
+
+# eyeball and draw an optimum line
+eps_plot %>% abline(h = 5, lty = 2)
+
+set.seed(50)
+d <- dbscan::dbscan(values, eps = 5, minPts =  2)
+d
+
+# cluster visualization
+t <- fviz_cluster(d, values, geom = "point")
+ggplotly(t)
+```
+
