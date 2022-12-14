@@ -27,10 +27,11 @@ get_impact_bins <- function(dataFolder, countrytoAnalyze, dataDate){
   # Roll up level 2 threats and calculate level 1 threat-----------------------
   level_one_bins <- threat_data %>% 
     separate(col = threat, into = c("level_1", "level_2"), sep = "_") %>% 
-    group_by(species, level_1, scope_sev) %>% summarize(l2_mean = sum(Median)) %>% 
+    # sum level 2 threats to get impact score for the level 1 threat
+    group_by(species, level_1, scope_sev) %>% summarize(l2_sum = sum(Median)) %>% 
     mutate(scope_sev_bin = case_when(
-      scope_sev == "Scope" ~ bin_scope(l2_mean),
-      scope_sev == "Severity" ~ bin_sev(l2_mean)
+      scope_sev == "Scope" ~ bin_scope(l2_sum),
+      scope_sev == "Severity" ~ bin_sev(l2_sum)
     )) %>% select(species, level_1, scope_sev, scope_sev_bin) %>% 
     pivot_wider(names_from = scope_sev, values_from = scope_sev_bin) %>% 
     mutate(impact_bin = bin_impact(Scope, Severity)) %>% 
