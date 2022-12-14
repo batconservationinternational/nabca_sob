@@ -5,10 +5,13 @@
 .DS_Store
 *.RDS
 RangeGraphs
+*.js
+*.css
+*.map
 *.png
 *.txt
 Derived
 *.pdf
 *.tex
 *.log
-*.html
+*.scss
