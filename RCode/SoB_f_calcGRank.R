@@ -90,9 +90,10 @@ get_g_rank <- function(dataFolder, countrytoAnalyze, dataDate){
         g_rank_num>3.5 & g_rank_num<=4.5 ~ "G4",
         g_rank_num>4.5 ~ "G5"
       )
-    )
+    ) %>% 
+    mutate(country = countrytoAnalyze)
   
-  out <- df %>% select(species, pop_size_bin, pop_trend_bin, overall_impact_val,
-                       range, g_rank)
+  out <- df %>% select(species, country, pop_size_bin, pop_trend_bin, 
+                       overall_impact_val, range, g_rank)
   return(out)
 }
