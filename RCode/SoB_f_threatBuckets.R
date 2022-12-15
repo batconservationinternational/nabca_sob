@@ -75,6 +75,7 @@ get_impact_bins <- function(dataFolder, countrytoAnalyze, dataDate){
   
   # Add column of 0s if any of the impact bins weren't present in the dataset 
   # so it doesn't error when calculating overall impact bins
+  my_cols <- c("Negligible","Low","Medium","High","Very High")
   for (i in my_cols){
     if (!i %in% names(overall_impact)){
       col_i <- paste0(i)
