@@ -4,9 +4,9 @@
 # Date of data export (YYYYMMDD)
 thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
-thisCountry = 'Canada'
+thisCountry = 'Mexico'
 # "US_CAN" or "MX"
-countryAbbr = 'US_CAN'
+countryAbbr = 'MX'
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate,
                       "_", thisCountry)
@@ -220,5 +220,15 @@ write.xlsx(pop_bins_out, pop_bins_path)
 g_rank_out <- get_g_rank(dataFolder = OutputFolder,
                          countrytoAnalyze = thisCountry,
                          dataDate = thisDataDate)
+
+# add on additional agreed upon rankings for MX
+if (thisCountry=="Mexico"){
+  mx_g_ranks <- read_csv(here::here("Data", "MX_granks.csv")) %>% 
+    unite("species", c("Genus", "Species"), sep = "_") %>% 
+    mutate(species = str_to_upper(species),
+           country = "Mexico") %>% 
+    rename(c("g_rank" = "Global Ranking"))
+  g_rank_out <- g_rank_out %>% bind_rows(mx_g_ranks)
+}
 g_rank_path <- paste0(OutputFolder, "/g_rankings_", thisCountry, "_", thisDataDate, ".csv")
 write_csv(g_rank_out, g_rank_path)
