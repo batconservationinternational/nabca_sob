@@ -8,52 +8,65 @@ date: "`r sys.Date()`"
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(readxl)
+library(plotly)
+library(htmlwidgets)
 ```
 
 ```{r}
-cntry <- "United States"
 data_date <- "20221116"
 ```
 
 ```{r}
 # Load threat name key
 threats <- read_csv("/Users/ngoodby/Desktop/nabca_sob/Data/ThreatNum.csv")
+
+countries <- c("United States", "Canada", "Mexico")
+
 # Load and format overall threat impact data
-threats_df_path <- sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_%s/impact_bins_%s_%s.xlsx",
-                           data_date, cntry, cntry, data_date)
-threat_df <- read_excel(threats_df_path, sheet=1)
+threats_df <- data.frame()
+for (i in countries){
+  threats_df_add <- read_excel(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_%s/impact_bins_%s_%s.xlsx", 
+                                 data_date, i, i, data_date), sheet=1) %>% 
+    mutate(country = i)
+  threats_df <- threats_df %>% bind_rows(threats_df_add)
+}
+threats_df$overall_impact_val <- factor(threats_df$overall_impact_val,
+                                     levels = c("Negligible", "Low","Medium",
+                                                "High","Very High"))
 
-threat_df$overall_impact_val <- factor(threat_df$overall_impact_val,
-                                       levels = c("Negligible", "Low","Medium",
-                                                  "High","Very High"))
 # Load and format pop size and trend data
-pop_df_path <- sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_%s/pop_quantiles_agg_%s_%s.csv",
-                           data_date, cntry, cntry, data_date)
-pop_df <- read_csv(pop_df_path)
-pop_df <- pop_df %>% select(-Q1, -Q3) %>% 
-  pivot_wider(names_from = question, values_from = Median)
+pop_df <- data.frame()
+for (i in countries){
+  pop_df_add <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_%s/pop_quantiles_agg_%s_%s.csv", 
+                                 data_date, i, i, data_date)) %>% 
+    select(-Q1, -Q3) %>% 
+    pivot_wider(names_from = question, values_from = Median) %>% 
+    mutate(country = i)
+  pop_df <- pop_df %>% bind_rows(pop_df_add)
+}
+
 # Load and format level 1 threat data
-l1_threats <- read_excel(threats_df_path, sheet=3) %>% 
-  left_join(threats, by=c("level_1"="Q_group"))
+l1_threats <- data.frame()
+for (i in countries){
+  l1_add <- read_excel(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_%s/impact_bins_%s_%s.xlsx", 
+                                 data_date, i, i, data_date), sheet=2) %>% 
+    left_join(threats, by=c("level_1"="Q_group")) %>% 
+    mutate(country = i)
+  l1_threats <- l1_threats %>% bind_rows(l1_add) 
+}
 l1_threats$impact_bin <- factor(l1_threats$impact_bin,
-                                       levels = c("Negligible", "Low","Medium",
-                                                  "High","Very High"))
+                                       levels = c("Negligible", "Low", "Medium",
+                                                  "High", "Very High"))
 ```
 
 ```{r}
-df <- pop_df %>% left_join(threat_df)
+df <- pop_df %>% left_join(threats_df) 
 
-ggplot(data = df, aes(x=popSize, y=popTrend, color = overall_impact_val)) +
+ggplot(data = df, aes(x=popSize, y=popTrend, color = country, 
+                      shape = country, size = overall_impact_val)) +
   geom_point() +
-  scale_x_log10(label = comma) +
-  scale_colour_brewer(palette = "Reds")
-```
-
-```{r}
-ggplot(data=l1_threats, aes(x=impact_bin)) +
-  geom_histogram(stat="count", fill='blue') +
-  facet_wrap(~threat_abbrev, labeller = labeller(threat_abbrev = label_wrap_gen(15))) +
-  theme(axis.text.x = element_text(angle = 90))
+  scale_x_log10(label = comma) 
+  # scale_colour_brewer(palette = "Reds")
 ```
 
 ```{r}
@@ -62,15 +75,17 @@ sub_t_count <- threats %>% group_by(threat_abbrev) %>%
 
 s <- l1_threats %>% left_join(sub_t_count)
 
-s <- s %>% group_by(threat_abbrev,impact_bin, num_sub_t) %>% 
+s <- s %>% group_by(country, threat_abbrev,impact_bin, num_sub_t) %>% 
   summarize(count_instances = n()) %>% 
   # divide each l1 threat by number of l2 threats so that count of instances is standardized across l1 threats
   mutate(standardized = count_instances/num_sub_t)
 
-ggplot(data=s, aes(x=impact_bin, y=standardized)) +
-  geom_bar(stat='identity', fill='blue') +
+ggplot(data=s, aes(x=impact_bin, y=standardized, fill=country)) +
+  geom_bar(stat='identity') +
   facet_wrap(~threat_abbrev, labeller = labeller(threat_abbrev = label_wrap_gen(15))) +
-  theme(axis.text.x = element_text(angle = 90))
+  theme(axis.text.x = element_text(angle = 90), axis.text.y = element_blank()) +
+  xlab(NULL) +
+  ylab(NULL)
 ```
 
 ```{r G Rank data}
