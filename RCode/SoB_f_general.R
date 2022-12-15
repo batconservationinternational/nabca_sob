@@ -617,7 +617,7 @@ bin_impact <- function(scope, sev){
       sev %in% c("Serious or 31-70% pop. decline", "Extreme or 71-100% pop. decline") ~ "High",
     scope == "Pervasive (71-100%)" & sev == "Serious or 31-70% pop. decline" ~ "High",
     scope == "Pervasive (71-100%)" & sev == "Extreme or 71-100% pop. decline" ~ "Very High",
-    scope == "Negligible (<1%)" & sev == "Negligible or <1% pop. decline" ~ "Negligible",
+    scope == "Negligible (<1%)" | sev == "Negligible or <1% pop. decline" ~ "Negligible",
     scope == "Unknown" | sev == "Unknown" ~ "Unknown"
   )
   return(bin)
