@@ -62,11 +62,13 @@ l1_threats$impact_bin <- factor(l1_threats$impact_bin,
 ```{r}
 df <- pop_df %>% left_join(threats_df) 
 
-ggplot(data = df, aes(x=popSize, y=popTrend, color = country, 
+pop_plot <- ggplot(data = df, aes(x=popSize, y=popTrend, color = country, 
                       shape = country, size = overall_impact_val)) +
   geom_point() +
   scale_x_log10(label = comma) 
   # scale_colour_brewer(palette = "Reds")
+
+ggsave(here::here("visualizations", sprintf("%s_pop_plot.png", data_date)), plot=pop_plot)
 ```
 
 ```{r}
@@ -80,12 +82,14 @@ s <- s %>% group_by(country, threat_abbrev,impact_bin, num_sub_t) %>%
   # divide each l1 threat by number of l2 threats so that count of instances is standardized across l1 threats
   mutate(standardized = count_instances/num_sub_t)
 
-ggplot(data=s, aes(x=impact_bin, y=standardized, fill=country)) +
+threats_plot <- ggplot(data=s, aes(x=impact_bin, y=standardized, fill=country)) +
   geom_bar(stat='identity') +
   facet_wrap(~threat_abbrev, labeller = labeller(threat_abbrev = label_wrap_gen(15))) +
   theme(axis.text.x = element_text(angle = 90), axis.text.y = element_blank()) +
   xlab(NULL) +
   ylab(NULL)
+
+ggsave(here::here("visualizations", sprintf("%s_l1_threats_plot.png", data_date)), plot=threats_plot)
 ```
 
 ```{r G Rank data}
