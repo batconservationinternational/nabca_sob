@@ -4,9 +4,9 @@
 # Date of data export (YYYYMMDD)
 thisDataDate='20221116'
 # "United States", "Canada", or "Mexico"
-thisCountry = 'Mexico'
+thisCountry = 'Canada'
 # "US_CAN" or "MX"
-countryAbbr = 'MX'
+countryAbbr = 'US_CAN'
 
 OutputFolder = paste0(here::here(), '/Data/derived/AnalysisExport_', thisDataDate,
                       "_", thisCountry)
@@ -29,12 +29,12 @@ source(paste0(here::here(), '/RCode/SoB_1_formatData.R'))
 source(paste0(here::here(), '/RCode/SoB_2_analyzeQ.R'))
 source(paste0(here::here(), '/RCode/SoB_3_calcImpact.R'))
 source(paste0(here::here(), '/RCode/SoB_4_generateImpactPlots.R'))
+source(paste0(here::here(), '/RCode/SoB_6_threatBuckets.R'))
+source(paste0(here::here(), '/RCode/SoB_7_popBuckets.R'))
+source(paste0(here::here(), '/RCode/SoB_8_calcGRank.R'))
 source(paste0(here::here(), '/RCode/SoB_f_general.R'))
 source(paste0(here::here(), '/RCode/SoB_f_calcImpact.R'))
 source(paste0(here::here(), '/RCode/SoB_f_makeImpactPlot.R'))
-source(paste0(here::here(), '/RCode/SoB_f_threatBuckets.R'))
-source(paste0(here::here(), '/RCode/SoB_f_popBuckets.R'))
-source(paste0(here::here(), '/RCode/SoB_f_calcGRank.R'))
 
 options(scipen = 999)
 
@@ -209,7 +209,7 @@ impact_bins_out <- get_impact_bins(dataFolder = OutputFolder,
 impact_bins_path <- paste0(OutputFolder, "/impact_bins_", thisCountry, "_", thisDataDate, ".xlsx")
 write.xlsx(impact_bins_out, impact_bins_path)
 
-# Bin population size----------------------------------------------------------
+# Bin population size following NatureServe guidelines--------------------------
 pop_bins_out <- get_pop_bins(dataFolder = OutputFolder,
                             countrytoAnalyze = thisCountry,
                             dataDate = thisDataDate)
@@ -230,5 +230,7 @@ if (thisCountry=="Mexico"){
     rename(c("g_rank" = "Global Ranking"))
   g_rank_out <- g_rank_out %>% bind_rows(mx_g_ranks)
 }
+
 g_rank_path <- paste0(OutputFolder, "/g_rankings_", thisCountry, "_", thisDataDate, ".csv")
 write_csv(g_rank_out, g_rank_path)
+
