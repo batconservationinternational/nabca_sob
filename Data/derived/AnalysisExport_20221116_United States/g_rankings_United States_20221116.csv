@@ -1,0 +1,45 @@
+species,country,pop_size_bin,pop_trend_bin,overall_impact_val,range,g_rank
+NYCTINOMOPS_MACROTIS,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+MYOTIS_SEPTENTRIONALIS,United States,"10,000 - 100,000 individuals",Decline of 30-50%,Very High,">2,500,000",G3
+MYOTIS_SODALIS,United States,"100,000 - 1,000,000 individuals",Decline of 10-30%,Very High,"200,000-2,500,000",G3
+EPTESICUS_FUSCUS,United States,">1,000,000 individuals",Relatively Stable (<=10% change),Medium,">2,500,000",G5
+PERIMYOTIS_SUBFLAVUS,United States,"100,000 - 1,000,000 individuals",Decline of 70-80%,High,">2,500,000",G3
+MYOTIS_LEIBII,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Very High,"20,000-200,000",G3
+EUDERMA_MACULATUM,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+MYOTIS_YUMANENSIS,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,">2,500,000",G5
+EUMOPS_FLORIDANUS,United States,"1,000-2,500 individuals",Decline of 10-30%,Very High,"20,000-200,000",G2
+MYOTIS_CILIOLABRUM,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Very High,">2,500,000",G3
+IDIONYCTERIS_PHYLLOTIS,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+MYOTIS_VOLANS,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Very High,">2,500,000",G3
+MYOTIS_THYSANODES,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Very High,"200,000-2,500,000",G3
+ANTROZOUS_PALLIDUS,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,">2,500,000",G4
+CHOERONYCTERIS_MEXICANA,United States,"1,000-2,500 individuals",Relatively Stable (<=10% change),Very High,"20,000-200,000",G2
+CORYNORHINUS_TOWNSENDII,United States,"100,000 - 1,000,000 individuals",Decline of 10-30%,Very High,">2,500,000",G3
+MYOTIS_EVOTIS,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Very High,">2,500,000",G3
+EUMOPS_PEROTIS,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+EUMOPS_UNDERWOODI,United States,"1,000-2,500 individuals",Relatively Stable (<=10% change),High,"5,000-20,000",G2
+LASIONYCTERIS_NOCTIVAGANS,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Very High,">2,500,000",G3
+LASIURUS_BLOSSEVILLII,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Very High,"200,000-2,500,000",G3
+LEPTONYCTERIS_NIVALIS,United States,"2,500-10,000 individuals",Decline of 10-30%,Very High,"5,000-20,000",G2
+LEPTONYCTERIS_YERBABUENAE,United States,"10,000 - 100,000 individuals",Increase of 10-25%,Very High,"20,000-200,000",G3
+LASIURUS_CINEREUS,United States,">1,000,000 individuals",Decline of 10-30%,High,">2,500,000",G4
+LASIURUS_XANTHINUS,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+MACROTUS_CALIFORNICUS,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Very High,"20,000-200,000",G3
+MYOTIS_VELIFER,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Very High,"200,000-2,500,000",G3
+NYCTINOMOPS_FEMOROSACCUS,United States,"2,500-10,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+PARASTRELLUS_HESPERUS,United States,">1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+MYOTIS_AURICULUS,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Very High,"200,000-2,500,000",G3
+MORMOOPS_MEGALOPHYLLA,United States,"2,500-10,000 individuals",Relatively Stable (<=10% change),Very High,"20,000-200,000",G2
+MYOTIS_CALIFORNICUS,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,">2,500,000",G4
+LASIURUS_EGA,United States,"2,500-10,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G3
+LASIURUS_INTERMEDIUS,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+TADARIDA_BRASILIENSIS,United States,">1,000,000 individuals",Relatively Stable (<=10% change),Very High,">2,500,000",G4
+MYOTIS_OCCULTUS,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Very High,"200,000-2,500,000",G3
+MYOTIS_GRISESCENS,United States,">1,000,000 individuals",Increase of 10-25%,High,"200,000-2,500,000",G4
+MYOTIS_AUSTRORIPARIUS,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Very High,"200,000-2,500,000",G3
+MYOTIS_LUCIFUGUS,United States,"100,000 - 1,000,000 individuals",Decline of 50-70%,Very High,">2,500,000",G3
+CORYNORHINUS_RAFINESQUII,United States,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Very High,"200,000-2,500,000",G3
+LASIURUS_BOREALIS,United States,">1,000,000 individuals",Decline of 30-50%,Very High,">2,500,000",G4
+LASIURUS_SEMINOLUS,United States,">1,000,000 individuals",Relatively Stable (<=10% change),Very High,">2,500,000",G4
+NYCTICEIUS_HUMERALIS,United States,">1,000,000 individuals",Relatively Stable (<=10% change),Very High,">2,500,000",G4
+LASIURUS_SEMOTUS,United States,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Very High,"5,000-20,000",G3

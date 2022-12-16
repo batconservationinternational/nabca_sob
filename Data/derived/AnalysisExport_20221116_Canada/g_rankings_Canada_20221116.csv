@@ -1,0 +1,18 @@
+species,country,pop_size_bin,pop_trend_bin,overall_impact_val,range,g_rank
+EPTESICUS_FUSCUS,Canada,"100,000 - 1,000,000 individuals",Decline of 10-30%,High,">2,500,000",G4
+LASIURUS_BOREALIS,Canada,"100,000 - 1,000,000 individuals",Decline of 10-30%,Very High,">2,500,000",G3
+MYOTIS_LUCIFUGUS,Canada,"100,000 - 1,000,000 individuals",Decline of 50-70%,Very High,">2,500,000",G3
+MYOTIS_SEPTENTRIONALIS,Canada,"100,000 - 1,000,000 individuals",Decline of 70-80%,Very High,">2,500,000",G3
+EUDERMA_MACULATUM,Canada,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Very High,"20,000-200,000",G3
+PERIMYOTIS_SUBFLAVUS,Canada,"10,000 - 100,000 individuals",Decline of 50-70%,Very High,"200,000-2,500,000",G2
+LASIURUS_CINEREUS,Canada,"100,000 - 1,000,000 individuals",Decline of 30-50%,High,">2,500,000",G4
+MYOTIS_LEIBII,Canada,"10,000 - 100,000 individuals",Decline of 30-50%,Very High,"200,000-2,500,000",G3
+LASIONYCTERIS_NOCTIVAGANS,Canada,"100,000 - 1,000,000 individuals",Decline of 30-50%,Very High,">2,500,000",G3
+MYOTIS_VOLANS,Canada,"100,000 - 1,000,000 individuals",Increase of 10-25%,Very High,"200,000-2,500,000",G3
+MYOTIS_YUMANENSIS,Canada,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Very High,"200,000-2,500,000",G3
+MYOTIS_THYSANODES,Canada,"10,000 - 100,000 individuals",Decline of 10-30%,Very High,"20,000-200,000",G3
+MYOTIS_EVOTIS,Canada,"100,000 - 1,000,000 individuals",Increase of 10-25%,Very High,"200,000-2,500,000",G3
+MYOTIS_CILIOLABRUM,Canada,"10,000 - 100,000 individuals",Decline of 30-50%,Very High,"20,000-200,000",G2
+ANTROZOUS_PALLIDUS,Canada,"250-1,000 individuals",Decline of 50-70%,Very High,"1,000-5,000",G1
+CORYNORHINUS_TOWNSENDII,Canada,"2,500-10,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+MYOTIS_CALIFORNICUS,Canada,">1,000,000 individuals",Decline of 10-30%,Very High,"200,000-2,500,000",G4

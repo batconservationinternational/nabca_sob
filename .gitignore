@@ -10,7 +10,6 @@ RangeGraphs
 *.map
 *.png
 *.txt
-Derived
 *.pdf
 *.tex
 *.log

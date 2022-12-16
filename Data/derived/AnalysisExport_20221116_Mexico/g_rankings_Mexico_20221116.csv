@@ -1,0 +1,144 @@
+species,country,pop_size_bin,pop_trend_bin,overall_impact_val,range,g_rank
+CENTRONYCTERIS_CENTRALIS,Mexico,"2,500-10,000 individuals",Decline of 10-30%,High,"20,000-200,000",G3
+LASIURUS_CINEREUS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+TADARIDA_BRASILIENSIS,Mexico,">1,000,000 individuals",Relatively Stable (<=10% change),Very High,"200,000-2,500,000",G4
+MYOTIS_FORTIDENS,Mexico,"100,000 - 1,000,000 individuals",Decline of 10-30%,High,"200,000-2,500,000",G4
+PROMOPS_CENTRALIS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+LASIURUS_FRANTZII,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+ARTIBEUS_HIRSUTUS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+ARTIBEUS_JAMAICENSIS,Mexico,">1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G5
+CHROTOPTERUS_AURITUS,Mexico,"2,500-10,000 individuals",Decline of 10-30%,High,"200,000-2,500,000",G3
+ANTROZOUS_PALLIDUS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+CHOERONYCTERIS_MEXICANA,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+CHOERONISCUS_GODMANI,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+LAMPRONYCTERIS_BRACHYOTIS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+GARDNERYCTERIS_KEENANI,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+LONCHORHINA_AURITA,Mexico,"10,000 - 100,000 individuals",Decline of 10-30%,High,"200,000-2,500,000",G3
+CENTURIO_SENEX,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+TRACHOPS_CIRRHOSUS,Mexico,"10,000 - 100,000 individuals",Decline of 10-30%,High,"200,000-2,500,000",G3
+BALANTIOPTERYX_IO,Mexico,"100,000 - 1,000,000 individuals",Decline of 10-30%,High,"20,000-200,000",G4
+BAUERUS_DUBIAQUERCUS,Mexico,"10,000 - 100,000 individuals",Decline of 10-30%,High,"200,000-2,500,000",G3
+MYOTIS_OCCULTUS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+LOPHOSTOMA_BRASILIENSE,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+CAROLLIA_SUBRUFA,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+DERMANURA_AZTECA,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+DIAEMUS_YOUNGI,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G3
+CYNOMOPS_MEXICANUS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G4
+DICLIDURUS_ALBUS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+MIMON_COZUMELAE,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+ENCHISTHENES_HARTII,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+EPTESICUS_BRASILIENSIS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+THYROPTERA_TRICOLOR,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+LASIURUS_INTERMEDIUS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+GLOSSOPHAGA_MORENOI,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+HYLONYCTERIS_UNDERWOODI,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+GLOSSOPHAGA_LEACHII,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+EUMOPS_NANUS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G4
+GLYPHONYCTERIS_SYLVESTRIS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+LASIURUS_EGA,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+EUMOPS_UNDERWOODI,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+MACROPHYLLUM_MACROPHYLLUM,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),Very High,"20,000-200,000",G2
+MOLOSSUS_COIBENSIS,Mexico,"1,000-2,500 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G3
+MYOTIS_ALBESCENS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G4
+MYOTIS_ELEGANS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+MYOTIS_FINDLEYI,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),Medium,100-250,G3
+LOPHOSTOMA_EVOTIS,Mexico,"2,500-10,000 individuals",Decline of 10-30%,High,"20,000-200,000",G3
+LEPTONYCTERIS_NIVALIS,Mexico,"100,000 - 1,000,000 individuals",Decline of 10-30%,High,"200,000-2,500,000",G4
+MYOTIS_VELIFER,Mexico,">1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+LEPTONYCTERIS_YERBAGUENSIS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Very High,"200,000-2,500,000",G3
+EUDERMA_MACULATUM,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+CORYNORHINUS_MEXICANUS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+MYOTIS_VOLANS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+PERIMYOTIS_SUBFLAVUS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+SACCOPTERYX_LEPTURA,Mexico,"1,000-2,500 individuals",Relatively Stable (<=10% change),High,"5,000-20,000",G2
+EUMOPS_HANSAE,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G3
+VAMPYRODES_MAJOR,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G4
+VAMPYRESSA_THYONE,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+NOCTILIO_ALBIVENTRIS,Mexico,"1,000-2,500 individuals",Relatively Stable (<=10% change),Medium,"5,000-20,000",G3
+URODERMA_MAGNIROSTRUM,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+NOCTILIO_LEPORINUS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+LEPTONYCTERIS_YERBABUENAE,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+LASIURUS_BOREALIS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+IDIONYCTERIS_PHYLLOTIS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+LASIURUS_XANTHINUS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+CHIRODERMA_VILLOSUM,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+RHOGEESSA_GRACILIS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+NYCTINOMOPS_AURISPINOSUS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+MYOTIS_PENINSULARIS,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G3
+NYCTINOMOPS_FEMOROSACCUS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+NYCTICEIUS_HUMERALIS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G4
+MYOTIS_MELANORHINUS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+LASIONYCTERIS_NOCTIVAGANS,Mexico,"1,000-2,500 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G3
+MYOTIS_AURICULUS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G4
+MICRONYCTERIS_SCHMIDTORUM,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+URODERMA_DAVISI,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+PLATYRRHINUS_HELLERI,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+TONATIA_BAKERI,Mexico,"1,000-2,500 individuals",Relatively Stable (<=10% change),Medium,"5,000-20,000",G3
+EUMOPS_PEROTIS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+CHIRODERMA_SALVINI,Mexico,"100,000 - 1,000,000 individuals",Decline of 10-30%,High,"200,000-2,500,000",G4
+PTERONOTUS_GYMNONOTUS,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G3
+PHYLLODERMA_STENOPS,Mexico,"1,000-2,500 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+RHOGEESSA_ALLENI,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"200,000-2,500,000",G3
+RHOGEESSA_BICKHAMI,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),Medium,"5,000-20,000",G3
+RHOGEESSA_GENOWAYSI,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),Medium,"5,000-20,000",G3
+RHOGEESSA_MIRA,Mexico,"2,500-10,000 individuals",Relatively Stable (<=10% change),High,"5,000-20,000",G3
+TRINYCTERIS_NICEFORI,Mexico,50-250 individuals,Relatively Stable (<=10% change),Medium,"5,000-20,000",G2
+URODERMA_CONVEXUM,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G4
+EUMOPS_FEROX,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+MYOTIS_EVOTIS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),High,"20,000-200,000",G3
+MYOTIS_NIGRICANS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+EUMOPS_AURIPENDULUS,Mexico,"10,000 - 100,000 individuals",Relatively Stable (<=10% change),Medium,"20,000-200,000",G4
+MOLOSSUS_MOLOSSUS,Mexico,"100,000 - 1,000,000 individuals",Relatively Stable (<=10% change),Medium,"200,000-2,500,000",G4
+BALANTIOPTERYX_PLICATA,Mexico,NA,NA,NA,NA,G4
+PEROPTERYX_KAPPLERI,Mexico,NA,NA,NA,NA,G4
+PEROPTERYX_MACROTIS,Mexico,NA,NA,NA,NA,G4
+RHYNCHONYCTERIS_NASO,Mexico,NA,NA,NA,NA,G4
+SACCOPTERYX_BILINEATA,Mexico,NA,NA,NA,NA,G5
+ANOURA_GEOFFROYI,Mexico,NA,NA,NA,NA,G4
+ARTIBEUS_JAMAICENSIS,Mexico,NA,NA,NA,NA,G5
+ARTIBEUS_LITURATUS,Mexico,NA,NA,NA,NA,G5
+CAROLLIA_PERSPICILLATA,Mexico,NA,NA,NA,NA,G5
+CAROLLIA_SOWELLI,Mexico,NA,NA,NA,NA,G5
+DERMANURA_PHAEOTIS,Mexico,NA,NA,NA,NA,G5
+DERMANURA_TOLTECA,Mexico,NA,NA,NA,NA,G5
+DERMANURA_WATSONI,Mexico,NA,NA,NA,NA,G5
+DESMODUS_ROTUNDUS,Mexico,NA,NA,NA,NA,G5
+DIPHYLLA_ECAUDATA,Mexico,NA,NA,NA,NA,G4
+GLOSSOPHAGA_COMMISSARISI,Mexico,NA,NA,NA,NA,G5
+GLOSSOPHAGA_MUTICA,Mexico,NA,NA,NA,NA,G5
+LEPTONYCTERIS_YERBABUENAE,Mexico,NA,NA,NA,NA,G4
+MACROTUS_CALIFORNICUS,Mexico,NA,NA,NA,NA,G4
+MACROTUS_WATERHOUSII,Mexico,NA,NA,NA,NA,G4
+MICRONYCTERIS_MICROTIS,Mexico,NA,NA,NA,NA,G4
+PHYLLOSTOMUS_DISCOLOR,Mexico,NA,NA,NA,NA,G4
+STURNIRA_HONDURENSIS,Mexico,NA,NA,NA,NA,G5
+STURNIRA_PARVIDENS,Mexico,NA,NA,NA,NA,G5
+PTERONOTUS_FULVUS,Mexico,NA,NA,NA,NA,G4
+PTERONOTUS_MESOAMERICANUS,Mexico,NA,NA,NA,NA,G5
+PTERONOTUS_MEXICANUS,Mexico,NA,NA,NA,NA,G5
+PTERONOTUS_PSILOTIS,Mexico,NA,NA,NA,NA,G5
+NATALUS_MEXICANUS,Mexico,NA,NA,NA,NA,G4
+MOLOSSUS_ALVAREZI,Mexico,NA,NA,NA,NA,G5
+MOLOSSUS_AZTECUS,Mexico,NA,NA,NA,NA,G5
+MOLOSSUS_NIGRICANS,Mexico,NA,NA,NA,NA,G5
+MOLOSSUS_SINALOAE,Mexico,NA,NA,NA,NA,G5
+NYCTINOMOPS_LATICAUDATUS,Mexico,NA,NA,NA,NA,G5
+EPTESICUS_FURINALIS,Mexico,NA,NA,NA,NA,G4
+MYOTIS_CALIFORNICUS,Mexico,NA,NA,NA,NA,G5
+MYOTIS_PILOSATIBIALIS,Mexico,NA,NA,NA,NA,G5
+MYOTIS_NIGRICANS,Mexico,NA,NA,NA,NA,G5
+RHOGEESSA_AENEUS,Mexico,NA,NA,NA,NA,G4
+RHOGEESSA_PARVULA,Mexico,NA,NA,NA,NA,G4
+RHOGEESSA_TUMIDA,Mexico,NA,NA,NA,NA,G4
+CHOERONYCTERIS_MEXICANA,Mexico,NA,NA,NA,NA,G2
+CHROTOPTERUS_AURITUS,Mexico,NA,NA,NA,NA,G2
+LEPTONYCTERIS_NIVALIS,Mexico,NA,NA,NA,NA,G2
+LICHONYCTERIS_OBSCURA,Mexico,NA,NA,NA,NA,G2
+MUSONYCTERIS_HARRISONI,Mexico,NA,NA,NA,NA,G1
+TRACHOPS_CIRRHOSUS,Mexico,NA,NA,NA,NA,G2
+VAMPYRUM_SPECTRUM,Mexico,NA,NA,NA,NA,G2
+NOCTILIO_ALBIVENTRIS,Mexico,NA,NA,NA,NA,G2
+MYOTIS_PLANICEPS,Mexico,NA,NA,NA,NA,G1
+MYOTIS_VIVESI,Mexico,NA,NA,NA,NA,G2
+PHYLLOPS_FALCATUS,Mexico,NA,NA,NA,NA,G1
+CHIRODERMA_SCOPAEUM,Mexico,NA,NA,NA,NA,G3
