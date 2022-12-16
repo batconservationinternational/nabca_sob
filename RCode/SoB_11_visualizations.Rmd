@@ -10,6 +10,7 @@ library(tidyverse)
 library(readxl)
 library(plotly)
 library(htmlwidgets)
+library(flextable)
 ```
 
 ```{r}
@@ -57,6 +58,16 @@ for (i in countries){
 l1_threats$impact_bin <- factor(l1_threats$impact_bin,
                                        levels = c("Negligible", "Low", "Medium",
                                                   "High", "Very High"))
+
+# Load and format continuous impact threat scores
+l1_impact <- data.frame()
+for (i in countries){
+  l1_impact_add <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_%s/threat_quantiles_agg_%s_%s.csv", data_date, i, i, data_date)) %>% 
+    separate(question, into=c('level_1','level_2'), sep="_") %>% 
+    left_join(threats, by=c("level_1"="Q_group", "level_2"="Q_sub")) %>% 
+    mutate(country = i)
+  l1_impact <- l1_impact %>% bind_rows(l1_impact_add) 
+}
 ```
 
 ```{r}
@@ -69,6 +80,8 @@ pop_plot <- ggplot(data = df, aes(x=popSize, y=popTrend, color = country,
   # scale_colour_brewer(palette = "Reds")
 
 ggsave(here::here("visualizations", sprintf("%s_pop_plot.png", data_date)), plot=pop_plot)
+
+pop_plotly <- ggplotly(pop_plot)
 
 pop_plot
 ```
@@ -118,5 +131,27 @@ g_rank_plotly <- ggplotly(g_rank_bar, tooltip='fill')
 
 htmlwidgets::saveWidget(g_rank_plotly, 
                         sprintf("%s/visualizations/%s_g_rank.html", here::here(), data_date))
+```
+
+```{r}
+species_top_threats <- l1_impact %>% group_by(country, species, Threat) %>% 
+  summarise(impact = sum(Median))
+
+top_l1_threats <- species_top_threats %>% group_by(country, Threat) %>% 
+  summarise(impact=sum(impact)) %>% 
+  mutate(rank = rank(-impact)) %>% select(-impact) %>% 
+  pivot_wider(names_from = country, values_from = rank) %>% 
+  arrange(Canada, Mexico, `United States`)
+
+ft <- flextable(top_l1_threats) %>% 
+  bg(j = c(2,3,4), bg = scales::col_numeric(palette = "Reds", domain = c(1, 12), 
+                                            reverse = T)) %>% 
+  color(color = "white", part = "all") %>% 
+  bg(bg = "black", j=1) %>% 
+  bg(bg = "black", part = "header") 
+
+ft
+
+save_as_image(ft, "/Users/ngoodby/Downloads/threats.png", zoom = 3, expand = 10, webshot = "webshot")
 ```
 
