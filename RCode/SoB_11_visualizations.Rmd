@@ -110,29 +110,6 @@ ggsave(here::here("visualizations", sprintf("%s_l1_threats_plot.png", data_date)
 threats_plot
 ```
 
-```{r G Rank data}
-# Load and format G Rankings
-g_rank_us <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_United States/g_rankings_United States_%s.csv", data_date, data_date))
-g_rank_ca <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_Canada/g_rankings_Canada_%s.csv", data_date, data_date))
-g_rank_mx <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_Mexico/g_rankings_Mexico_%s.csv", data_date, data_date))
-
-g_rank_df <- g_rank_us %>% bind_rows(g_rank_ca) %>% bind_rows(g_rank_mx)
-```
-
-```{r}
-g_rank_bar <- ggplot(data=g_rank_df, aes(x=g_rank, fill=species)) +
-  geom_histogram(stat="count") +
-  facet_wrap(~country) +
-  xlab(NULL) +
-  ylab("Count of Species") +
-  theme(legend.position="none")
-
-g_rank_plotly <- ggplotly(g_rank_bar, tooltip='fill')
-
-htmlwidgets::saveWidget(g_rank_plotly, 
-                        sprintf("%s/visualizations/%s_g_rank.html", here::here(), data_date))
-```
-
 ```{r}
 species_top_threats <- l1_impact %>% group_by(country, species, Threat) %>% 
   summarise(impact = sum(Median))
@@ -155,3 +132,91 @@ ft
 save_as_image(ft, "/Users/ngoodby/Downloads/threats.png", zoom = 3, expand = 10, webshot = "webshot")
 ```
 
+```{r}
+top_mx <- species_top_threats %>% group_by(country, Threat) %>% 
+  summarise(impact=sum(impact)) %>% filter(country=="Mexico") %>% 
+  arrange(desc(impact)) %>% rename(c("Mexico"="Threat")) %>% ungroup() %>% 
+  select(-impact, -country) 
+top_us <- species_top_threats %>% group_by(country, Threat) %>% 
+  summarise(impact=sum(impact)) %>% filter(country=="United States") %>% 
+  arrange(desc(impact)) %>% rename(c("United States"="Threat")) %>% ungroup() %>% 
+  select(-impact, -country) 
+top_ca <- species_top_threats %>% group_by(country, Threat) %>% 
+  summarise(impact=sum(impact)) %>% filter(country=="Canada") %>% 
+  arrange(desc(impact)) %>% rename(c("Canada"="Threat")) %>% ungroup() %>% 
+  select(-impact, -country) 
+top_threat_names <- top_mx %>% bind_cols(top_us, top_ca) %>% 
+  mutate(Ranking = seq(1:nrow(top_mx)), .before=1)
+
+library(gt)
+library(webshot2)
+
+gt <- gt(top_threat_names) %>% 
+  tab_header(
+    title = md("**Level 1 Threat Rankings**")
+  ) %>% 
+  tab_options(
+    column_labels.background.color = "lightcyan",
+    heading.background.color = "darkcyan"
+  ) %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+) %>% 
+  cols_label(
+    Ranking = md("**Rank**"),
+    Mexico = md("**Mexico**"),
+    `United States` = md("**United States**"),
+    Canada = md("**Canada**")
+  )
+gt
+
+gtsave(gt, "/Users/ngoodby/Downloads/threats.png")
+```
+
+```{r}
+# most impacted species for each threat in each country
+top_spp_per_threat <- species_top_threats %>% 
+  mutate(species = str_to_sentence(species)) %>%
+  mutate(species = str_replace(species, "_", " ")) %>% 
+  group_by(country, species, Threat) %>% 
+  summarise(impact=sum(impact)) %>% ungroup() %>% 
+  group_by(country, Threat) %>% filter(impact==max(impact)) %>% 
+  select(-impact) %>% 
+  pivot_wider(names_from = country, values_from = species)
+ft <- flextable(top_spp_per_threat) %>% 
+  italic(j = 2:4, italic = TRUE, part = "body") %>% 
+  autofit() %>% 
+  bg(bg="white", part="all")
+
+save_as_image(ft, "/Users/ngoodby/Downloads/top_spp.png", zoom = 3, expand = 10, webshot = "webshot")
+```
+
+```{r G Rank data}
+# Load and format G Rankings
+g_rank_us <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_United States/g_rankings_United States_%s.csv", data_date, data_date))
+g_rank_ca <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_Canada/g_rankings_Canada_%s.csv", data_date, data_date))
+g_rank_mx <- read_csv(sprintf("/Users/ngoodby/Desktop/nabca_sob/Data/derived/AnalysisExport_%s_Mexico/g_rankings_Mexico_%s.csv", data_date, data_date))
+
+g_rank_df <- g_rank_us %>% bind_rows(g_rank_ca) %>% bind_rows(g_rank_mx)
+```
+
+```{r}
+top_threat_per_spp <- species_top_threats %>% 
+  group_by(country, species) %>% filter(impact==max(impact)) %>% 
+  rename(c("top_threat"="Threat")) %>% select(-impact)
+
+g_rank_df <- g_rank_df %>% left_join(top_threat_per_spp)
+
+g_rank_bar <- ggplot(data=g_rank_df, aes(x=g_rank, fill=top_threat)) +
+  geom_histogram(stat="count") +
+  facet_wrap(~country) +
+  xlab(NULL) +
+  ylab("Count of Species") 
+  # theme(legend.position="none")
+
+g_rank_plotly <- ggplotly(g_rank_bar, tooltip='fill')
+
+htmlwidgets::saveWidget(g_rank_plotly, 
+                        sprintf("%s/visualizations/%s_g_rank.html", here::here(), data_date))
+```
