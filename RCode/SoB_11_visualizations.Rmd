@@ -133,6 +133,53 @@ save_as_image(ft, "/Users/ngoodby/Downloads/threats.png", zoom = 3, expand = 10,
 ```
 
 ```{r}
+# Level 2 threat rankings
+species_top_l2 <- l1_impact %>% group_by(country, species, Threat, subT) %>% 
+  summarise(impact = sum(Median))
+
+top_mx <- species_top_l2 %>% group_by(country, subT) %>% 
+  summarise(impact=sum(impact)) %>% filter(country=="Mexico") %>% 
+  arrange(desc(impact)) %>% rename(c("Mexico"="subT")) %>% ungroup() %>% 
+  select(-impact, -country) 
+top_us <- species_top_l2 %>% group_by(country, subT) %>% 
+  summarise(impact=sum(impact)) %>% filter(country=="United States") %>% 
+  arrange(desc(impact)) %>% rename(c("United States"="subT")) %>% ungroup() %>% 
+  select(-impact, -country) 
+top_ca <- species_top_l2 %>% group_by(country, subT) %>% 
+  summarise(impact=sum(impact)) %>% filter(country=="Canada") %>% 
+  arrange(desc(impact)) %>% rename(c("Canada"="subT")) %>% ungroup() %>% 
+  select(-impact, -country) 
+top_threat_names <- top_mx %>% bind_cols(top_us, top_ca) %>% 
+  mutate(Ranking = seq(1:nrow(top_mx)), .before=1)
+
+library(gt)
+library(webshot2)
+
+gt <- gt(top_threat_names) %>% 
+  tab_header(
+    title = md("**Level 2 Threat Rankings**")
+  ) %>% 
+  tab_options(
+    column_labels.background.color = "lightcyan",
+    heading.background.color = "darkcyan"
+  ) %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+) %>% 
+  cols_label(
+    Ranking = md("**Rank**"),
+    Mexico = md("**Mexico**"),
+    `United States` = md("**United States**"),
+    Canada = md("**Canada**")
+  )
+gt
+gtsave(gt, "/Users/ngoodby/Downloads/threats_l2.png")
+```
+
+
+```{r}
+# Level 1 threat rankings
 top_mx <- species_top_threats %>% group_by(country, Threat) %>% 
   summarise(impact=sum(impact)) %>% filter(country=="Mexico") %>% 
   arrange(desc(impact)) %>% rename(c("Mexico"="Threat")) %>% ungroup() %>% 
